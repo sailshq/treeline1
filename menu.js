@@ -80,9 +80,9 @@ module.exports = function (victim) {
 
 			// If choice is not handled in CLI code,
 			// use the wildcard exit, '*'
-			if (!chosenExit) return exits['*'](choice);
+			if (!chosenExit) return exits['*'](choice, choseIndex);
 			
-			exits[choice]();
+			exits[choice](choice, choseIndex);
 		});
 
 

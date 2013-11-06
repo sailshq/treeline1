@@ -7,6 +7,7 @@
 var program = require('commander'),
 		prompt = require('prompt'),
 		async = require('async'),
+		Sails = require('sails/lib/app'),
 		util = require('sails/util'),
 		path = require('path'),
 		fs = require('fs');
@@ -62,17 +63,16 @@ async.auto({
 	apps: ['login', fetchApps],
 
 	// Ask user to pick an app
-	_chooseApp: ['apps', doChooseApp],
+	chooseApp: ['apps', doChooseApp],
 
-	// TODO: run app
+	_runApp: ['chooseApp', runApp]
 	
 
 }, function done (err, data) {
-	// Done.
 	if (err) {
 		return log.error(err);
 	}
-	return log(null, data);
+	// Done.
 });
 
 
@@ -242,10 +242,8 @@ function doChooseApp (cb, data) {
 		apps,
 		{
 
-			'*': function ( choice ){
-
-				log('You chose ' + choice + '!');
-				cb(null, choice);
+			'*': function ( choice, index ){
+				cb(null, data.apps[index]);
 			}
 
 		});
@@ -253,7 +251,29 @@ function doChooseApp (cb, data) {
 
 
 
+function runApp (cb, data) {
+	log.verbose('Running project #', data.chooseApp.id);
+	var projectID = data.chooseApp.id;
 
+	// Start sails and pass it command line arguments
+	var sails = new Sails();
+	sails.lift({
+		shipyard: {
+			src: {
+				secret: data.credentials.secret,
+				url: data.config.shipyardURL + '/' + projectID + '/modules'
+			}
+		},
+		hooks: {
+			moduleloader: require('sailshook-shipyard-moduleloader'),
+			shipyard: require('sailshook-shipyard'),
+			controllers: false,
+			policies: false,
+			services: false,
+			userhooks: false
+		}
+	}, cb);
+}
 
 
 

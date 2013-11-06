@@ -23,9 +23,13 @@ module.exports = {
 		return _fetch({
 			url: options.baseURL + '/yarr/apps',
 			method: 'get',
-			headers: {
-				'x-auth-yarr': options.secret
+			qs: {
+				secret: options.secret
 			}
+			// TODO: add this back in - requires socket interpreter work.
+			// headers: {
+			// 	'x-auth-yarr': options.secret
+			// }
 		}, cb);
 	}
 };
