@@ -18,6 +18,7 @@ module.exports = (function ( ) {
 
 	// Returns a configured log function using closure arg
 	function _logFactory ( color ) {
+		
 		// Private generic log fn
 		// Basically just a colorized version of console.log()
 		return function _log ( /* things to log */ ) {

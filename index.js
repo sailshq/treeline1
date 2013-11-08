@@ -108,7 +108,9 @@ program
 
 		// Check that shipyard.json doesn't already exist
 		if (fs.existsSync(jsonPath)) {
-			return util.parseJSONFile(jsonPath, function (err, linkedProject){
+
+			// TODO: remove the `exists` check-- leads to transactional race conditions.
+			return fse.readJSON(jsonPath, function (err, linkedProject){
 				// log.error('Failed to create link in current directory.');
 				if (err) {
 					log.error('Hmm... This directory\'s linkfile appears to be corrupted...');
@@ -316,26 +318,19 @@ program
  */
 function readConfig (cb) {
 	var cliConfigPath = path.resolve(__dirname, PATH_TO_USERCONFIG);
-	util.parseJSONFile(cliConfigPath, function (err, config) {
-		
+	fse.readJSON(cliConfigPath, function (err, config) {
 		// If an error occured, the config file probably doesn't exist.
 		// So try creating it
 		if (err) {
 
-			// Use defaults
-			config = util.stringify(CLI_CONFIG_DEFAULTS);
-			
-			// If stringification failed, give up
-			if (!config) return cb('Could not stringify Shipyard config file.');
-
 			// Write to disk
 			log.verbose('Saving CLI config to ' + cliConfigPath + '...');
-			fs.writeFile(cliConfigPath, config, function (err) {
+			fse.outputJSON(cliConfigPath, CLI_CONFIG_DEFAULTS, function (err) {
 				if (err) {
-					log.error('Could not save `.cliconfig.json` config file for this command-line tool in the directory where Shipyard is installed.');
-					return cb('Error :: ' + util.inspect(err));
+					log.error('Could not stringify and/or save `.cliconfig.json` config file for this command-line tool in the directory where Shipyard is installed.');
+					return cb(err);
 				}
-				return cb(null, CLI_CONFIG_DEFAULTS);
+				return cb();
 			});
 			return;
 		}
@@ -365,7 +360,7 @@ function readSecret (cb) {
 	var pathToCredentials = conf.config.pathToCredentials;
 	pathToCredentials = path.resolve(conf.config.pathToCredentials);
 
-	util.parseJSONFile(pathToCredentials, function (err, credentials) {
+	fse.readJSON(pathToCredentials, function (err, credentials) {
 		
 		// If an error occured, the secret file probably doesn't exist
 		// at the configured location. So prompt user to log in
@@ -464,13 +459,12 @@ function doLogin (cb) {
 				username: response.username || '???'
 			};
 			
-			// If login was successful sringify and write the credentials file to disk
-			var stringifiedCredentials = util.stringify(credentials);
-			if (!stringifiedCredentials) return cb('Could not stringify credentials file.');
-			fs.writeFile(path.resolve(conf.config.pathToCredentials), stringifiedCredentials, function (err) {
+			// If login was successful stringify and write the credentials file to disk
+			fse.outputJSON( path.resolve(conf.config.pathToCredentials),
+				credentials, function (err) {
 				if (err) {
 					log.error('Login failed.');
-					log('Could not save Shipyard credentials file in the configured directory ('+pathToCredentials+')');
+					log('Could not stringify and/or save Shipyard credentials file in the configured directory ('+pathToCredentials+')');
 					log('That directory may not exist, or there could be a permissions issue.'.grey);
 					return cb(util.inspect(err));
 				}
@@ -679,16 +673,13 @@ function writeLinkfile (cb) {
 	}, function (err) {
 		if (err) return cb(err);
 
-		// Write the linkfile to disk
-		var json = util.stringify(conf.targetProject);
-		if (!json) return log.error('Invalid project id ('+conf.targetProject.id+')-- could not stringify.');
 		
 		// Determine expected location of shipyard.json file
 		var jsonPath = process.cwd() + '/shipyard.json';
 		jsonPath = path.resolve(jsonPath);
 
-		// Then just write it
-		fs.writeFile(jsonPath, json, cb);
+		// Then write the linkfile to disk
+		fse.outputJSON(jsonPath, conf.targetProject, cb);
 	});
 }
 
@@ -727,7 +718,7 @@ function readLink (cb) {
 	var jsonPath = process.cwd() + '/shipyard.json';
 	jsonPath = path.resolve(jsonPath);
 
-	util.parseJSONFile(jsonPath, function (err, json){
+	fse.readJSON(jsonPath, function (err, json){
 		if (err) {
 		
 			// If the file simply doesn't exist, we won't call this an error
