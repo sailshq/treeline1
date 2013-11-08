@@ -60,6 +60,11 @@ module.exports = function (victim) {
 		log (msg);
 		log ();
 
+		// Customize the prompt.
+		//
+		prompt.message = '>'.yellow;
+		prompt.delimiter = '';
+
 
 		// Display the menu choices
 		//

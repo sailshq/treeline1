@@ -10,7 +10,8 @@ var program = require('commander'),
 	Sails = require('sails/lib/app'),
 	util = require('sails/util'),
 	path = require('path'),
-	fs = require('fs');
+	fs = require('fs'),
+	fse = require('fs-extra');
 
 // Shipyard api wrapper
 var api = require('./api');
@@ -133,8 +134,8 @@ program
 			if (err) return log.error(err);
 
 			log();
-			logHR();
-			log('Directory is now linked to ' + ('"'+conf.selectedApp.fullName+'"').cyan + '    ' + (''+conf.selectedApp.url).grey);
+			_logHR();
+			log('Directory is now linked to ' + ('"'+conf.targetProject.fullName+'"').cyan + '    ' + (''+conf.targetProject.url).grey);
 			log('Run `yarr preview` to run the preview server.');
 			log(('Created linkfile at: '+jsonPath).grey);
 			// log('Would you like to link it with a different project?');
@@ -164,7 +165,7 @@ program
 				return _done();
 			}
 			log();
-			logHR();
+			_logHR();
 			log('Link removed.');
 			log(('This directory is no longer linked to a Shipyard project.').grey);
 			log(('Removed linkfile: '+jsonPath).grey);
@@ -218,7 +219,7 @@ program
 		{
 			'*': function ( choice, index ){
 				log();
-				logHR();
+				_logHR();
 				log.error('Not implemented yet!');
 				return;
 			}
@@ -232,9 +233,48 @@ program
 	.description('compile project into a deployable Node.js server')
 	.action(function () {
 		log();
-		logHR();
+		_logHR();
 		log.error('Not implemented yet!');
 		return;
+	});
+
+
+
+// $ yard status
+program
+	.command('status')
+	.description('info about the Shipyard project in the current directory')
+	.action(function () {
+		async.auto({
+			config: readConfig,
+			credentials: ['config', readSecret],
+			target: ['credentials', readLink],
+			logStatus: ['target', function (cb) {
+				log();
+				log('=='.yellow+' Shipyard Status '+'=='.yellow);
+
+				// Account information
+				if (!conf.credentials) {
+					log('This computer is not currently logged in to Shipyard.'.grey);
+				}
+				else {
+					log('This computer is logged-in to Shipyard as '+((conf.credentials.username).cyan)+ '.');
+				}
+				// log();
+				
+				// Project information
+				if (!conf.targetProject) {
+					log(('This directory (' + process.cwd() + ') is not linked to a Shipyard app.').grey);
+				}
+				else {
+					log('This directory is linked to '+((''+conf.targetProject.fullName).cyan) + '.');
+				}
+
+				// Done.
+				cb();
+
+			}]
+		}, _done);
 	});
 
 
@@ -389,7 +429,7 @@ function doLogin (cb) {
 		if (err) {
 			// Fail silently on cancel (user presses CTRL+C)
 			if (err.message === 'canceled') {
-				log('-_-'.grey,'\n');
+				log('\n');
 				return;
 			}
 			return cb(err);
@@ -436,7 +476,7 @@ function doLogin (cb) {
 				}
 
 				log();
-				logHR();
+				_logHR();
 				log('This computer is now logged in to Shipyard as '+((credentials.username).cyan));
 				log(('Shipyard credentials were saved in `'+conf.config.pathToCredentials+'`').grey);
 				log('You can change the location of this file by running `yarr configure`'.grey);
@@ -450,7 +490,7 @@ function doLogin (cb) {
 
 
 function doChooseApp (cb) {
-	if (conf.selectedApp) return cb();
+	if (conf.targetProject) return cb();
 
 	fetchApps(function (err) {
 		if (err) return cb(err);
@@ -471,7 +511,7 @@ function doChooseApp (cb) {
 		apps,
 		{
 			'*': function ( choice, index ){
-				conf.selectedApp = conf.projects[index];
+				conf.targetProject = conf.projects[index];
 				cb();
 			}
 		});
@@ -484,12 +524,12 @@ function doChooseApp (cb) {
 function runApp (cb) {
 	if (conf.runningApp) return cb('Preview server is already running!');
 
-	var projectName = (conf.selectedApp.fullName).cyan;
+	var projectName = (conf.targetProject.fullName).cyan;
 	
 	log();
 	log('Running ' + projectName + '...');
 	
-	logHR();
+	_logHR();
 	log('Preview server is warming up...'.yellow);
 	log('(hit <CTRL+C> to cancel at any time)');
 	log();
@@ -525,7 +565,7 @@ function runApp (cb) {
 		shipyard: {
 			src: {
 				secret: conf.credentials.secret,
-				url: conf.config.shipyardURL + '/' + conf.selectedApp.id + '/modules'
+				url: conf.config.shipyardURL + '/' + conf.targetProject.id + '/modules'
 			}
 		},
 		hooks: {
@@ -573,7 +613,7 @@ function logout (cb) {
 		}
 
 		log();
-		logHR();
+		_logHR();
 		log('This computer has been logged out of Shipyard.');
 		log(('Shipyard credentials were erased from `' + pathToCredentials + '`').grey);
 		return cb();
@@ -640,8 +680,8 @@ function writeLinkfile (cb) {
 		if (err) return cb(err);
 
 		// Write the linkfile to disk
-		var json = util.stringify(conf.selectedApp);
-		if (!json) return log.error('Invalid project id ('+conf.selectedApp.id+')-- could not stringify.');
+		var json = util.stringify(conf.targetProject);
+		if (!json) return log.error('Invalid project id ('+conf.targetProject.id+')-- could not stringify.');
 		
 		// Determine expected location of shipyard.json file
 		var jsonPath = process.cwd() + '/shipyard.json';
@@ -656,7 +696,7 @@ function writeLinkfile (cb) {
 
 
 function acquireLink (cb) {
-	if (conf.selectedApp) return cb();
+	if (conf.targetProject) return cb();
 
 	async.auto({
 
@@ -681,24 +721,29 @@ function acquireLink (cb) {
 
 
 function readLink (cb) {
-	if (conf.selectedApp) return cb();
+	if (conf.targetProject) return cb();
 
 	// Determine expected location of shipyard.json file
 	var jsonPath = process.cwd() + '/shipyard.json';
 	jsonPath = path.resolve(jsonPath);
 
-	// If file does not exist, exit silently.
-	if (!fs.existsSync(jsonPath)) return cb();
-
 	util.parseJSONFile(jsonPath, function (err, json){
 		if (err) {
+		
+			// If the file simply doesn't exist, we won't call this an error
+			// instead, exit silently
+			if (err instanceof Error && err.errno===34) {
+				return cb();
+			}
+
+			// If some other sort of error occurred, we'll assume the file is corrupted.
 			log.error('Linkfile in current directory is corrupted.');
 			log.error('Please run `yarr unlink` here, then try again.'.grey);
 			return cb(err);
 		}
 
 		// Save reference to target
-		conf.selectedApp = json;
+		conf.targetProject = json;
 
 		cb();
 	});
@@ -715,7 +760,9 @@ function _done (err) {
 
 
 
-function logHR() {
+function _logHR() {
 	log();
 	log('--'.grey);
 }
+
+
