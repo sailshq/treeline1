@@ -11,7 +11,10 @@ var STRINGS = {
 	'Looks like you don\'t have access to any apps.',
 
 	CHOOSE_APP_TO_LIFT:
-	'Please choose an app to preview   ' + '(or hit <CTRL+C> to cancel)'.grey
+	' ::::::::::::::::::::::::::::::::::::::::::::::::::::::'+'\n'+
+	' :::: Choose One of Your Projects :::::::::::::::::::::'+'\n'+
+	' ::::::::::::::::::::::::::::::::::::::::::::::::::::::'
+	//'   ' + '(or hit <CTRL+C> to cancel)'.grey
 
 
 

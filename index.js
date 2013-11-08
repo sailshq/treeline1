@@ -41,12 +41,16 @@ var CLI_CONFIG_DEFAULTS = {
 
 // Customize the prompt.
 //
-prompt.message = '>'.cyan;
+prompt.message = '>'.yellow;
 prompt.delimiter = '';
 
 program
 	.version('0.0.1');
 
+
+// The `conf` global is shared throughout the CLI utility
+// This was used instead of async.auto's `data` argument to avoid repetetive code.
+var conf = {};
 
 
 
@@ -72,14 +76,15 @@ program
 			config: readConfig,
 
 			// Look up the secret on the user's system
-			credentials: ['config', function (cb, data) {
-				readSecret(function (err, credentials) {
+			credentials: ['config', function (cb) {
+				readSecret(function (err) {
 					if (err) return cb(err);
-					if (credentials) {
-						log(('You are already logged in as '+((credentials.username).cyan)+'.').grey);
+					if (conf.credentials) {
+						log();
+						log(('You are already logged in as '+((conf.credentials.username).cyan)+'.').grey);
 					}
-					cb(null, credentials);
-				}, data);
+					cb();
+				});
 			}],
 
 			// Log in
@@ -96,7 +101,78 @@ program
 	.description('link current dir to one of your projects')
 	.action(function () {
 
+		// Determine expected location of shipyard.json file
+		var jsonPath = process.cwd() + '/shipyard.json';
+		jsonPath = path.resolve(jsonPath);
+
+		// Check that shipyard.json doesn't already exist
+		if (fs.existsSync(jsonPath)) {
+			return util.parseJSONFile(jsonPath, function (err, linkedProject){
+				// log.error('Failed to create link in current directory.');
+				if (err) {
+					log.error('Hmm... This directory\'s linkfile appears to be corrupted...');
+					log.error('Please run `yarr unlink` to remove it, then try linking again.'.grey);
+					return _done(err);
+				}
+				// log('A linkfile already exists in this directory...'.grey);
+				log();
+				log(('This directory is currently linked to project ' + (''+linkedProject.id).cyan) + ' on Shipyard.');
+				log('If you want to link it to a different backend, please run `yarr unlink` first.'.grey);
+				log('NOTE: Unlinking a directory does not affect its views or assets directories.'.grey);
+				return _done();
+			});
+		}
+
+
+		// TODO: Create views directory
+		// TODO: Create assets directory
+		// TODO: If either exists, warn user that the front-end stuff in there may not match up with the app they're linking.
+
+		// Create shipyard.json file
+		writeLinkfile(function (err) {
+			if (err) return log.error(err);
+
+			log();
+			logHR();
+			log('Directory is now linked to ' + ('"'+conf.selectedApp.fullName+'"').cyan + '    ' + (''+conf.selectedApp.url).grey);
+			log('Run `yarr preview` to run the preview server.');
+			log(('Created linkfile at: '+jsonPath).grey);
+			// log('Would you like to link it with a different project?');
+			// log('Any files in this directory, e.g. views and assets, will be left alone.'.grey);
+			
+			_done();
+
+		}, {});
+
 	});
+
+
+// $ yard unlink
+program
+	.command('unlink')
+	.description('wipe Shipyard link from the current dir')
+	.action(function () {
+
+		// Lookup location of shipyard.json file
+		var jsonPath = process.cwd() + '/shipyard.json';
+		jsonPath = path.resolve(jsonPath);
+
+		fs.unlink(jsonPath, function (err) {
+			if (err) {
+				log();
+				log('This directory is not linked to a Shipyard app.'.grey);
+				return _done();
+			}
+			log();
+			logHR();
+			log('Link removed.');
+			log(('This directory is no longer linked to a Shipyard project.').grey);
+			log(('Removed linkfile: '+jsonPath).grey);
+
+			_done();
+		});
+	});
+
 
 
 // $ yard preview
@@ -104,23 +180,20 @@ program
 	.command('preview')
 	.description('preview the app in the current dir')
 	.action(function () {
+
 		async.auto({
 
-			// Load config
+			// Get CLI config
 			config: readConfig,
 
-			// Use cached credentials or enter login flow
-			credentials: authenticate,
+			// Get login credentials
+			credentials: ['config', authenticate],
 
-			// Fetch apps available to this user from shipyard server
-			// or prompt user for login credentials if necessary.
-			apps: ['credentials', fetchApps],
+			// Figure out which project to lift
+			target: ['credentials', acquireLink],
 
-			// Ask user to pick an app
-			chooseApp: ['apps', doChooseApp],
-
-			_runApp: ['chooseApp', runApp]
-			
+			// Lift app
+			_runApp: ['target', runApp]
 
 		}, _done);
 		
@@ -144,6 +217,8 @@ program
 		],
 		{
 			'*': function ( choice, index ){
+				log();
+				logHR();
 				log.error('Not implemented yet!');
 				return;
 			}
@@ -156,21 +231,14 @@ program
 	.command('compile')
 	.description('compile project into a deployable Node.js server')
 	.action(function () {
+		log();
+		logHR();
 		log.error('Not implemented yet!');
 		return;
 	});
 
 
 
-
-
-
-// If no command is specified, or command is unknown
-// same thing as doing `--help`
-//
-// $ yard
-// $ yard help
-// $ yard foo
 // $ yard *
 program
 	.command('*')
@@ -178,16 +246,35 @@ program
 
 
 
-// Process arguments!
 program
 	.parse(process.argv);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 /**
  * Look up the configuration for this CLI tool
  */
-function readConfig (cb, data) {
+function readConfig (cb) {
 	var cliConfigPath = path.resolve(__dirname, PATH_TO_USERCONFIG);
 	util.parseJSONFile(cliConfigPath, function (err, config) {
 		
@@ -216,20 +303,27 @@ function readConfig (cb, data) {
 		// Ensure configured shipyardURL has no trailing slash.
 		config.shipyardURL = util.str.rtrim(config.shipyardURL, '/');
 
-		// CLI config loaded successfully- pass it on.
+		// CLI config loaded successfully- save it to `conf`
 		log.verbose('Loaded config :: ', config);
-		return cb(null, config);
+		conf.config = config;
+
+		return cb();
 	});
 }
+
+
+
 
 
 /**
  * Attempt to read the user's shipyard secret
  * from their local shipyard secret file.
  */
-function readSecret (cb, data) {
-	var pathToCredentials = data.config.pathToCredentials;
-	pathToCredentials = path.resolve(data.config.pathToCredentials);
+function readSecret (cb) {
+	if (conf.credentials) return cb();
+
+	var pathToCredentials = conf.config.pathToCredentials;
+	pathToCredentials = path.resolve(conf.config.pathToCredentials);
 
 	util.parseJSONFile(pathToCredentials, function (err, credentials) {
 		
@@ -239,7 +333,8 @@ function readSecret (cb, data) {
 		if (err) return cb();
 
 		// Credentials loaded successfully- pass 'em on.
-		return cb(null, credentials);
+		conf.credentials = credentials;
+		return cb();
 
 	});
 }
@@ -250,22 +345,23 @@ function readSecret (cb, data) {
 /**
  * Fetch a list of the user's previewable shipyard apps
  */
-function fetchApps (cb, data) {
+function fetchApps (cb) {
+	if (conf.projects) return cb();
+
 	api.getApps({
-		baseURL: data.config.shipyardURL,
-		secret: data.credentials.secret
+		baseURL: conf.config.shipyardURL,
+		secret: conf.credentials.secret
 	}, function (err, response) {
 		if (err) return cb(err);
-		cb(null, response);
+		conf.projects = response;
+		cb();
 	});
 }
 
 
 
-function doLogin (cb, data) {
-
-	// Skip this step if credentials are known
-	if ( data && data.credentials ) return cb();
+function doLogin (cb) {
+	if ( conf.credentials ) return cb();
 
 	// Start the prompt
 	// Get two properties from the user: username and password
@@ -300,7 +396,7 @@ function doLogin (cb, data) {
 		}
 
 		api.login({
-			baseURL: data.config.shipyardURL,
+			baseURL: conf.config.shipyardURL,
 			params: {
 				username: userInput.username,
 				password: userInput.password
@@ -313,7 +409,7 @@ function doLogin (cb, data) {
 					log.error('Login failed.');
 					log('Sorry, I don\'t recognize that username/password combination.');
 					log('Please try again, or hit <CTRL+C> to cancel.'.grey);
-					return doLogin(cb, data);
+					return doLogin(cb);
 				}
 				return cb(err);
 			}
@@ -331,7 +427,7 @@ function doLogin (cb, data) {
 			// If login was successful sringify and write the credentials file to disk
 			var stringifiedCredentials = util.stringify(credentials);
 			if (!stringifiedCredentials) return cb('Could not stringify credentials file.');
-			fs.writeFile(path.resolve(data.config.pathToCredentials), stringifiedCredentials, function (err) {
+			fs.writeFile(path.resolve(conf.config.pathToCredentials), stringifiedCredentials, function (err) {
 				if (err) {
 					log.error('Login failed.');
 					log('Could not save Shipyard credentials file in the configured directory ('+pathToCredentials+')');
@@ -339,10 +435,13 @@ function doLogin (cb, data) {
 					return cb(util.inspect(err));
 				}
 
+				log();
+				logHR();
 				log('This computer is now logged in to Shipyard as '+((credentials.username).cyan));
-				log(('Shipyard credentials were saved in `'+data.config.pathToCredentials+'`').grey);
+				log(('Shipyard credentials were saved in `'+conf.config.pathToCredentials+'`').grey);
 				log('You can change the location of this file by running `yarr configure`'.grey);
-				return cb(null, credentials);
+				conf.credentials = credentials;
+				return cb();
 			});
 		});
 	});
@@ -350,48 +449,83 @@ function doLogin (cb, data) {
 
 
 
-function doChooseApp (cb, data) {
+function doChooseApp (cb) {
+	if (conf.selectedApp) return cb();
 
+	fetchApps(function (err) {
+		if (err) return cb(err);
 
-	// No apps exist, output an error message
-	if (!data.apps || !data.apps.length) {
-		return cb(__.NO_APPS_AVAILABLE);
-	}
+		// No apps exist, output an error message
+		if (!conf.projects || !conf.projects.length) {
+			return cb(__.NO_APPS_AVAILABLE);
+		}
 
-	// Map apps for use in the menu
-	var apps = util.map(data.apps, function (app) {
-		return app.name + ' (' + app.fullName + ')';
-	});
+		// Map apps for use in the menu
+		var apps = util.map(conf.projects, function (app) {
+			return ((app.fullName).yellow) + '   ' + ('/' + conf.credentials.username + '/' + (app.name||'')).grey;
+		});
 
-	program
+		program
 		.chooseFromMenu (
 		__.CHOOSE_APP_TO_LIFT,
 		apps,
 		{
-
 			'*': function ( choice, index ){
-				var app = data.apps[index];
-				cb(null, app);
+				conf.selectedApp = conf.projects[index];
+				cb();
 			}
-
 		});
+	});
+
 }
 
 
 
-function runApp (cb, data) {
-	log('Running project...');
-	log.verbose('Running project #', data.chooseApp.id);
+function runApp (cb) {
+	if (conf.runningApp) return cb('Preview server is already running!');
 
-	var projectID = data.chooseApp.id;
+	var projectName = (conf.selectedApp.fullName).cyan;
+	
+	log();
+	log('Running ' + projectName + '...');
+	
+	logHR();
+	log('Preview server is warming up...'.yellow);
+	log('(hit <CTRL+C> to cancel at any time)');
+	log();
+	
+	var delayedLog = function (ms) {
+		return function logFn () {
+			var args = Array.prototype.slice.call(arguments);
+			delayedLog.timers.push(setTimeout(function () {
+				log.apply(log,args);
+			}, ms || 300));
+		};
+	};
+	delayedLog.timers = [];
+
+	delayedLog(50)('Synchronizing app with Shipyard...'.grey);
+	delayedLog(450)('Calibrating machines...'.grey);
+	delayedLog(2500)('Hold tight, this can take a moment...'.yellow);
+
+	// Give up after 30 seconds
+	delayedLog.timers.push(setTimeout(function () {
+		log.error('The preview server isn\'t starting...');
+		log.error('Please try again later.  If the problem persists, check @shipyardio for updates.');
+		for (var i in delayedLog.timers) {
+			clearTimeout(delayedLog.timers[i]);
+		}
+		return;
+	}, 30000));
+
 
 	// Start sails and pass it command line arguments
 	var sails = new Sails();
 	sails.lift({
 		shipyard: {
 			src: {
-				secret: data.credentials.secret,
-				url: data.config.shipyardURL + '/' + projectID + '/modules'
+				secret: conf.credentials.secret,
+				url: conf.config.shipyardURL + '/' + conf.selectedApp.id + '/modules'
 			}
 		},
 		hooks: {
@@ -402,8 +536,59 @@ function runApp (cb, data) {
 			services: false,
 			userhooks: false
 		}
-	}, cb);
+	}, function (err) {
+		if (err) return cb(err);
+		
+		// Clear obnoxious timers
+		for (var i in delayedLog.timers) {
+			clearTimeout(delayedLog.timers[i]);
+		}
+
+		// Keep track of running app
+		conf.runningApp = sails;
+	});
 }
+
+
+
+
+function logout (cb) {
+	log.verbose('Erasing Shipyard credentials...');
+
+	// Lookup location of json credentials file
+	var pathToCredentials = conf.config.pathToCredentials;
+	pathToCredentials = path.resolve(conf.config.pathToCredentials);
+
+	fs.unlink(pathToCredentials, function (err) {
+
+		// If an error occurred, the file probably doesn't exist
+		// TODO: do smarter error negotiation here
+		if (err) {
+			log();
+			log('This computer is not currently logged in to Shipyard.'.grey);
+			return cb();
+			// log.error('Logout failed!');
+			// log(('Shipyard credentials file could not be found in the configured directory (' + pathToCredentials + ')').grey);
+			// return cb(err);
+		}
+
+		log();
+		logHR();
+		log('This computer has been logged out of Shipyard.');
+		log(('Shipyard credentials were erased from `' + pathToCredentials + '`').grey);
+		return cb();
+	});
+}
+
+
+
+
+
+
+
+// Compound methods
+////////////////////////////
+
 
 
 /**
@@ -412,6 +597,7 @@ function runApp (cb, data) {
  * Shortcut for readConfig and [credentials or login]
  */
 function authenticate (cb) {
+	if (conf.credentials) return cb();
 
 	// If secret is invalid, delete it and send user to the authentication flow
 	// If secret is missing, send user to the authentication flow
@@ -427,42 +613,109 @@ function authenticate (cb) {
 		// Log in
 		login: ['credentials', doLogin]
 
-	}, function (err, data) {
+	}, cb);
+}
+
+
+
+
+
+function writeLinkfile (cb) {
+	async.auto({
+
+		// Load config
+		config: readConfig,
+
+		// Use cached credentials or enter login flow
+		credentials: authenticate,
+
+		// Fetch apps available to this user from shipyard server
+		// or prompt user for login credentials if necessary.
+		apps: ['credentials', fetchApps],
+
+		// Ask user to pick an app
+		target: ['apps', doChooseApp],
+
+	}, function (err) {
 		if (err) return cb(err);
 
-		// Get credentials from the different places they could have ended up
-		cb(null, data.credentials || data.doLogin);
+		// Write the linkfile to disk
+		var json = util.stringify(conf.selectedApp);
+		if (!json) return log.error('Invalid project id ('+conf.selectedApp.id+')-- could not stringify.');
+		
+		// Determine expected location of shipyard.json file
+		var jsonPath = process.cwd() + '/shipyard.json';
+		jsonPath = path.resolve(jsonPath);
+
+		// Then just write it
+		fs.writeFile(jsonPath, json, cb);
 	});
 }
 
 
-function logout (cb, data) {
-	log.verbose('Erasing Shipyard credentials...');
 
-	// Lookup location of json credentials file
-	var pathToCredentials = data.config.pathToCredentials;
-	pathToCredentials = path.resolve(data.config.pathToCredentials);
 
-	fs.unlink(pathToCredentials, function (err) {
+function acquireLink (cb) {
+	if (conf.selectedApp) return cb();
 
-		// If an error occurred, the file probably doesn't exist
-		// TODO: do smarter error negotiation here
+	async.auto({
+
+		// Load config
+		config: readConfig,
+
+		// Use cached credentials or enter login flow
+		credentials: authenticate,
+		
+		readLinkfile: ['credentials', readLink],
+
+		// Fetch apps available to this user from shipyard server
+		// or prompt user for login credentials if necessary.
+		// Ask user to pick an app
+		target: ['readLinkfile', doChooseApp],
+
+		writeLinkfile: ['target', writeLinkfile]
+
+	}, cb);
+}
+
+
+
+function readLink (cb) {
+	if (conf.selectedApp) return cb();
+
+	// Determine expected location of shipyard.json file
+	var jsonPath = process.cwd() + '/shipyard.json';
+	jsonPath = path.resolve(jsonPath);
+
+	// If file does not exist, exit silently.
+	if (!fs.existsSync(jsonPath)) return cb();
+
+	util.parseJSONFile(jsonPath, function (err, json){
 		if (err) {
-			log('This computer is not currently logged in to Shipyard.'.grey);
-			return cb();
-			// log.error('Logout failed!');
-			// log(('Shipyard credentials file could not be found in the configured directory (' + pathToCredentials + ')').grey);
-			// return cb(err);
+			log.error('Linkfile in current directory is corrupted.');
+			log.error('Please run `yarr unlink` here, then try again.'.grey);
+			return cb(err);
 		}
-		log('This computer has been logged out of Shipyard.');
-		log(('Shipyard credentials were erased from `' + pathToCredentials + '`').grey);
-		return cb();
+
+		// Save reference to target
+		conf.selectedApp = json;
+
+		cb();
 	});
 }
 
 
 
 // stub function to use as a final callback
+// Log an error if there is one, otherwise throw in a newline
 function _done (err) {
 	if (err) return log.error(err);
+	log();
+}
+
+
+
+function logHR() {
+	log();
+	log('--'.grey);
 }

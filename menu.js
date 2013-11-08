@@ -45,16 +45,26 @@ module.exports = function (victim) {
 			throw err;
 		};
 
-		// Display the menu prompt msg
+		// Build separator string
+		var hr = '', numChars = msg.length + 1;
+		numChars = numChars < 15 ? 15 : numChars;
+
+		for (var i=0; i<numChars; i++) {
+			hr += ':';
+		}
+
+		// Display the menu prompt msg, plus hr(s)
 		//
 		log ();
+		// log (hr);
 		log (msg);
+		log ();
 
 
 		// Display the menu choices
 		//
 		for (var _i in choices) {
-			log( (+(_i)+1) + ') ' + choices[_i] );
+			log( ' (' + (+(_i)+1) + ')   ' + choices[_i] );
 		}
 
 
@@ -63,6 +73,7 @@ module.exports = function (victim) {
 
 			// Start the prompt
 			//
+			log ();
 			prompt.start();
 			prompt.get({
 				properties: {
