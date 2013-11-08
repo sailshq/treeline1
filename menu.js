@@ -54,32 +54,50 @@ module.exports = function (victim) {
 		// Display the menu choices
 		//
 		for (var _i in choices) {
-			log( (+(_i)+1) + '. ' + choices[_i] );
+			log( (+(_i)+1) + ') ' + choices[_i] );
 		}
 
-		// Start the prompt
-		//
-		prompt.start();
-		prompt.get({
-			properties: {
-				choice: { description: ' ' }
-			}
-		}, function(err, result) {
-			if (err) return exits.err(err);
 
-			// Determine the choice that was made
-			var choseIndex = result.choice - 1;
-			var choice = choices[choseIndex];
-			var chosenExit = exits[choice];
+		
+		function promptLoop () {
 
-			// If choice is not handled in CLI code,
-			// use the wildcard exit, '*'
-			if (!chosenExit) return exits['*'](choice, choseIndex);
-			
-			exits[choice](choice, choseIndex);
-		});
+			// Start the prompt
+			//
+			prompt.start();
+			prompt.get({
+				properties: {
+					choice: {
+						description: ' '
+					}
+				}
+			}, function(err, result) {
+				if (err) return exits.err(err);
+
+				// If selection is not in valid range, prompt user to enter a valid input
+				if (!result.choice || !result.choice.match(/^[0-9]+$/) ||
+					(+result.choice - 1) >= choices.length || +result.choice < 1) {
+					log( ((''+result.choice).red) + ' is not a valid selection.');
+					if (choices.length !== 1) {
+						log('Please choose a number between 1 and '+(choices.length)+'.');
+					}
+					log('(or <CTRL+C> to cancel)'.grey);
+					return promptLoop();
+				}
+
+				// Determine the choice that was made
+				var choseIndex = result.choice - 1;
+				var choice = choices[choseIndex];
+				var chosenExit = exits[choice];
 
 
+				// If choice is not handled explicitly by any other exit,
+				// use the wildcard exit, '*'
+				if (!chosenExit) return exits['*'](choice, choseIndex);
+				
+				exits[choice](choice, choseIndex);
+			});
+		}
+		promptLoop();
 	};
 
 

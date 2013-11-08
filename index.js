@@ -68,7 +68,24 @@ program
 	.command('login')
 	.description('login to Shipyard and cache secret')
 	.action(function () {
-		authenticate(_done);
+		async.auto({
+			config: readConfig,
+
+			// Look up the secret on the user's system
+			credentials: ['config', function (cb, data) {
+				readSecret(function (err, credentials) {
+					if (err) return cb(err);
+					if (credentials) {
+						log(('You are already logged in as '+((credentials.username).cyan)+'.').grey);
+					}
+					cb(null, credentials);
+				}, data);
+			}],
+
+			// Log in
+			login: ['credentials', doLogin]
+
+		}, _done);
 	});
 
 
@@ -89,12 +106,15 @@ program
 	.action(function () {
 		async.auto({
 
+			// Load config
+			config: readConfig,
+
 			// Use cached credentials or enter login flow
 			credentials: authenticate,
 
 			// Fetch apps available to this user from shipyard server
 			// or prompt user for login credentials if necessary.
-			apps: ['login', fetchApps],
+			apps: ['credentials', fetchApps],
 
 			// Ask user to pick an app
 			chooseApp: ['apps', doChooseApp],
@@ -144,9 +164,24 @@ program
 
 
 
+
+// If no command is specified, or command is unknown
+// same thing as doing `--help`
+//
+// $ yard
+// $ yard help
+// $ yard foo
+// $ yard *
+program
+	.command('*')
+	.action(program.help);
+
+
+
 // Process arguments!
 program
 	.parse(process.argv);
+
 
 
 /**
@@ -271,38 +306,42 @@ function doLogin (cb, data) {
 				password: userInput.password
 			}
 		}, function (err, response) {
+
 			// Login failed - could be various reasons
 			if (err) {
 				if (err.status === 400 && err.errors) {
-					log.error('Sorry, I don\'t recognize that username/password combination.');
-					log.error('Please try again, or hit <CTRL+C> to cancel.');
+					log.error('Login failed.');
+					log('Sorry, I don\'t recognize that username/password combination.');
+					log('Please try again, or hit <CTRL+C> to cancel.'.grey);
 					return doLogin(cb, data);
 				}
 				return cb(err);
 			}
 
-			if (!response || !response.secret) return cb('Unexpected response from Shipyard (no secret):' + util.inspect(response));
+			if (!response || !response.secret) {
+				return cb('Unexpected response from Shipyard (no secret):' + util.inspect(response));
+			}
 			
-			// If login was successful write the credentials file
-			// Wrap generatedSecret from Shipyard
-			var credentials = {secret: response.secret };
 
-			// Stringify credentials object
+			var credentials = {
+				secret: response.secret,
+				username: response.username || '???'
+			};
+			
+			// If login was successful sringify and write the credentials file to disk
 			var stringifiedCredentials = util.stringify(credentials);
-
-			// If it failed, give up
 			if (!stringifiedCredentials) return cb('Could not stringify credentials file.');
-
-			// If login was successful, stringify and write to disk
-			var pathToCredentials = data.config.pathToCredentials;
-			pathToCredentials = path.resolve(data.config.pathToCredentials);
-			fs.writeFile(pathToCredentials, stringifiedCredentials, function (err) {
+			fs.writeFile(path.resolve(data.config.pathToCredentials), stringifiedCredentials, function (err) {
 				if (err) {
-					log.error('Could not save Shipyard credentials file in the configured directory:', pathToCredentials);
-					return cb('Error :: ' + util.inspect(err));
+					log.error('Login failed.');
+					log('Could not save Shipyard credentials file in the configured directory ('+pathToCredentials+')');
+					log('That directory may not exist, or there could be a permissions issue.'.grey);
+					return cb(util.inspect(err));
 				}
-				log('Saved your Shipyard credentials in',data.config.pathToCredentials,'for next time.');
-				log('You can change this location by running `yarr configure`'.grey);
+
+				log('This computer is now logged in to Shipyard as '+((credentials.username).cyan));
+				log(('Shipyard credentials were saved in `'+data.config.pathToCredentials+'`').grey);
+				log('You can change the location of this file by running `yarr configure`'.grey);
 				return cb(null, credentials);
 			});
 		});
@@ -331,7 +370,8 @@ function doChooseApp (cb, data) {
 		{
 
 			'*': function ( choice, index ){
-				cb(null, data.apps[index]);
+				var app = data.apps[index];
+				cb(null, app);
 			}
 
 		});
@@ -340,7 +380,9 @@ function doChooseApp (cb, data) {
 
 
 function runApp (cb, data) {
+	log('Running project...');
 	log.verbose('Running project #', data.chooseApp.id);
+
 	var projectID = data.chooseApp.id;
 
 	// Start sails and pass it command line arguments
@@ -406,14 +448,14 @@ function logout (cb, data) {
 		// If an error occurred, the file probably doesn't exist
 		// TODO: do smarter error negotiation here
 		if (err) {
-			log('You are already logged out.'.grey);
+			log('This computer is not currently logged in to Shipyard.'.grey);
 			return cb();
 			// log.error('Logout failed!');
 			// log(('Shipyard credentials file could not be found in the configured directory (' + pathToCredentials + ')').grey);
 			// return cb(err);
 		}
-		log('Your computer has been logged out of Shipyard.');
-		log('Shipyard credentials were erased from this computer.'.grey);
+		log('This computer has been logged out of Shipyard.');
+		log(('Shipyard credentials were erased from `' + pathToCredentials + '`').grey);
 		return cb();
 	});
 }
