@@ -51,9 +51,9 @@ function _fetch (options, cb) {
 			return cb(err, body);
 		}
 
+		// Shipyard responded with an error:');
+		// HTTP Status === resp.statusCode
 		if (resp.statusCode < 200 || resp.statusCode > 300) {
-			log.error('Shipyard responded with an error:');
-			log.error('Status: ' + resp.statusCode);
 			return cb(body);
 		}
 

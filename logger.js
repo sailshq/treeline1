@@ -8,7 +8,13 @@ var util = require('util');
 require('colors');
 
 
-module.exports = (function () {
+// Log level configuration is just a dumb constant at the moment
+var IS_VERBOSE = false;
+
+
+module.exports = (function ( ) {
+
+	function noop () {}
 
 	// Returns a configured log function using closure arg
 	function _logFactory ( color ) {
@@ -32,7 +38,7 @@ module.exports = (function () {
 
 	var log = _logFactory();
 	log.error = _logFactory('red');
-	log.verbose = _logFactory('grey');
+	log.verbose = IS_VERBOSE ? _logFactory('magenta') : noop;
 
 	return log;
 })();

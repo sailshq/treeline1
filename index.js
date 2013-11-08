@@ -5,12 +5,12 @@
  */
 
 var program = require('commander'),
-		prompt = require('prompt'),
-		async = require('async'),
-		Sails = require('sails/lib/app'),
-		util = require('sails/util'),
-		path = require('path'),
-		fs = require('fs');
+	prompt = require('prompt'),
+	async = require('async'),
+	Sails = require('sails/lib/app'),
+	util = require('sails/util'),
+	path = require('path'),
+	fs = require('fs');
 
 // Shipyard api wrapper
 var api = require('./api');
@@ -28,6 +28,7 @@ var log = require('./logger');
 
 // Set up defaults for the CLI config
 //
+var PATH_TO_USERCONFIG = './.cliconfig.json';
 var CLI_CONFIG_DEFAULTS = {
 
 	// Path to Shipyard's secret JSON file
@@ -38,52 +39,122 @@ var CLI_CONFIG_DEFAULTS = {
 	// shipyardURL: 'http://creepygiggles.com'
 };
 
+// Customize the prompt.
+//
+prompt.message = '>'.cyan;
+prompt.delimiter = '';
 
 program
-	.version('0.0.1')
+	.version('0.0.1');
+
+
+
+
+// $ yard logout
+program
+	.command('logout')
+	.description('wipe cached Shipyard secret')
+	.action(function () {
+		async.auto({
+			config: readConfig,
+			_logout: ['config', logout]
+		}, _done);
+	});
+
+
+
+// $ yard login
+program
+	.command('login')
+	.description('login to Shipyard and cache secret')
+	.action(function () {
+		authenticate(_done);
+	});
+
+
+
+// $ yard link
+program
+	.command('link')
+	.description('link current dir to one of your projects')
+	.action(function () {
+
+	});
+
+
+// $ yard preview
+program
+	.command('preview')
+	.description('preview the app in the current dir')
+	.action(function () {
+		async.auto({
+
+			// Use cached credentials or enter login flow
+			credentials: authenticate,
+
+			// Fetch apps available to this user from shipyard server
+			// or prompt user for login credentials if necessary.
+			apps: ['login', fetchApps],
+
+			// Ask user to pick an app
+			chooseApp: ['apps', doChooseApp],
+
+			_runApp: ['chooseApp', runApp]
+			
+
+		}, _done);
+		
+	});
+
+
+// $ yard configure
+program
+	.command('configure')
+	.description('interactive settings for this command-line tool')
+	.action(function () {
+		log('Configuring the command-line tool...');
+		log('[CTRL+C] to cancel'.grey);
+
+		program
+		.chooseFromMenu (
+		'Options',
+		[
+			'Set location for cached Shipyard credentials',
+			'Configure shipyard endpoint'
+		],
+		{
+			'*': function ( choice, index ){
+				log.error('Not implemented yet!');
+				return;
+			}
+		});
+	});
+
+
+// $ yard compile
+program
+	.command('compile')
+	.description('compile project into a deployable Node.js server')
+	.action(function () {
+		log.error('Not implemented yet!');
+		return;
+	});
+
+
+
+
+
+// Process arguments!
+program
 	.parse(process.argv);
-
-
-async.auto({
-
-	// Load config
-	config: readConfig,
-
-	// Look up the secret on the user's system
-	credentials: ['config', readSecret],
-
-	// Log in
-	login: ['credentials', doLogin],
-
-	// If secret is invalid, delete it and send user to the authentication flow
-	// If secret is missing, send user to the authentication flow
-	// If secret is valid, look up apps
-	// Fetch apps available to this user from shipyard server
-	// or prompt user for login credentials if necessary.
-	apps: ['login', fetchApps],
-
-	// Ask user to pick an app
-	chooseApp: ['apps', doChooseApp],
-
-	_runApp: ['chooseApp', runApp]
-	
-
-}, function done (err, data) {
-	if (err) {
-		return log.error(err);
-	}
-	// Done.
-});
 
 
 /**
  * Look up the configuration for this CLI tool
  */
 function readConfig (cb, data) {
-	var PATH_TO_USERCONFIG = './.cliconfig.json';
-	PATH_TO_USERCONFIG = path.resolve(__dirname, PATH_TO_USERCONFIG);
-
-	util.parseJSONFile(PATH_TO_USERCONFIG, function (err, config) {
+	var cliConfigPath = path.resolve(__dirname, PATH_TO_USERCONFIG);
+	util.parseJSONFile(cliConfigPath, function (err, config) {
 		
 		// If an error occured, the config file probably doesn't exist.
 		// So try creating it
@@ -96,8 +167,8 @@ function readConfig (cb, data) {
 			if (!config) return cb('Could not stringify Shipyard config file.');
 
 			// Write to disk
-			log.verbose('Saving CLI config to ' + PATH_TO_USERCONFIG + '...');
-			fs.writeFile(PATH_TO_USERCONFIG, config, function (err) {
+			log.verbose('Saving CLI config to ' + cliConfigPath + '...');
+			fs.writeFile(cliConfigPath, config, function (err) {
 				if (err) {
 					log.error('Could not save `.cliconfig.json` config file for this command-line tool in the directory where Shipyard is installed.');
 					return cb('Error :: ' + util.inspect(err));
@@ -127,16 +198,13 @@ function readSecret (cb, data) {
 
 	util.parseJSONFile(pathToCredentials, function (err, credentials) {
 		
-		// Credentials loaded successfully- pass it on.
-		if (!err) {
-			return cb(null, credentials);
-		}
-
 		// If an error occured, the secret file probably doesn't exist
 		// at the configured location. So prompt user to log in
 		// and then create a new one.
-		log.error(err);
-		cb();
+		if (err) return cb();
+
+		// Credentials loaded successfully- pass 'em on.
+		return cb(null, credentials);
 
 	});
 }
@@ -148,38 +216,54 @@ function readSecret (cb, data) {
  * Fetch a list of the user's previewable shipyard apps
  */
 function fetchApps (cb, data) {
-
-	// Talk to shipyard server to fetch the list of apps accessible by this user
 	api.getApps({
 		baseURL: data.config.shipyardURL,
 		secret: data.credentials.secret
 	}, function (err, response) {
 		if (err) return cb(err);
 		cb(null, response);
-
-		// If an authentication error occurred, try to login again
-		// If login failed, give up
-		// If login was successful, try to fetch apps again.
 	});
 }
 
 
 
 function doLogin (cb, data) {
+
 	// Skip this step if credentials are known
-	if ( data.credentials ) return cb();
+	if ( data && data.credentials ) return cb();
 
 	// Start the prompt
 	// Get two properties from the user: username and password
 	//
+	log();
+	log('Login to Shipyard:'.green);
+	prompt.message = '';
+	prompt.delimiter = '';
 	prompt.start();
 	prompt.get({
 		properties: {
-			username: { description: 'username' },
-			password: { description: 'password' }
+			username: {
+				type: 'string',
+				required: true
+			},
+			password: {
+				type: 'string',
+				message: '(don\'t worry, I caught all that-- just hiding those keystrokes)',
+				hidden: true,
+				required: true
+			}
 		}
-	}, function(err, userInput) {
-		if (err) return cb(err);
+	},
+	function userEnteredMessage (err, userInput) {
+		if (err) {
+			// Fail silently on cancel (user presses CTRL+C)
+			if (err.message === 'canceled') {
+				log('-_-'.grey,'\n');
+				return;
+			}
+			return cb(err);
+		}
+
 		api.login({
 			baseURL: data.config.shipyardURL,
 			params: {
@@ -190,7 +274,9 @@ function doLogin (cb, data) {
 			// Login failed - could be various reasons
 			if (err) {
 				if (err.status === 400 && err.errors) {
-					return cb('Invalid username/password combination.');
+					log.error('Sorry, I don\'t recognize that username/password combination.');
+					log.error('Please try again, or hit <CTRL+C> to cancel.');
+					return doLogin(cb, data);
 				}
 				return cb(err);
 			}
@@ -215,6 +301,8 @@ function doLogin (cb, data) {
 					log.error('Could not save Shipyard credentials file in the configured directory:', pathToCredentials);
 					return cb('Error :: ' + util.inspect(err));
 				}
+				log('Saved your Shipyard credentials in',data.config.pathToCredentials,'for next time.');
+				log('You can change this location by running `yarr configure`'.grey);
 				return cb(null, credentials);
 			});
 		});
@@ -276,82 +364,63 @@ function runApp (cb, data) {
 }
 
 
+/**
+ * authenticate
+ *
+ * Shortcut for readConfig and [credentials or login]
+ */
+function authenticate (cb) {
+
+	// If secret is invalid, delete it and send user to the authentication flow
+	// If secret is missing, send user to the authentication flow
+	// If secret is valid, good to go
+	async.auto({
+		
+		// Load config
+		config: readConfig,
+
+		// Look up the secret on the user's system
+		credentials: ['config', readSecret],
+
+		// Log in
+		login: ['credentials', doLogin]
+
+	}, function (err, data) {
+		if (err) return cb(err);
+
+		// Get credentials from the different places they could have ended up
+		cb(null, data.credentials || data.doLogin);
+	});
+}
+
+
+function logout (cb, data) {
+	log.verbose('Erasing Shipyard credentials...');
+
+	// Lookup location of json credentials file
+	var pathToCredentials = data.config.pathToCredentials;
+	pathToCredentials = path.resolve(data.config.pathToCredentials);
+
+	fs.unlink(pathToCredentials, function (err) {
+
+		// If an error occurred, the file probably doesn't exist
+		// TODO: do smarter error negotiation here
+		if (err) {
+			log('You are already logged out.'.grey);
+			return cb();
+			// log.error('Logout failed!');
+			// log(('Shipyard credentials file could not be found in the configured directory (' + pathToCredentials + ')').grey);
+			// return cb(err);
+		}
+		log('Your computer has been logged out of Shipyard.');
+		log('Shipyard credentials were erased from this computer.'.grey);
+		return cb();
+	});
+}
 
 
 
-
-
-
-
-
-
-// program.prompt('name: ', function(name){
-//   console.log('hi %s', name);
-// });
-
- // the prompt
-	// // Get two properties from the user: username and email
-	// //
-	// prompt.start();
-	// prompt.get(['username', 'email'], function(err, result) {
-	// 	if (err) return exits.err(err);
-	// 	exits.
-
-// var list = ['tobi', 'loki', 'jane', 'manny', 'luna'];
-
-// console.log('Choose the coolest pet:');
-// program.choose(list, function(i){
-//   console.log('you chose %d "%s"', i, list[i]);
-// });
-
-// program
-//   .command('setup [env]')
-//   .description('run setup commands for all envs')
-//   .option('-s, --setup_mode [mode]', 'Which setup mode to use')
-//   .action(function(env, options){
-//     var mode = options.setup_mode || 'normal';
-//     env = env || 'all';
-//     console.log('setup for %s env(s) with %s mode', env, mode);
-//   });
-
-// program
-//   .command('exec <cmd>')
-//   .description('execute the given remote cmd')
-//   .option('-e, --exec_mode <mode>', 'Which exec mode to use')
-//   .action(function(cmd, options){
-//     console.log('exec "%s" using %s mode', cmd, options.exec_mode);
-//   }).on('--help', function() {
-//     console.log('  Examples:');
-//     console.log();
-//     console.log('    $ deploy exec sequential');
-//     console.log('    $ deploy exec async');
-//     console.log();
-//   });
-
-// program
-//   .command('*')
-//   .action(function(env){
-//     console.log('deploying "%s"', env);
-//   });
-
-// program.parse(process.argv);
-
-
-
-
-// program
-// 	.version('0.0.1');
-// // .option('-C, --chdir <path>', 'change the working directory')
-// // .option('-c, --config <path>', 'set config path. defaults to ./deploy.conf')
-// // .option('-T, --no-tests', 'ignore test hook');
-
-
-// program
-// 	.command('*')
-// 	.action(function(env) {
-// 		console.log('deploying "%s"', env);
-// 	});
-
-
-
-
+// stub function to use as a final callback
+function _done (err) {
+	if (err) return log.error(err);
+}

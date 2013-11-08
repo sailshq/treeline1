@@ -4,6 +4,9 @@
   "version": "0.0.0",
   "description": "Command line tool for Shipyard.io",
   "main": "index.js",
+  "bin": {
+    "yarr": "./index.js"
+  },
   "scripts": {
     "test": "mocha"
   },

@@ -21,12 +21,6 @@ module.exports = function (victim) {
 	 */
 	victim.chooseFromMenu = function ( msg, choices, exits ) {
 
-		// Customize the prompt.
-		//
-		prompt.message = '>'.cyan;
-		prompt.delimiter = '';
-
-
 		// Default exits
 		exits = exits || {};
 		
