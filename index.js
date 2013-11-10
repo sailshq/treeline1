@@ -63,7 +63,25 @@ program
 		async.auto({
 			config: readConfig,
 			_logout: ['config', logout]
-		}, _done);
+		}, function (err) {
+
+			// If an error occurred, the file probably doesn't exist
+			// TODO: do smarter error negotiation here
+			if (err) {
+				log();
+				log('This computer is not currently logged in to Shipyard.'.grey);
+				return _done();
+				// log.error('Logout failed!');
+				// log(('Shipyard credentials file could not be found in the configured directory (' + pathToCredentials + ')').grey);
+				// return cb(err);
+			}
+
+			log();
+			_logHR();
+			log('This computer has been logged out of Shipyard.');
+			log(('Shipyard credentials were erased from `' + path.resolve(conf.config.pathToCredentials) + '`').grey);
+			_done();
+		});
 	});
 
 
@@ -252,6 +270,7 @@ program
 			credentials: ['config', readSecret],
 			target: ['credentials', readLink],
 			logStatus: ['target', function (cb) {
+
 				log();
 				log('=='.yellow+' Shipyard Status '+'=='.yellow);
 
@@ -369,6 +388,10 @@ function readSecret (cb) {
 
 		// Credentials loaded successfully- pass 'em on.
 		conf.credentials = credentials;
+
+		// Also clear out projects so they'll be re-fetched
+		conf.projects = null;
+
 		return cb();
 
 	});
@@ -387,8 +410,23 @@ function fetchApps (cb) {
 		baseURL: conf.config.shipyardURL,
 		secret: conf.credentials.secret
 	}, function (err, response) {
-		if (err) return cb(err);
+		if (err) {
+
+			// If there is an authentication problem, 
+			// wipe credentials and attempt to login again
+			if (err.status == 403) {
+				log('Sorry, looks like your account secret has changed, or the local file has become corrupt.');
+				log('Please run `yarr logout`, then try again.'.grey);
+				conf.credentials = null;
+				return cb('Access denied.');
+			}
+
+			// Otherwise, if the error is fatal, pass it on.
+			return cb(err);
+		}
+
 		conf.projects = response;
+
 		cb();
 	});
 }
@@ -475,6 +513,10 @@ function doLogin (cb) {
 				log(('Shipyard credentials were saved in `'+conf.config.pathToCredentials+'`').grey);
 				log('You can change the location of this file by running `yarr configure`'.grey);
 				conf.credentials = credentials;
+
+				// Clear out projects so they'll be re-fetched
+				conf.projects = null;
+
 				return cb();
 			});
 		});
@@ -593,25 +635,7 @@ function logout (cb) {
 	var pathToCredentials = conf.config.pathToCredentials;
 	pathToCredentials = path.resolve(conf.config.pathToCredentials);
 
-	fs.unlink(pathToCredentials, function (err) {
-
-		// If an error occurred, the file probably doesn't exist
-		// TODO: do smarter error negotiation here
-		if (err) {
-			log();
-			log('This computer is not currently logged in to Shipyard.'.grey);
-			return cb();
-			// log.error('Logout failed!');
-			// log(('Shipyard credentials file could not be found in the configured directory (' + pathToCredentials + ')').grey);
-			// return cb(err);
-		}
-
-		log();
-		_logHR();
-		log('This computer has been logged out of Shipyard.');
-		log(('Shipyard credentials were erased from `' + pathToCredentials + '`').grey);
-		return cb();
-	});
+	fs.unlink(pathToCredentials, cb);
 }
 
 
@@ -718,26 +742,52 @@ function readLink (cb) {
 	var jsonPath = process.cwd() + '/shipyard.json';
 	jsonPath = path.resolve(jsonPath);
 
-	fse.readJSON(jsonPath, function (err, json){
-		if (err) {
-		
-			// If the file simply doesn't exist, we won't call this an error
-			// instead, exit silently
-			if (err instanceof Error && err.errno===34) {
-				return cb();
+	async.auto({
+
+		readFile: function (cb) {
+			fse.readJSON(jsonPath, function (err, json){
+				if (err) {
+				
+					// If the file simply doesn't exist, we won't call this an error
+					// instead, exit silently
+					if (err instanceof Error && err.errno===34) {
+						return cb();
+					}
+
+					// If some other sort of error occurred, we'll assume the file is corrupted.
+					log.error('Linkfile in current directory is corrupted.');
+					log.error('Please run `yarr unlink` here, then try again.'.grey);
+					return cb(err);
+				}
+
+				// Save reference to target
+				conf.targetProject = json;
+				cb();
+			});
+		},
+
+		// Fetch apps so we can (1) ensure account is valid,
+		apps: ['readFile', fetchApps],
+
+		// and (2) ensure the target (linked) project is accessibile to that logged-in user.
+		// Not a security issue, but important a good UX
+		// (running `yarr status` should always result in accurate information, for instance)
+		validate: ['apps', function (cb) {
+
+			// If no target project is currently defined, skip this check
+			if ( !conf.targetProject ) return cb();
+			
+			// Ensure account has access to the target app
+			if ( !util.contains( util.pluck(conf.projects, 'id'), conf.targetProject.id ) ) {
+				log('Sorry, you do not have permission to preview the linked project: '+conf.targetProject.fullName+'  (' + conf.targetProject.id +')');
+				log('Please run `yarr unlink` here, then try again to set up a new link.'.grey);
+				conf.targetProject = null;
+				return cb('Access denied.');
 			}
-
-			// If some other sort of error occurred, we'll assume the file is corrupted.
-			log.error('Linkfile in current directory is corrupted.');
-			log.error('Please run `yarr unlink` here, then try again.'.grey);
-			return cb(err);
-		}
-
-		// Save reference to target
-		conf.targetProject = json;
-
-		cb();
-	});
+			cb();
+		}]
+		
+	}, cb);
 }
 
 

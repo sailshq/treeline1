@@ -54,7 +54,17 @@ function _fetch (options, cb) {
 		// Shipyard responded with an error:');
 		// HTTP Status === resp.statusCode
 		if (resp.statusCode < 200 || resp.statusCode > 300) {
-			return cb(body);
+
+			// Attempt to parse body as JSON
+			var parsedErr;
+			if (typeof body === 'string') {
+				try {
+					parsedErr = JSON.parse(body);
+					
+				}
+				catch (e) {}
+			}
+			return cb(parsedErr || body);
 		}
 
 		// If response is a string, it must be JSON (or there's a problem)
