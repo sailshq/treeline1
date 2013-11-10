@@ -538,7 +538,7 @@ function doChooseApp (cb) {
 
 		// Map apps for use in the menu
 		var apps = util.map(conf.projects, function (app) {
-			return ((app.fullName).yellow) + '   ' + ('/' + conf.credentials.username + '/' + (app.name||'')).grey;
+			return ((''+app.fullName).yellow) + '   ' + ('/' + conf.credentials.username + '/' + (app.name||'')).grey;
 		});
 
 		program
