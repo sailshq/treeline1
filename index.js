@@ -770,7 +770,7 @@ function readLink (cb) {
 		apps: ['readFile', fetchApps],
 
 		// and (2) ensure the target (linked) project is accessibile to that logged-in user.
-		// Not a security issue, but important a good UX
+		// Not a security issue, but important for good UX
 		// (running `yarr status` should always result in accurate information, for instance)
 		validate: ['apps', function (cb) {
 
