@@ -36,8 +36,8 @@ var CLI_CONFIG_DEFAULTS = {
 	pathToCredentials: path.resolve(util.homeDirectory() + '/.shipyard.secret.json'),
 
 	// URL where shipyard is hosted
-	shipyardURL: 'http://localhost:1337'
-	// shipyardURL: 'http://creepygiggles.com'
+	// shipyardURL: 'http://localhost:1337'
+	shipyardURL: 'http://creepygiggles.com'
 };
 
 // Customize the prompt.
