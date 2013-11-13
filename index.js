@@ -601,8 +601,9 @@ function runApp (cb) {
 		shipyard: {
 			src: {
 				secret: conf.credentials.secret,
-				url: conf.config.shipyardURL + '/' + conf.targetProject.id + '/modules'
-			}
+				url: conf.config.shipyardURL + '/' + conf.targetProject.id + '/modules',
+				projectId: conf.targetProject.id
+			},
 		},
 		hooks: {
 			moduleloader: require('sailshook-shipyard-moduleloader'),
