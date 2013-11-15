@@ -607,7 +607,6 @@ function runApp (cb) {
 		},
 		hooks: {
 			moduleloader: require('sailshook-shipyard-moduleloader'),
-			shipyard: require('sailshook-shipyard'),
 			controllers: false,
 			policies: false,
 			services: false,
