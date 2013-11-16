@@ -54,8 +54,7 @@ program
 var conf = {};
 
 
-
-// $ yard logout
+// $ yarr logout
 program
 	.command('logout')
 	.description('wipe cached Shipyard secret')
@@ -86,7 +85,7 @@ program
 
 
 
-// $ yard login
+// $ yarr login
 program
 	.command('login')
 	.description('login to Shipyard and cache secret')
@@ -114,7 +113,7 @@ program
 
 
 
-// $ yard link
+// $ yarr link
 program
 	.command('link')
 	.description('link current dir to one of your projects')
@@ -168,7 +167,7 @@ program
 	});
 
 
-// $ yard unlink
+// $ yarr unlink
 program
 	.command('unlink')
 	.description('wipe Shipyard link from the current dir')
@@ -196,7 +195,7 @@ program
 
 
 
-// $ yard preview
+// $ yarr preview
 program
 	.command('preview')
 	.description('preview the app in the current dir')
@@ -221,7 +220,7 @@ program
 	});
 
 
-// $ yard configure
+// $ yarr configure
 program
 	.command('configure')
 	.description('interactive settings for this command-line tool')
@@ -247,7 +246,7 @@ program
 	});
 
 
-// $ yard compile
+// $ yarr compile
 program
 	.command('compile')
 	.description('compile project into a deployable Node.js server')
@@ -260,7 +259,7 @@ program
 
 
 
-// $ yard status
+// $ yarr status
 program
 	.command('status')
 	.description('info about the Shipyard project in the current directory')
@@ -300,7 +299,7 @@ program
 
 
 
-// $ yard *
+// $ yarr *
 program
 	.command('*')
 	.action(program.help);
@@ -311,6 +310,12 @@ program
 	.parse(process.argv);
 
 
+// If no arguments were provided, i.e. `yarr`
+// treat it just like `yarr --help`
+var argv = require('optimist').argv;
+if ( ! argv._.length ) {
+	program.help();
+}
 
 
 
@@ -329,6 +334,9 @@ program
 
 
 
+// Actions
+//
+// TODO: refactor into submodules
 
 
 
