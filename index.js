@@ -11,7 +11,8 @@ var program = require('commander'),
 	util = require('sails/util'),
 	path = require('path'),
 	fs = require('fs'),
-	fse = require('fs-extra');
+	fse = require('fs-extra'),
+	argv = require('optimist').argv;
 
 // Shipyard api wrapper
 var api = require('./api');
@@ -45,13 +46,25 @@ var CLI_CONFIG_DEFAULTS = {
 prompt.message = '>'.yellow;
 prompt.delimiter = '';
 
-program
-	.version('0.0.1');
-
 
 // The `conf` global is shared throughout the CLI utility
 // This was used instead of async.auto's `data` argument to avoid repetetive code.
 var conf = {};
+
+
+// $ yarr -v
+// Make version option case-insensitive
+if (argv.v || argv.V) {
+	process.argv.push('-V');
+}
+
+
+
+
+
+// Start commander
+program
+	.version('0.0.1');
 
 
 // $ yarr logout
@@ -312,7 +325,6 @@ program
 
 // If no arguments were provided, i.e. `yarr`
 // treat it just like `yarr --help`
-var argv = require('optimist').argv;
 if ( ! argv._.length ) {
 	program.help();
 }
