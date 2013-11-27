@@ -625,12 +625,30 @@ function runApp (cb) {
 				projectId: conf.targetProject.id
 			},
 		},
+		log: {level: 'verbose'},
 		hooks: {
 			moduleloader: require('sailshook-shipyard-moduleloader'),
 			controllers: false,
 			policies: false,
 			services: false,
 			userhooks: false
+		},
+		bootstrap: function(cb) {
+			sails.hooks.moduleloader.shipyardPreview(
+				{
+					method: 'get', url: '/_bootstrap', params:{}
+				},
+				{
+					send: function(msg) {
+						if (msg == "ok" || msg == 404) {
+							cb();
+						}
+						else {
+							throw new Error("Bootstrap error: " + msg);
+						}
+					}
+				}
+			);
 		}
 	}, function (err) {
 		if (err) return cb(err);
