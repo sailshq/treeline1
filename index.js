@@ -636,7 +636,7 @@ function runApp (cb) {
 		bootstrap: function(cb) {
 			sails.hooks.moduleloader.shipyardPreview(
 				{
-					method: 'get', url: '/_bootstrap', params:{}
+					method: 'get', url: '/_bootstrap', params:{}, socket: {}
 				},
 				{
 					send: function(msg) {
