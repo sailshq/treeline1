@@ -8,7 +8,7 @@ var program = require('commander'),
 	prompt = require('prompt'),
 	async = require('async'),
 	Sails = require('sails/lib/app'),
-	util = require('sails/util'),
+	util = require('sails/node_modules/sails-util'),
 	path = require('path'),
 	fs = require('fs'),
 	fse = require('fs-extra'),
@@ -625,7 +625,7 @@ function runApp (cb) {
 				projectId: conf.targetProject.id
 			},
 		},
-		log: {level: 'verbose'},
+		log: {level: 'silly'},
 		hooks: {
 			moduleloader: require('sailshook-shipyard-moduleloader'),
 			controllers: false,
@@ -639,8 +639,8 @@ function runApp (cb) {
 					method: 'get', url: '/_bootstrap', params:{}, socket: {}
 				},
 				{
-					send: function(msg) {
-						if (msg == "ok" || msg == 404) {
+					send: function(status, msg) {
+						if (msg == "ok" || status == 404) {
 							cb();
 						}
 						else {
