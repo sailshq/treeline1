@@ -33,7 +33,7 @@
     "request": "~2.27.0",
     "sailshook-shipyard-moduleloader": "git+https://84cac9611b9e63c622c4bd68607588a3266610ab:x-oauth-basic@github.com/shipyard-io/shipyard-moduleloader.git",
     "fs-extra": "~0.8.1",
-    "sails-disk": "git://github.com/balderdashy/sails-disk.git#associations",
+    "sails-disk": "git://github.com/balderdashy/sails-disk.git#connections",
     "optimist": "~0.6.0",
     "grunt": "~0.4.1"
   }

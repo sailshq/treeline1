@@ -631,7 +631,15 @@ function runApp (cb) {
 			controllers: false,
 			policies: false,
 			services: false,
-			userhooks: false
+			userhooks: false,
+			blueprints: false,
+			responses: false	
+		},
+		connections: {
+			disk: { adapter: 'sails-disk' }
+		},
+		models: {
+			connection: 'disk'
 		},
 		bootstrap: function(cb) {
 			sails.hooks.moduleloader.shipyardPreview(
