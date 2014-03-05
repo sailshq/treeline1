@@ -625,9 +625,10 @@ function runApp (cb) {
 				projectId: conf.targetProject.id
 			},
 		},
+		moduleLoaderOverride: require('sailshook-shipyard-moduleloader'),
 		log: {level: 'silly'},
 		hooks: {
-			moduleloader: require('sailshook-shipyard-moduleloader'),
+			// moduleloader: require('sailshook-shipyard-moduleloader'),
 			controllers: false,
 			policies: false,
 			services: false,
@@ -659,6 +660,7 @@ function runApp (cb) {
 			);
 		}
 	}, function (err) {
+
 		if (err) return cb(err);
 		
 		// Clear obnoxious timers
