@@ -92,6 +92,8 @@ module.exports = function(sails) {
 
 	function reloadAllModels(cb) {
 
+		cb = cb || function(){};
+		
 		// Get all the current models for the linked project,
 		// and subscribe to changes to those models
 		socket.get(sails.config.shipyard.src.url + '/models?secret='+sails.config.shipyard.src.secret, function (models) {
