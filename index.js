@@ -634,10 +634,12 @@ function runApp (cb) {
 		},
 	}, function (err) {
 
-		var watch = require('./watch')(sails);
-		watch.prepModels(watch.start);
-
 		if (err) return cb(err);
+
+		var watch = require('./watch')(sails);
+		watch.start(function(err) {
+			if (err) return cb(err);
+		});
 		
 		// Clear obnoxious timers
 		for (var i in delayedLog.timers) {

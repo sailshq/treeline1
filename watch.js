@@ -11,8 +11,9 @@ module.exports = function(sails) {
 	var socket = _ioClient.connect(baseURL);
 
 	return {
-		start: function() {
+		start: function(cb) {
 
+			cb = cb || function(){};
 			sails.log.verbose("Yarr WATCH started.");
 
 			// Handle model pubsub messages from Sails
@@ -25,31 +26,42 @@ module.exports = function(sails) {
 			// Handle initial socket connection to Sails
 			socket.on('connect', function() {
 
-				var projectID = sails.config.shipyard.src.projectId;
-				socket.get(baseURL + '/project/subscribe/'+projectID+'?secret='+sails.config.shipyard.src.secret);
-				reloadAllModels();
-				
+				prepModels(function(err) {
+					if (err) {return cb(err);}
+					var projectID = sails.config.shipyard.src.projectId;
+					socket.get(baseURL + '/project/subscribe/'+projectID+'?secret='+sails.config.shipyard.src.secret);
+					reloadAllModels(cb);
+				});
+					
 			});
 
-		},
-
-
-		prepModels: function(cb) {
-			var waterlineSchema = sails.models[Object.keys(sails.models)[0]].waterline.schema;
-			async.each(Object.keys(sails.models), function(key, cb) {
-				if (waterlineSchema[key].junctionTable === true) return cb();
-				var filePath = path.join(process.cwd(), 'api/models/', key+'.attributes.json');
-				fs.exists(filePath, function(exists) {
-					if (exists) {return cb();}
-					var identity = sails.models[key].identity;
-					var model = {attributes: sails.models[key].attributes};
-					var json = JSON.stringify(model);
-					fs.writeFile(filePath, json, cb);
-				});
-			}, cb);
 		}
 
 	};
+
+	/**
+	 * Send local models up to Shipyard
+	 * @param  {Function} cb callback
+	 */
+	function prepModels(cb) {
+		var waterlineSchema = sails.models[Object.keys(sails.models)[0]].waterline.schema;
+		var projectID = sails.config.shipyard.src.projectId;
+		async.each(Object.keys(sails.models), function(key, cb) {
+			// Don't send join tables
+			if (waterlineSchema[key].junctionTable === true) return cb();
+			var identity = sails.models[key].identity;
+			var attributes = _.omit(sails.models[key].attributes, ['createdAt', 'updatedAt', 'id']);
+			// Post the model to Shipyard.  If it already exists, we'll get a 409 status, which we can ignore.
+			socket.post(baseURL + '/'+projectID+'/modules/models/?secret='+sails.config.shipyard.src.secret, {globalId: identity, attributes: attributes}, function(data) {
+				// If we get a status that isn't 200 or 409, bail
+				if (data.status && data.status != 409 && data.status != 200) {
+					return cb(data);
+				}
+				// Otherwise we're okay
+				return cb();
+			});
+		}, cb);
+	}
 
 	function stop() {
 		sails.log.verbose("Yarr WATCH stopped.");
@@ -78,19 +90,16 @@ module.exports = function(sails) {
 
 	}
 
-	function reloadAllModels() {
+	function reloadAllModels(cb) {
 
 		// Get all the current models for the linked project,
 		// and subscribe to changes to those models
-		console.log(sails.config.shipyard.src.url + '/models?secret='+sails.config.shipyard.src.secret);
 		socket.get(sails.config.shipyard.src.url + '/models?secret='+sails.config.shipyard.src.secret, function (models) {
-			console.log("MODELS", models);
+
 			// Write the models to the local project filesystem
 			writeModels(models, function(err) {
-				if (err) {
-					// TODO--handle errors
-					return;
-				}
+				
+				return cb(err);
 
 			});
 
