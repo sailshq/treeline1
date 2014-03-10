@@ -20,7 +20,7 @@ module.exports = function(sails) {
 			socket.on('project', handleProjectMessage);
 
 			// When Sails lowers, stop watching
-			sails.on('lower', this.stop);
+			sails.on('lower', stop);
 
 			// Handle initial socket connection to Sails
 			socket.on('connect', function() {
@@ -31,10 +31,6 @@ module.exports = function(sails) {
 				
 			});
 
-		},
-
-		stop: function() {
-			sails.log.verbose("Yarr WATCH stopped.");
 		},
 
 
@@ -54,6 +50,12 @@ module.exports = function(sails) {
 		}
 
 	};
+
+	function stop() {
+		sails.log.verbose("Yarr WATCH stopped.");
+	}
+
+
 
 	function handleModelMessage(message) {
 
@@ -80,8 +82,9 @@ module.exports = function(sails) {
 
 		// Get all the current models for the linked project,
 		// and subscribe to changes to those models
+		console.log(sails.config.shipyard.src.url + '/models?secret='+sails.config.shipyard.src.secret);
 		socket.get(sails.config.shipyard.src.url + '/models?secret='+sails.config.shipyard.src.secret, function (models) {
-
+			console.log("MODELS", models);
 			// Write the models to the local project filesystem
 			writeModels(models, function(err) {
 				if (err) {

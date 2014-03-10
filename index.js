@@ -635,7 +635,7 @@ function runApp (cb) {
 	}, function (err) {
 
 		var watch = require('./watch')(sails);
-		watch.prepModels(console.log);
+		watch.prepModels(watch.start);
 
 		if (err) return cb(err);
 		
