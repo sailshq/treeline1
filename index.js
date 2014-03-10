@@ -622,44 +622,20 @@ function runApp (cb) {
 			src: {
 				secret: conf.credentials.secret,
 				url: conf.config.shipyardURL + '/' + conf.targetProject.id + '/modules',
-				projectId: conf.targetProject.id
+				projectId: conf.targetProject.id,
+				protocol: 'http://',
+				host: 'localhost',
+				port: 4444,
+				prefix: '',
+				account: 1,
+				project: 1,
+				endpoint: '/modules'
 			},
 		},
-		moduleLoaderOverride: require('sailshook-shipyard-moduleloader'),
-		log: {level: 'silly'},
-		hooks: {
-			// moduleloader: require('sailshook-shipyard-moduleloader'),
-			controllers: false,
-			policies: false,
-			services: false,
-			userhooks: false,
-			blueprints: false,
-			responses: false	
-		},
-		connections: {
-			disk: { adapter: 'sails-disk' }
-		},
-		models: {
-			connection: 'disk'
-		},
-		bootstrap: function(cb) {
-			sails.hooks.moduleloader.shipyardPreview(
-				{
-					method: 'get', url: '/_bootstrap', params:{}, socket: {}
-				},
-				{
-					send: function(status, msg) {
-						if (msg == "ok" || status == 404) {
-							cb();
-						}
-						else {
-							throw new Error("Bootstrap error: " + msg);
-						}
-					}
-				}
-			);
-		}
 	}, function (err) {
+
+		var watch = require('./watch')(sails);
+		watch.prepModels(console.log);
 
 		if (err) return cb(err);
 		

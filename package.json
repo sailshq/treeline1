@@ -29,12 +29,12 @@
     "prompt": "~0.2.11",
     "colors": "~0.6.2",
     "async": "~0.2.9",
-    "sails": "git://github.com/balderdashy/sails.git#associations",
+    "sails": "~0.10.0-rc4",
+    "sails-disk": "~0.10.0",
     "request": "~2.27.0",
-    "sailshook-shipyard-moduleloader": "git+https://84cac9611b9e63c622c4bd68607588a3266610ab:x-oauth-basic@github.com/shipyard-io/shipyard-moduleloader.git",
     "fs-extra": "~0.8.1",
-    "sails-disk": "git://github.com/balderdashy/sails-disk.git#connections",
     "optimist": "~0.6.0",
-    "grunt": "~0.4.1"
+    "grunt": "~0.4.1",
+    "socket.io-client": "~0.9.16"
   }
 }
