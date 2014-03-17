@@ -44,6 +44,7 @@ module.exports = function(sails) {
 	 * @param  {Function} cb callback
 	 */
 	function prepModels(cb) {
+		if (Object.keys(sails.models).length === 0) {return cb();}
 		var waterlineSchema = sails.models[Object.keys(sails.models)[0]].waterline.schema;
 		var projectID = sails.config.shipyard.src.projectId;
 		async.each(Object.keys(sails.models), function(key, cb) {
