@@ -118,6 +118,12 @@ module.exports = function(sails) {
 			// Make JSON out of model def
 			var identity = models[key].identity;
 			var model = {attributes: models[key].attributes};
+
+			// Clear out any examples in the attributes
+			Object.keys(model.attributes).forEach(function(attribute) {
+				delete model.attributes[attribute].example;
+			});
+
 			var json = JSON.stringify(model);
 
 			// Write the model's attributes to a JSON file
