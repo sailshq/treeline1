@@ -31,6 +31,17 @@ module.exports = {
 			// 	'x-auth-yarr': options.secret
 			// }
 		}, cb);
+	},
+	createNewApp: function (options, cb) {
+
+		return _fetch({
+			url: options.baseURL + '/project',
+			method: 'post',
+			qs: {
+				secret: options.secret
+			},
+			json: options.params
+		}, cb);
 	}
 };
 

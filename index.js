@@ -19,6 +19,8 @@ var api = require('./api');
 
 // Monkey-patch `commander` with menu functionality.
 require('./menu')(program);
+// Monkey-patch `commander` with "create new app" functionality.
+require('./newApp')(program);
 
 // Strings
 var __ = require('./strings');
@@ -167,7 +169,7 @@ program
 
 			log();
 			_logHR();
-			log('Directory is now linked to ' + ('"'+conf.targetProject.fullName+'"').cyan + '    ' + (''+conf.targetProject.url).grey);
+			log('Directory is now linked to ' + ('"'+conf.targetProject.fullName+'"').cyan);
 			log('Run `yarr preview` to run the preview server.');
 			log(('Created linkfile at: '+jsonPath).grey);
 			// log('Would you like to link it with a different project?');
@@ -514,7 +516,8 @@ function doLogin (cb) {
 
 			var credentials = {
 				secret: response.secret,
-				username: response.username || '???'
+				username: response.username || '???',
+				accountId: response.id
 			};
 			
 			// If login was successful stringify and write the credentials file to disk
@@ -556,10 +559,17 @@ function doChooseApp (cb) {
 			return cb(__.NO_APPS_AVAILABLE);
 		}
 
+		// If there's an app that matches the local app's name exactly, pull it out to put at the top of the list
+		var localApp = require(process.cwd()+'/package.json');
+		var matchingApp = util.remove(conf.projects, function(project) {return project.name == localApp.name;});
+		conf.projects = matchingApp.concat(conf.projects);
+
 		// Map apps for use in the menu
 		var apps = util.map(conf.projects, function (app) {
 			return ((''+app.fullName).yellow) + '   ' + ('/' + conf.credentials.username + '/' + (app.name||'')).grey;
 		});
+
+		apps.push(('** Create a new project **').green);
 
 		program
 		.chooseFromMenu (
@@ -567,8 +577,26 @@ function doChooseApp (cb) {
 		apps,
 		{
 			'*': function ( choice, index ){
-				conf.targetProject = conf.projects[index];
-				cb();
+				if (index < apps.length - 1) {
+					conf.targetProject = conf.projects[index];
+					cb();
+				} else {
+					var createApp = function(appName, cb) {
+						api.createNewApp({
+							baseURL: conf.config.shipyardURL,
+							secret: conf.credentials.secret,
+							params: {name: appName, fullName: appName, account: conf.credentials.accountId}
+						}, cb);
+					};
+					program.createNewApp(localApp.name, createApp, function(err, newApp) {
+						if (err) {
+							log((err).red);
+							return doChooseApp(cb);
+						}
+						conf.targetProject = newApp;
+						cb();
+					});
+				}
 			}
 		});
 	});
