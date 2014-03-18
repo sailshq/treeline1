@@ -1,17 +1,20 @@
 var _ioClient = require('./sails.io')(require('socket.io-client'));
 var path = require('path');
 var fs = require('fs');
+var glob = require('glob');
+var async = require('async');
 module.exports = function(sails) {
 
-	// Get the Shipyard URL
-	var src = sails.config.shipyard.src;
-	var baseURL = src.protocol + src.host + ':' + (src.port +'');
-
-	// Get the socket.io client connection
-	var socket = _ioClient.connect(baseURL);
+	var socket;
 
 	return {
 		start: function(cb) {
+
+			// Get the Shipyard URL
+			var src = sails.config.shipyard.src;
+
+			// Get the socket.io client connection
+			socket = _ioClient.connect(sails.config.shipyard.src.baseURL);
 
 			cb = cb || function(){};
 			sails.log.verbose("Yarr WATCH started.");
@@ -29,15 +32,26 @@ module.exports = function(sails) {
 				prepModels(function(err) {
 					if (err) {return cb(err);}
 					var projectID = sails.config.shipyard.src.projectId;
-					socket.get(baseURL + '/project/subscribe/'+projectID+'?secret='+sails.config.shipyard.src.secret);
+					socket.get(sails.config.shipyard.src.baseURL + '/project/subscribe/'+projectID+'?secret='+sails.config.shipyard.src.secret);
 					reloadAllModels(cb);
 				});
 					
 			});
 
-		}
+		},
+
+		clean: clean
 
 	};
+
+	function clean(cb) {
+
+		glob(path.join(process.cwd(), 'api/models/*.attributes.json'), function(err, files) {
+			console.log(files);
+			async.forEach(files, fs.unlink, cb);
+		});
+
+	}
 
 	/**
 	 * Send local models up to Shipyard
@@ -53,7 +67,7 @@ module.exports = function(sails) {
 			var identity = sails.models[key].identity;
 			var attributes = _.omit(sails.models[key].attributes, ['createdAt', 'updatedAt', 'id']);
 			// Post the model to Shipyard.  If it already exists, we'll get a 409 status, which we can ignore.
-			socket.post(baseURL + '/'+projectID+'/modules/models/?secret='+sails.config.shipyard.src.secret, {globalId: identity, attributes: attributes}, function(data) {
+			socket.post(sails.config.shipyard.src.baseURL + '/'+projectID+'/modules/models/?secret='+sails.config.shipyard.src.secret, {globalId: identity, attributes: attributes}, function(data) {
 				// If we get a status that isn't 200 or 409, bail
 				if (data.status && data.status != 409 && data.status != 200) {
 					return cb(data);
@@ -99,13 +113,17 @@ module.exports = function(sails) {
 		// and subscribe to changes to those models
 		socket.get(sails.config.shipyard.src.url + '/models?secret='+sails.config.shipyard.src.secret, function (models) {
 
-			// Write the models to the local project filesystem
-			writeModels(models, function(err) {
-				
-				return cb(err);
+			clean(function() {
+
+				// Write the models to the local project filesystem
+				writeModels(models, function(err) {
+					
+					return cb(err);
+
+				});
+
 
 			});
-
 
 		});
 
@@ -113,11 +131,11 @@ module.exports = function(sails) {
 
 	function writeModels(models, cb) {
 
-		async.forEach(Object.keys(models), function(key, cb) {
+		async.forEach(Object.keys(models), function(globalId, cb) {
 
 			// Make JSON out of model def
-			var identity = models[key].identity;
-			var model = {attributes: models[key].attributes};
+			var identity = models[globalId].identity;
+			var model = {attributes: models[globalId].attributes, globalId: globalId, identity: identity};
 
 			// Clear out any examples in the attributes
 			Object.keys(model.attributes).forEach(function(attribute) {
@@ -128,7 +146,7 @@ module.exports = function(sails) {
 
 			// Write the model's attributes to a JSON file
 			
-			fs.writeFile(path.join(process.cwd(), 'api/models/', identity+'.attributes.json'), json, function(err) {
+			fs.writeFile(path.join(process.cwd(), 'api/models/', globalId+'.attributes.json'), json, function(err) {
 
 				if (err) {throw new Error(err);}
 				// See if a controller exists for this model
@@ -137,7 +155,7 @@ module.exports = function(sails) {
 					return cb();
 				}
 				// Otherwise create one so we can use blueprints
-				fs.writeFile(path.join(process.cwd(), 'api/controllers/', identity+'Controller.js'), "module.exports = {};", function(err) {
+				fs.writeFile(path.join(process.cwd(), 'api/controllers/', globalId+'Controller.js'), "module.exports = {};", function(err) {
 					if (err) {throw new Error(err);}
 					cb();
 				});

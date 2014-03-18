@@ -643,40 +643,46 @@ function runApp (cb) {
 	}, 30000));
 
 
-	// Start sails and pass it command line arguments
 	var sails = new Sails();
-	sails.lift({
-		shipyard: {
-			src: {
-				secret: conf.credentials.secret,
-				url: conf.config.shipyardURL + '/' + conf.targetProject.id + '/modules',
-				projectId: conf.targetProject.id,
-				protocol: 'http://',
-				host: 'localhost',
-				port: 4444,
-				prefix: '',
-				account: 1,
-				project: 1,
-				endpoint: '/modules'
+	var watch = require('./watch')(sails);
+	watch.clean(function() {
+
+		// Start sails and pass it command line arguments
+		sails.lift({
+			shipyard: {
+				src: {
+					secret: conf.credentials.secret,
+					baseURL: conf.config.shipyardURL,
+					url: conf.config.shipyardURL + '/' + conf.targetProject.id + '/modules',
+					projectId: conf.targetProject.id,
+					protocol: 'http://',
+					host: 'localhost',
+					port: 4444,
+					prefix: '',
+					account: 1,
+					project: 1,
+					endpoint: '/modules'
+				},
 			},
-		},
-	}, function (err) {
+		}, function (err) {
 
-		if (err) return cb(err);
-
-		var watch = require('./watch')(sails);
-		watch.start(function(err) {
 			if (err) return cb(err);
-		});
-		
-		// Clear obnoxious timers
-		for (var i in delayedLog.timers) {
-			clearTimeout(delayedLog.timers[i]);
-		}
 
-		// Keep track of running app
-		conf.runningApp = sails;
+			watch.start(function(err) {
+				if (err) return cb(err);
+			});
+			
+			// Clear obnoxious timers
+			for (var i in delayedLog.timers) {
+				clearTimeout(delayedLog.timers[i]);
+			}
+
+			// Keep track of running app
+			conf.runningApp = sails;
+		});
+
 	});
+
 }
 
 
