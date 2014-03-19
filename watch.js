@@ -144,6 +144,9 @@ module.exports = function(sails) {
 			Object.keys(model.attributes).forEach(function(attribute) {
 				delete model.attributes[attribute].example;
 				delete model.attributes[attribute].description;
+				if ((!attribute.type && !attribute.model && !attribute.collection) || (attribute.collection && !attribute.via)) {
+					attribute.type = 'string';
+				}
 			});
 
 			var json = JSON.stringify(model);
