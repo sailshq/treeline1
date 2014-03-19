@@ -143,6 +143,7 @@ module.exports = function(sails) {
 			// Clear out any examples in the attributes
 			Object.keys(model.attributes).forEach(function(attribute) {
 				delete model.attributes[attribute].example;
+				delete model.attributes[attribute].description;
 			});
 
 			var json = JSON.stringify(model);
