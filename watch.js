@@ -19,10 +19,6 @@ module.exports = function(sails) {
 			cb = cb || function(){};
 			sails.log.verbose("Yarr WATCH started.");
 
-			// Handle model pubsub messages from Sails
-			socket.on('model', handleModelMessage);
-			socket.on('project', handleProjectMessage);
-
 			// When Sails lowers, stop watching
 			sails.on('lower', stop);
 
@@ -33,7 +29,14 @@ module.exports = function(sails) {
 					if (err) {return cb(err);}
 					var projectID = sails.config.shipyard.src.projectId;
 					socket.get(sails.config.shipyard.src.baseURL + '/project/subscribe/'+projectID+'?secret='+sails.config.shipyard.src.secret);
-					reloadAllModels(cb);
+
+					reloadAllModels(function(err) {
+						if (err) {return cb(err);}
+						// Handle model pubsub messages from Sails
+						socket.on('model', handleModelMessage);
+						socket.on('project', handleProjectMessage);
+						return cb();
+					});
 				});
 					
 			});
@@ -47,7 +50,6 @@ module.exports = function(sails) {
 	function clean(cb) {
 
 		glob(path.join(process.cwd(), 'api/models/*.attributes.json'), function(err, files) {
-			console.log(files);
 			async.forEach(files, fs.unlink, cb);
 		});
 
@@ -59,26 +61,26 @@ module.exports = function(sails) {
 	 */
 	function prepModels(cb) {
 
-		return cb();
-
 		if (Object.keys(sails.models).length === 0) {return cb();}
 		var waterlineSchema = sails.models[Object.keys(sails.models)[0]].waterline.schema;
 		var projectID = sails.config.shipyard.src.projectId;
-		async.each(Object.keys(sails.models), function(key, cb) {
-			// Don't send join tables
-			if (waterlineSchema[key].junctionTable === true) return cb();
-			var identity = sails.models[key].identity;
+		var modelDefs = [];
+		Object.keys(sails.models).forEach(function(key) {
+			if (waterlineSchema[key].junctionTable === true) return;
 			var attributes = _.omit(sails.models[key].attributes, ['createdAt', 'updatedAt', 'id']);
-			// Post the model to Shipyard.  If it already exists, we'll get a 409 status, which we can ignore.
-			socket.post(sails.config.shipyard.src.baseURL + '/'+projectID+'/modules/models/?secret='+sails.config.shipyard.src.secret, {globalId: identity, attributes: attributes}, function(data) {
-				// If we get a status that isn't 200 or 409, bail
-				if (data.status && data.status != 409 && data.status != 200) {
-					return cb(data);
-				}
-				// Otherwise we're okay
-				return cb();
-			});
-		}, cb);
+			modelDefs.push({globalId: sails.models[key].globalId, attributes: attributes, project: projectID});
+		});
+		// Post the model to Shipyard.  If it already exists, we'll get a 409 status, which we can ignore.
+		socket.post(sails.config.shipyard.src.baseURL + '/'+projectID+'/modules/models/?secret='+sails.config.shipyard.src.secret, modelDefs, function(data) {
+
+			if (data.status && data.status != 200) {
+				return cb(data);
+			}
+
+			// Otherwise we're okay
+			return cb();
+
+		});
 	}
 
 	function stop() {
