@@ -55,7 +55,7 @@ module.exports = function (victim) {
 				// Attempt to create a new project
 				createAppFn(choice, function(err, body) {
 					if (err) {
-						if (err.errors && err.errors[0] && err.errors[0].status == '409') {
+						if (err.errors && err.errors[0] && err.errors[0].details == '409') {
 							return cb('A project with that name already exists.');
 						} else {
 							return cb('An error occurred creating the new project.');
