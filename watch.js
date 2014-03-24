@@ -143,11 +143,13 @@ module.exports = function(sails) {
 			var model = {attributes: models[globalId].attributes, globalId: globalId, identity: identity};
 
 			// Clear out any examples in the attributes
-			Object.keys(model.attributes).forEach(function(attribute) {
-				delete model.attributes[attribute].example;
-				delete model.attributes[attribute].description;
+			Object.keys(model.attributes).forEach(function(attribute_name) {
+				var attribute = model.attributes[attribute_name];
+				delete attribute.example;
+				delete attribute.description;
 				if ((!attribute.type && !attribute.model && !attribute.collection) || (attribute.collection && !attribute.via)) {
 					attribute.type = 'string';
+					delete attribute.collection;
 				}
 			});
 
