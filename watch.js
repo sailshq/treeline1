@@ -147,10 +147,18 @@ module.exports = function(sails) {
 				var attribute = model.attributes[attribute_name];
 				delete attribute.example;
 				delete attribute.description;
+				// If the attribute is malformed--like a collection without a via--just set the type to "string"
 				if ((!attribute.type && !attribute.model && !attribute.collection) || (attribute.collection && !attribute.via)) {
 					attribute.type = 'string';
 					delete attribute.collection;
 				}
+				// Loop through any validations and weed out malformed ones
+				attribute.validations = _.reduce(attribute.validations, function(memo, validation) {
+					if (!(validation.value === null || validation.value === '')) {
+						memo.push(validation);
+					}
+					return memo;
+				}, []);
 			});
 
 			var json = JSON.stringify(model);
