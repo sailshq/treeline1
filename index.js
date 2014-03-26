@@ -213,6 +213,7 @@ program
 // $ yarr preview
 program
 	.command('preview')
+	.option('--force-sync')
 	.description('preview the app in the current dir')
 	.action(function () {
 
@@ -606,6 +607,7 @@ function doChooseApp (cb) {
 
 
 function runApp (cb) {
+
 	if (conf.runningApp) return cb('Preview server is already running!');
 
 	var projectName = (conf.targetProject.fullName).cyan;
@@ -681,7 +683,7 @@ function runApp (cb) {
 			conf.runningApp = sails;
 		});
 
-	});
+	}, {forceSync: program.args[0].forceSync});
 
 }
 

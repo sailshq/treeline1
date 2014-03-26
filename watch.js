@@ -47,7 +47,9 @@ module.exports = function(sails) {
 
 	};
 
-	function clean(cb) {
+	function clean(cb, options) {
+
+		if (options && options.forceSync) {return cb();}
 
 		glob(path.join(process.cwd(), 'api/models/*.attributes.json'), function(err, files) {
 			async.forEach(files, fs.unlink, cb);
