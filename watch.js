@@ -149,6 +149,7 @@ module.exports = function(sails) {
 				var attribute = model.attributes[attribute_name];
 				delete attribute.example;
 				delete attribute.description;
+				delete attribute.validations;
 				// If the attribute is malformed--like a collection without a via--just set the type to "string"
 				if ((!attribute.type && !attribute.model && !attribute.collection) || (attribute.collection && !attribute.via)) {
 					attribute.type = 'string';
