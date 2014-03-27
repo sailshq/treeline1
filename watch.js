@@ -11,7 +11,7 @@ module.exports = function(sails) {
 	var socket;
 
 	return {
-		start: function(config, cb) {
+		start: function(config, options, cb) {
 
 			// Get the Shipyard URL
 			var src = config.src;
@@ -25,6 +25,9 @@ module.exports = function(sails) {
 			// When Sails lowers, stop watching
 			sails.on('lower', stop);
 
+			options = options || {};
+			options.noOrmReload = true;
+
 			// Handle initial socket connection to Sails
 			socket.on('connect', function() {
 
@@ -32,13 +35,13 @@ module.exports = function(sails) {
 				socket.get(config.src.baseURL + '/project/subscribe/'+config.src.projectId+'?secret='+config.src.secret);
 
 				// Load all models from Shipyard, but don't reload ORM (since Sails hasn't started yet)
-				reloadAllModels(function(err) {
+				reloadAllModels(config, options, function(err) {
 					if (err) {return cb(err);}
 					// Handle model pubsub messages from Sails
 					socket.on('model', handleModelMessage);
 					socket.on('project', handleProjectMessage);
 					return cb();
-				}, config, true);
+				});
 					
 			});
 
@@ -52,7 +55,7 @@ module.exports = function(sails) {
 	 * @param  {[type]}   options [description]
 	 * @return {[type]}           [description]
 	 */
-	function clean(cb, options) {
+	function clean(options, cb) {
 
 		if (options && options.forceSync) {return cb();}
 
@@ -89,21 +92,22 @@ module.exports = function(sails) {
 
 	}
 
-	function reloadAllModels(cb, config, noOrmReload) {
+	function reloadAllModels(config, options, cb) {
 
 		cb = cb || function(){};
+		options = options || {};
 		config = config || sails.config.shipyard;
 		
 		// Get all the current models for the linked project,
 		// and subscribe to changes to those models
 		socket.get(config.src.url + '/models?secret='+config.src.secret, function (models) {
 
-			clean(function() {
+			clean(options, function() {
 
 				// Write the models to the local project filesystem
 				writeModels(models, function(err) {
 					
-					if (noOrmReload) {
+					if (options.noOrmReload) {
 						return cb(err);
 					} else {
 						reloadOrm(cb);
@@ -118,11 +122,13 @@ module.exports = function(sails) {
 
 		function writeModels(models, cb) {
 
-			// Load all current Sails user models (/api/models/*.js files)
+			// Load all current Sails user models (/api/models/*.js files), or, if forceSync is on, load ALL model files
+			var filter = options.forceSync ? null : /^([^.]+)\.(js|coffee)$/;
 			buildDictionary.optional({
 				dirname		: path.resolve(process.cwd(), 'api/models'),
-				filter		: /^([^.]+)\.(js|coffee)$/,
-				replaceExpr : /^.*\//,
+				filter		: filter,
+				depth		: 1,
+				replaceExpr : /\.js/,
 				flattenDirectories: true,
 				useGlobalIdForKeyName: true
 			}, function(err, userModels) {

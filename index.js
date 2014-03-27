@@ -660,7 +660,7 @@ function runApp (cb) {
 			endpoint: '/modules'
 		}
 	};
-	watch.start(shipyardConfig, function() {
+	watch.start(shipyardConfig, {forceSync: program.args[0].forceSync}, function() {
 
 		// Start sails and pass it command line arguments
 		sails.lift({
@@ -678,7 +678,7 @@ function runApp (cb) {
 			conf.runningApp = sails;
 		});
 
-	}, {forceSync: program.args[0].forceSync});
+	});
 
 }
 
