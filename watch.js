@@ -55,9 +55,7 @@ module.exports = function(sails) {
 	 * @param  {[type]}   options [description]
 	 * @return {[type]}           [description]
 	 */
-	function clean(options, cb) {
-
-		if (options && options.forceSync) {return cb();}
+	function clean(cb) {
 
 		glob(path.join(process.cwd(), 'api/models/*.attributes.json'), function(err, files) {
 			async.forEach(files, fs.unlink, cb);
@@ -100,41 +98,57 @@ module.exports = function(sails) {
 		
 		// Get all the current models for the linked project,
 		// and subscribe to changes to those models
-		socket.get(config.src.url + '/models?secret='+config.src.secret, function (models) {
+		async.auto({
+			models: function(cb) {
+				if (!options.forceSync) {
+					socket.get(config.src.url + '/models?secret='+config.src.secret, function(models) {
+						return cb(null, models);
+					});
+				} else {
+					buildDictionary.optional({
+						dirname		: path.resolve(process.cwd(),'api/models'),
+						filter		: /(.+)\.attributes.json$/,
+						replaceExpr : /^.*\//,
+						useGlobalIdForKeyName: true,
+						flattenDirectories: true
+					}, function(err, models) {
+						return cb(null, models);
+					});
+				}
+			},
+			clean: function(cb) {
+				if (options.forceSync) {
+					return cb();
+				}
+				clean(cb);
+			},
+			write: ['models', 'clean', function(cb, results) {
+				writeModels(results.models, cb);
+			}]
+		},
 
-			clean(options, function() {
-
-				// Write the models to the local project filesystem
-				writeModels(models, function(err) {
-					
-					if (options.noOrmReload) {
-						return cb(err);
-					} else {
-						reloadOrm(cb);
-					}
-
-				});
-
-
-			});
-
-		});
+			function(err) {
+				if (options.noOrmReload) {
+					return cb(err);
+				} else {
+					reloadOrm(cb);
+				}
+			}
+		);
 
 		function writeModels(models, cb) {
 
-			// Load all current Sails user models (/api/models/*.js files), or, if forceSync is on, load ALL model files
-			var filter = options.forceSync ? null : /^([^.]+)\.(js|coffee)$/;
+			// Load all current Sails user models (/api/models/*.js files)
 			buildDictionary.optional({
 				dirname		: path.resolve(process.cwd(), 'api/models'),
-				filter		: filter,
-				depth		: 1,
-				replaceExpr : /\.js/,
+				filter		: /^([^.]+)\.(js|coffee)$/,
+				replaceExpr : /^.*\//,
 				flattenDirectories: true,
 				useGlobalIdForKeyName: true
 			}, function(err, userModels) {
 
 				// Keep an array of any new models we encounter, so we can add them to Shipyard
-				var newModels = [];
+				var newModels = options.forceSync ? _.values(models) : [];
 
 				// Loop through through the user models
 				Object.keys(userModels).forEach(function(userModelGlobalId) {
