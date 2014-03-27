@@ -36,6 +36,8 @@
     "optimist": "~0.6.0",
     "grunt": "~0.4.1",
     "socket.io-client": "~0.9.16",
-    "glob": "~3.2.9"
+    "glob": "~3.2.9",
+    "sails-build-dictionary": "~0.10.1",
+    "lodash": "~2.4.1"
   }
 }

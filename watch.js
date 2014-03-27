@@ -3,21 +3,24 @@ var path = require('path');
 var fs = require('fs');
 var glob = require('glob');
 var async = require('async');
+var log = require('./logger');
+var buildDictionary = require('sails-build-dictionary');
+var _ = require('lodash');
 module.exports = function(sails) {
 
 	var socket;
 
 	return {
-		start: function(cb) {
+		start: function(config, cb) {
 
 			// Get the Shipyard URL
-			var src = sails.config.shipyard.src;
+			var src = config.src;
 
 			// Get the socket.io client connection
-			socket = _ioClient.connect(sails.config.shipyard.src.baseURL);
+			socket = _ioClient.connect(config.src.baseURL);
 
 			cb = cb || function(){};
-			sails.log.verbose("Yarr WATCH started.");
+			log.verbose("Yarr WATCH started.");
 
 			// When Sails lowers, stop watching
 			sails.on('lower', stop);
@@ -25,28 +28,30 @@ module.exports = function(sails) {
 			// Handle initial socket connection to Sails
 			socket.on('connect', function() {
 
-				prepModels(function(err) {
-					if (err) {return cb(err);}
-					var projectID = sails.config.shipyard.src.projectId;
-					socket.get(sails.config.shipyard.src.baseURL + '/project/subscribe/'+projectID+'?secret='+sails.config.shipyard.src.secret);
+				// Subscribe to updates
+				socket.get(config.src.baseURL + '/project/subscribe/'+config.src.projectId+'?secret='+config.src.secret);
 
-					reloadAllModels(function(err) {
-						if (err) {return cb(err);}
-						// Handle model pubsub messages from Sails
-						socket.on('model', handleModelMessage);
-						socket.on('project', handleProjectMessage);
-						return cb();
-					});
-				});
+				// Load all models from Shipyard, but don't reload ORM (since Sails hasn't started yet)
+				reloadAllModels(function(err) {
+					if (err) {return cb(err);}
+					// Handle model pubsub messages from Sails
+					socket.on('model', handleModelMessage);
+					socket.on('project', handleProjectMessage);
+					return cb();
+				}, config, true);
 					
 			});
 
-		},
-
-		clean: clean
+		}
 
 	};
 
+	/**
+	 * Wipe out all model .json files
+	 * @param  {Function} cb      [description]
+	 * @param  {[type]}   options [description]
+	 * @return {[type]}           [description]
+	 */
 	function clean(cb, options) {
 
 		if (options && options.forceSync) {return cb();}
@@ -55,34 +60,6 @@ module.exports = function(sails) {
 			async.forEach(files, fs.unlink, cb);
 		});
 
-	}
-
-	/**
-	 * Send local models up to Shipyard
-	 * @param  {Function} cb callback
-	 */
-	function prepModels(cb) {
-
-		if (Object.keys(sails.models).length === 0) {return cb();}
-		var waterlineSchema = sails.models[Object.keys(sails.models)[0]].waterline.schema;
-		var projectID = sails.config.shipyard.src.projectId;
-		var modelDefs = [];
-		Object.keys(sails.models).forEach(function(key) {
-			if (waterlineSchema[key].junctionTable === true) return;
-			var attributes = _.omit(sails.models[key].attributes, ['createdAt', 'updatedAt', 'id']);
-			modelDefs.push({globalId: sails.models[key].globalId, attributes: attributes, project: projectID});
-		});
-		// Post the model to Shipyard.  If it already exists, we'll get a 409 status, which we can ignore.
-		socket.post(sails.config.shipyard.src.baseURL + '/'+projectID+'/modules/models/?secret='+sails.config.shipyard.src.secret, modelDefs, function(data) {
-
-			if (data.status && data.status != 200) {
-				return cb(data);
-			}
-
-			// Otherwise we're okay
-			return cb();
-
-		});
 	}
 
 	function stop() {
@@ -112,20 +89,25 @@ module.exports = function(sails) {
 
 	}
 
-	function reloadAllModels(cb) {
+	function reloadAllModels(cb, config, noOrmReload) {
 
 		cb = cb || function(){};
+		config = config || sails.config.shipyard;
 		
 		// Get all the current models for the linked project,
 		// and subscribe to changes to those models
-		socket.get(sails.config.shipyard.src.url + '/models?secret='+sails.config.shipyard.src.secret, function (models) {
+		socket.get(config.src.url + '/models?secret='+config.src.secret, function (models) {
 
 			clean(function() {
 
 				// Write the models to the local project filesystem
 				writeModels(models, function(err) {
 					
-					return cb(err);
+					if (noOrmReload) {
+						return cb(err);
+					} else {
+						reloadOrm(cb);
+					}
 
 				});
 
@@ -134,78 +116,121 @@ module.exports = function(sails) {
 
 		});
 
+		function writeModels(models, cb) {
+
+			// Load all current Sails user models (/api/models/*.js files)
+			buildDictionary.optional({
+				dirname		: path.resolve(process.cwd(), 'api/models'),
+				filter		: /^([^.]+)\.(js|coffee)$/,
+				replaceExpr : /^.*\//,
+				flattenDirectories: true,
+				useGlobalIdForKeyName: true
+			}, function(err, userModels) {
+
+				// Keep an array of any new models we encounter, so we can add them to Shipyard
+				var newModels = [];
+
+				// Loop through through the user models
+				Object.keys(userModels).forEach(function(userModelGlobalId) {
+
+					// If we already know about this one in Shipyard, just merge our Shipyard version with the user version
+					if (models[userModelGlobalId]) {
+						models[userModelGlobalId] = {attributes: _.merge(userModels[userModelGlobalId], models[userModelGlobalId]).attributes};
+					}
+					// Otherwise push it to the newModels array, and add an entry into the "models" hash to make it look like it came from
+					// Shipyard, so that we write a .json file for it
+					else {
+						models[userModelGlobalId] = {attributes: userModels[userModelGlobalId].attributes || {}};
+						models[userModelGlobalId].identity = userModelGlobalId.toLowerCase();
+						newModels.push({globalId: userModelGlobalId, attributes: userModels[userModelGlobalId].attributes});
+					}
+
+				});
+
+				async.auto({
+					
+					// Upload any new models to Shipyard
+					uploadNewModels: function(cb) {
+						if (!newModels.length) {return cb();}
+
+						socket.post(config.src.baseURL + '/'+config.src.projectId+'/modules/models/?secret='+config.src.secret, newModels, function(data) {
+
+							if (data.status && data.status != 200) {
+								return cb(data);
+							}
+
+							// Otherwise we're okay
+							return cb();
+
+						});
+					},
+
+					// Load the list of top-level controller files
+					controllers: function(cb) {
+						fs.readdir(path.resolve(process.cwd(), 'api/controllers'), function(err, files) {
+							if (err) {return cb(err);}
+							cb(null, files.map(function(file) {return file.toLowerCase();}));
+						});
+					},
+
+					writeToDisk: ['controllers', function(cb, results) {
+
+						// Loop through each of the models we got from Shipyard (or created in response to finding a new user model)
+						async.forEach(Object.keys(models), function(globalId, cb) {
+
+							// Make JSON out of model def
+							var identity = models[globalId].identity || globalId.toLowerCase();
+							var model = {attributes: models[globalId].attributes, globalId: globalId, identity: identity};
+							var json = JSON.stringify(model);
+
+							// Write the model's attributes to a JSON file
+							fs.writeFile(path.join(process.cwd(), 'api/models/', globalId+'.attributes.json'), json, function(err) {
+
+								if (err) {throw new Error(err);}
+
+								// See if a controller exists for this model
+								if (results.controllers.indexOf(identity+'controller.js') !== -1) {
+									// If so, we can return now
+									return cb();
+								}
+								// Otherwise create one so we can use blueprints
+								fs.writeFile(path.join(process.cwd(), 'api/controllers/', globalId+'Controller.js'), "module.exports = {};", function(err) {
+									if (err) {throw new Error(err);}
+									cb();
+								});
+
+							});
+
+						}, cb);
+
+					}]
+
+				}, cb);
+
+			});
+
+		}
+
 	}
 
-	function writeModels(models, cb) {
+	function reloadOrm(cb) {
 
-		async.forEach(Object.keys(models), function(globalId, cb) {
+		// Reload controller middleware
+		sails.hooks.controllers.loadAndRegisterControllers(function() {
 
-			// Make JSON out of model def
-			var identity = models[globalId].identity;
-			var model = {attributes: models[globalId].attributes, globalId: globalId, identity: identity};
+			sails.once('hook:orm:reloaded', function() {
 
-			// Clear out any examples in the attributes
-			Object.keys(model.attributes).forEach(function(attribute_name) {
-				var attribute = model.attributes[attribute_name];
-				delete attribute.example;
-				delete attribute.description;
-				// If the attribute is malformed--like a collection without a via--just set the type to "string"
-				if ((!attribute.type && !attribute.model && !attribute.collection) || (attribute.collection && !attribute.via)) {
-					attribute.type = 'string';
-					delete attribute.collection;
-				}
-				// Loop through any validations and weed out malformed ones
-				attribute.validations = _.reduce(attribute.validations, function(memo, validation) {
-					if (!(validation.value === null || validation.value === '')) {
-						memo.push(validation);
-					}
-					return memo;
-				}, []);
+				// Flush router
+				sails.router.flush();
+				// Reload blueprints
+				sails.hooks.blueprints.bindShadowRoutes();
 
-				delete attribute.validations;
-				
-			});
-
-			var json = JSON.stringify(model);
-
-			// Write the model's attributes to a JSON file
-			
-			fs.writeFile(path.join(process.cwd(), 'api/models/', globalId+'.attributes.json'), json, function(err) {
-
-				if (err) {throw new Error(err);}
-				// See if a controller exists for this model
-				if (sails.controllers[identity]) {
-					// If so, we can return now
-					return cb();
-				}
-				// Otherwise create one so we can use blueprints
-				fs.writeFile(path.join(process.cwd(), 'api/controllers/', globalId+'Controller.js'), "module.exports = {};", function(err) {
-					if (err) {throw new Error(err);}
-					cb();
-				});
+				return cb();
 
 			});
 
-		}, function() {
-
-			// Reload controller middleware
-			sails.hooks.controllers.loadAndRegisterControllers(function() {
-
-				sails.once('hook:orm:reloaded', function() {
-	
-					// Flush router
-					sails.router.flush();
-					// Reload blueprints
-					sails.hooks.blueprints.bindShadowRoutes();
-
-					return cb();
-
-				});
-
-				// Reload ORM
-				sails.emit('hook:orm:reload');
-
-			});
+			// Reload ORM
+			sails.emit('hook:orm:reload');
 
 		});
 
