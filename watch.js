@@ -159,14 +159,14 @@ module.exports = function(sails) {
 
 			// Loop through through the user models
 			Object.keys(userModels).forEach(function(userModelGlobalId) {
-
+				
 				// If we already know about this one in Shipyard, just merge our Shipyard version with the user version
 				if (models[userModelGlobalId]) {
 					models[userModelGlobalId] = {attributes: _.merge(userModels[userModelGlobalId], models[userModelGlobalId]).attributes};
 				}
 				// Otherwise push it to the newModels array, and add an entry into the "models" hash to make it look like it came from
 				// Shipyard, so that we write a .json file for it
-				else {
+				else if (options.forceSync) {
 					models[userModelGlobalId] = {attributes: userModels[userModelGlobalId].attributes || {}};
 					models[userModelGlobalId].identity = userModelGlobalId.toLowerCase();
 					newModels.push({globalId: userModelGlobalId, attributes: userModels[userModelGlobalId].attributes});
