@@ -73,6 +73,10 @@ module.exports = function(sails) {
 					
 			});
 
+			socket.on('disconnect', function() {
+				sails.log.error("Shipyard went offline; lowering Sails.");
+				sails.lower(function(){process.exit();});
+			});
 		}
 
 	};
