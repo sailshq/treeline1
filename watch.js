@@ -39,38 +39,43 @@ module.exports = function(sails) {
 				// Subscribe to updates
 				socket.get(config.src.baseURL + '/project/subscribe/'+config.src.projectId+'?secret='+config.src.secret);
 
-				async.parallel({
-					models: function(cb) {
-						// Load all models from Shipyard, but don't reload ORM (since Sails hasn't started yet)
-						self.syncModels.reloadAllModels(config, options, function(err) {
-							if (err) {return cb(err);}
-							// Handle model pubsub messages from Sails
-							return cb();
-						});						
-					},
-					services: function(cb) {
-						// Load all models from Shipyard, but don't reload ORM (since Sails hasn't started yet)
-						self.syncServices.reloadAllServices(config, options, function(err) {
-							if (err) {return cb(err);}
-							// Handle model pubsub messages from Sails
-							return cb();
-						});						
-					},
-					controllers: function(cb) {
-						// Load all models from Shipyard, but don't reload ORM (since Sails hasn't started yet)
-						self.syncControllers.reloadAllControllers(config, options, function(err) {
-							if (err) {return cb(err);}
-							// Handle model pubsub messages from Sails
-							return cb();
-						});						
-					}
+				// Tasks to run
+				var tasks = {};
+				tasks.models = function(cb) {
+					// Load all models from Shipyard, but don't reload ORM (since Sails hasn't started yet)
+					self.syncModels.reloadAllModels(config, options, function(err) {
+						if (err) {return cb(err);}
+						// Handle model pubsub messages from Sails
+						return cb();
+					});
+				};
 
-				}, function(err) {
+				if (!options.modelsOnly) {
+					_.extend(tasks, {
+						services: function(cb) {
+							// Load all models from Shipyard, but don't reload ORM (since Sails hasn't started yet)
+							self.syncServices.reloadAllServices(config, options, function(err) {
+								if (err) {return cb(err);}
+								// Handle model pubsub messages from Sails
+								return cb();
+							});
+						},
+						controllers: function(cb) {
+							// Load all models from Shipyard, but don't reload ORM (since Sails hasn't started yet)
+							self.syncControllers.reloadAllControllers(config, options, function(err) {
+								if (err) {return cb(err);}
+								// Handle model pubsub messages from Sails
+								return cb();
+							});
+						}
+					});
+				}
+				async.parallel(tasks, function(err) {
 					if (err) return cb(err);
 					socket.on('project', handleProjectMessage);
 					return cb();
 				});
-					
+
 			});
 
 			socket.on('disconnect', function() {
@@ -106,7 +111,7 @@ module.exports = function(sails) {
 
 		}
 
-	}	
+	}
 
 	function reloadOrm(cb) {
 

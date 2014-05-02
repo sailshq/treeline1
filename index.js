@@ -12,6 +12,7 @@ var program = require('commander'),
 	path = require('path'),
 	fs = require('fs'),
 	fse = require('fs-extra'),
+	_ = require('lodash'),
 	argv = require('optimist').argv;
 
 // Shipyard api wrapper
@@ -174,7 +175,7 @@ program
 			log(('Created linkfile at: '+jsonPath).grey);
 			// log('Would you like to link it with a different project?');
 			// log('Any files in this directory, e.g. views and assets, will be left alone.'.grey);
-			
+
 			_done();
 
 		}, {});
@@ -214,6 +215,7 @@ program
 program
 	.command('preview')
 	.option('--force-sync')
+	.option('--models-only')
 	.description('preview the app in the current dir')
 	.action(function () {
 
@@ -232,7 +234,7 @@ program
 			_runApp: ['target', runApp]
 
 		}, _done);
-		
+
 	});
 
 
@@ -297,7 +299,7 @@ program
 					log('This computer is logged-in to Shipyard as '+((conf.credentials.username).cyan)+ '.');
 				}
 				// log();
-				
+
 				// Project information
 				if (!conf.targetProject) {
 					log(('This directory (' + process.cwd() + ') is not linked to a Shipyard app.').grey);
@@ -403,7 +405,7 @@ function readSecret (cb) {
 	pathToCredentials = path.resolve(conf.config.pathToCredentials);
 
 	fse.readJSON(pathToCredentials, function (err, credentials) {
-		
+
 		// If an error occured, the secret file probably doesn't exist
 		// at the configured location. So prompt user to log in
 		// and then create a new one.
@@ -435,7 +437,7 @@ function fetchApps (cb) {
 	}, function (err, response) {
 		if (err) {
 
-			// If there is an authentication problem, 
+			// If there is an authentication problem,
 			// wipe credentials and attempt to login again
 			if (err.status == 403) {
 				log('Sorry, looks like your account secret has changed, or the local file has become corrupt.');
@@ -513,14 +515,14 @@ function doLogin (cb) {
 			if (!response || !response.secret) {
 				return cb('Unexpected response from Shipyard (no secret):' + util.inspect(response));
 			}
-			
+
 
 			var credentials = {
 				secret: response.secret,
 				username: response.username || '???',
 				accountId: response.id
 			};
-			
+
 			// If login was successful stringify and write the credentials file to disk
 			fse.outputJSON( path.resolve(conf.config.pathToCredentials),
 				credentials, function (err) {
@@ -611,15 +613,15 @@ function runApp (cb) {
 	if (conf.runningApp) return cb('Preview server is already running!');
 
 	var projectName = (conf.targetProject.fullName).cyan;
-	
+
 	log();
 	log('Running ' + projectName + '...');
-	
+
 	_logHR();
 	log('Preview server is warming up...'.yellow);
 	log('(hit <CTRL+C> to cancel at any time)');
 	log();
-	
+
 	var delayedLog = function (ms) {
 		return function logFn () {
 			var args = Array.prototype.slice.call(arguments);
@@ -660,7 +662,12 @@ function runApp (cb) {
 			endpoint: '/modules'
 		}
 	};
-	watch.start(shipyardConfig, {forceSync: program.args[0].forceSync}, function() {
+	var options = conf.targetProject.options || {};
+	_.defaults(options, {
+		forceSync: program.args[0].forceSync,
+		modelsOnly: program.args[0].modelsOnly
+	});
+	watch.start(shipyardConfig, options, function() {
 
 		// Start sails and pass it command line arguments
 		sails.lift({
@@ -718,7 +725,7 @@ function authenticate (cb) {
 	// If secret is missing, send user to the authentication flow
 	// If secret is valid, good to go
 	async.auto({
-		
+
 		// Load config
 		config: readConfig,
 
@@ -754,7 +761,7 @@ function writeLinkfile (cb) {
 	}, function (err) {
 		if (err) return cb(err);
 
-		
+
 		// Determine expected location of shipyard.json file
 		var jsonPath = process.cwd() + '/shipyard.json';
 		jsonPath = path.resolve(jsonPath);
@@ -777,7 +784,7 @@ function acquireLink (cb) {
 
 		// Use cached credentials or enter login flow
 		credentials: authenticate,
-		
+
 		readLinkfile: ['credentials', readLink],
 
 		// Fetch apps available to this user from shipyard server
@@ -804,7 +811,7 @@ function readLink (cb) {
 		readFile: function (cb) {
 			fse.readJSON(jsonPath, function (err, json){
 				if (err) {
-				
+
 					// If the file simply doesn't exist, we won't call this an error
 					// instead, exit silently
 					if (err instanceof Error && err.errno===34) {
@@ -833,7 +840,7 @@ function readLink (cb) {
 
 			// If no target project is currently defined, skip this check
 			if ( !conf.targetProject ) return cb();
-			
+
 			// Ensure account has access to the target app
 			if ( !util.contains( util.pluck(conf.projects, 'id'), conf.targetProject.id ) ) {
 				log('Sorry, you do not have permission to preview the linked project: '+conf.targetProject.fullName+'  (' + conf.targetProject.id +')');
@@ -843,7 +850,7 @@ function readLink (cb) {
 			}
 			cb();
 		}]
-		
+
 	}, cb);
 }
 
