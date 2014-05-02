@@ -17,6 +17,8 @@ module.exports = function(sails) {
 
 			// Get the Shipyard URL
 			var src = config.src;
+			self.options = _.clone(options);
+			delete options.forceSync;
 
 			// Get the socket.io client connection
 			socket = _ioClient.connect(config.src.baseURL);
@@ -96,15 +98,14 @@ module.exports = function(sails) {
 
 		// Handle model updates
 		if (message.verb == 'messaged' && message.data.message == 'model_updated') {
-
-			self.syncModels.writeModels(message.data.models, null, function(err) {
+			self.syncModels.writeModels(message.data.models, self.options, function(err) {
 				reloadOrm();
 			});
 
 		}
 
 		// Handle model updates
-		if (message.verb == 'messaged' && message.data.message == 'controller_updated') {
+		if (message.verb == 'messaged' && message.data.message == 'controller_updated' && !self.options.modelsOnly) {
 			self.syncControllers.writeControllers(message.data.controllers, function(err) {
 				reloadOrm();
 			});
