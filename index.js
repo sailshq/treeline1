@@ -379,14 +379,27 @@ function readConfig (cb) {
 			return;
 		}
 
-		// Ensure configured shipyardURL has no trailing slash.
-		config.shipyardURL = util.str.rtrim(config.shipyardURL, '/');
+		var jsonPath = process.cwd() + '/shipyard.json';
+		jsonPath = path.resolve(jsonPath);
 
-		// CLI config loaded successfully- save it to `conf`
-		log.verbose('Loaded config :: ', config);
-		conf.config = config;
+		// Sort of a cheap hack to attempt to read a shipyard URL from the project's shipyard.json file
+		// if it exists, so that we can use different Shipyard instances for different projects.
+		fse.readJSON(jsonPath, function (err, json){
 
-		return cb();
+			config.shipyardURL = (!err && json.shipyardURL) ? json.shipyardURL : config.shipyardURL;
+			config.pathToCredentials = (!err && json.pathToCredentials) ? json.pathToCredentials : config.pathToCredentials;
+
+			// Ensure configured shipyardURL has no trailing slash.
+			config.shipyardURL = util.str.rtrim(config.shipyardURL, '/');
+
+			// CLI config loaded successfully- save it to `conf`
+			log.verbose('Loaded config :: ', config);
+			conf.config = config;
+
+			return cb();
+
+		});
+
 	});
 }
 
@@ -800,6 +813,7 @@ function acquireLink (cb) {
 
 
 function readLink (cb) {
+
 	if (conf.targetProject) return cb();
 
 	// Determine expected location of shipyard.json file
