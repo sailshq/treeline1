@@ -18,7 +18,7 @@ module.exports = function(sails) {
 			// Get the Shipyard URL
 			var src = config.src;
 			self.options = _.clone(options);
-			delete options.forceSync;
+			delete self.options.forceSync;
 
 			// Get the socket.io client connection
 			socket = _ioClient.connect(config.src.baseURL);
