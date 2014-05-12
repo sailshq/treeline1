@@ -699,6 +699,10 @@ function runApp (cb) {
 	// Merge our lift options
 	_.extend(liftOptions, localSailsRc);
 
+    // Make sure the Yarr plugin is listed
+    liftOptions.plugins = liftOptions.plugins || {yarr: true};
+    liftOptions.plugins.yarr = liftOptions.plugins.yarr || true;
+
 	liftOptions.moduleLoaderOverride = function(sails) {
 		return {
 		    /**
