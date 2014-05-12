@@ -37,8 +37,9 @@
     "grunt": "~0.4.1",
     "socket.io-client": "~0.9.16",
     "glob": "~3.2.9",
-    "sails-build-dictionary": "~0.10.1",
+    "sails-build-dictionary": "^0.10.1",
     "lodash": "~2.4.1",
-    "js-beautify": "^1.5.1"
+    "js-beautify": "^1.5.1",
+    "rc": "^0.3.5"
   }
 }

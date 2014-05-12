@@ -13,6 +13,8 @@ var program = require('commander'),
 	fs = require('fs'),
 	fse = require('fs-extra'),
 	_ = require('lodash'),
+	buildDictionary = require('sails-build-dictionary'),
+	rc = require('rc'),
 	argv = require('optimist').argv;
 
 // Shipyard api wrapper
@@ -214,6 +216,7 @@ program
 program
 	.command('preview')
 	.option('--force-sync')
+	.option('--export')
 	.option('--models-only')
 	.description('preview the app in the current dir')
 	.action(function () {
@@ -677,14 +680,99 @@ function runApp (cb) {
 	var options = conf.targetProject.options || {};
 	_.defaults(options, {
 		forceSync: program.args[0].forceSync,
-		modelsOnly: program.args[0].modelsOnly
+		modelsOnly: program.args[0].modelsOnly,
+		export: program.args[0].export
 	});
+
+	var liftOptions = {
+		shipyard: shipyardConfig
+	};
+
+	// Load the app's local .sailsrc
+	var localSailsRc = rc('sails', {}, ["--config", path.join(process.cwd(), '.sailsrc')]);
+
+	// Delete keys that `rc` puts in that we don't want
+	delete localSailsRc[0];
+	delete localSailsRc[1];
+	delete localSailsRc.config;
+
+	// Merge our lift options
+	_.extend(liftOptions, localSailsRc);
+
+	liftOptions.moduleLoaderOverride = function(sails) {
+		return {
+		    /**
+		     * Load app controllers
+		     *
+		     * @param {Object} options
+		     * @param {Function} cb
+		     */
+		    loadControllers: function(cb) {
+		      loadApiWithPlugins(function loader (dirName, cb) {
+		        buildDictionary.optional({
+		          dirname: dirName,
+		          filter: /(.+)Controller\.(js|coffee)$/,
+		          flattenDirectories: true,
+		          keepDirectoryPath: true,
+		          replaceExpr: /Controller/
+		        }, cb);
+		      }, "controllers", cb);
+		    },
+
+		    /**
+		     * Load app's model definitions
+		     *
+		     * @param {Object} options
+		     * @param {Function} cb
+		     */
+		    loadModels: function (cb) {
+		      loadApiWithPlugins(function loader (dirName, cb) {
+		        // Get the main model files
+		        buildDictionary.optional({
+		          dirname   : dirName,
+		          filter    : /^([^.]+)\.(js|coffee)$/,
+		          replaceExpr : /^.*\//,
+		          flattenDirectories: true
+		        }, function(err, models) {
+		          if (err) {return cb(err);}
+		          // Get any supplemental files
+		          buildDictionary.optional({
+		            dirname   : dirName,
+		            filter    : /(.+)\.attributes.json$/,
+		            replaceExpr : /^.*\//,
+		            flattenDirectories: true
+		          }, function(err, supplements) {
+		            if (err) {return cb(err);}
+		            return cb(null, sails.util.merge(models, supplements));
+		          });
+		        });
+		      }, "models", cb);
+		    },
+
+		    /**
+		     * Load app services
+		     *
+		     * @param {Object} options
+		     * @param {Function} cb
+		     */
+		    loadServices: function (cb) {
+		      loadApiWithPlugins (function loader(dirName, cb) {
+		          buildDictionary.optional({
+		            dirname     : dirName,
+		            filter      : /(.+)\.(js|coffee)$/,
+		            depth     : 1,
+		            caseSensitive : true
+		          }, cb);
+		      }, "services", cb);
+		    }
+		};
+	};
+
+	// Start watching for changes from Shipyard
 	watch.start(shipyardConfig, options, function() {
 
 		// Start sails and pass it command line arguments
-		sails.lift({
-			shipyard: shipyardConfig,
-		}, function (err) {
+		sails.lift(liftOptions, function (err) {
 
 			if (err) return cb(err);
 
@@ -698,6 +786,18 @@ function runApp (cb) {
 		});
 
 	});
+
+	function loadApiWithPlugins(loader, api, cb) {
+	  async.auto({
+	    plugins: function(cb) {
+	      async.map(Object.keys(sails.config.plugins), function(plugin, cb) {loader(sails.config.appPath + "/node_modules/" + plugin + "/api/" + api, cb);}, cb);
+	    },
+	    local: function(cb){loader(sails.config.paths[api], cb);}
+	  }, function (err, async) {
+	    if (err) {return cb(err);}
+	    return cb(null, _.extend(_.merge.apply(this, async.plugins), async.local));
+	  });
+	}
 
 }
 
