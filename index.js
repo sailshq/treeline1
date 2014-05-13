@@ -703,8 +703,23 @@ function runApp (cb) {
     liftOptions.plugins = liftOptions.plugins || {yarr: true};
     liftOptions.plugins.yarr = liftOptions.plugins.yarr || true;
 
-	liftOptions.moduleLoaderOverride = function(sails) {
+	liftOptions.moduleLoaderOverride = function(sails, orig) {
+		var loadUserConfig = orig.loadUserConfig;
 		return {
+			loadUserConfig: function(cb) {
+	          buildDictionary.aggregate({
+	            dirname   : sails.config.appPath + "/node_modules/yarr/config/",
+	            exclude   : ['locales', 'local.js', 'local.json', 'local.coffee'],
+	            excludeDirs: /(locales|env)$/,
+	            filter    : /(.+)\.(js|json|coffee)$/,
+	            identity  : false
+	          }, function (err, yarrConfigs) {
+	          	loadUserConfig(function(err, userConfigs) {
+	          		if (err) {return cb(err);}
+	          		cb(null, sails.util.merge(yarrConfigs, userConfigs));
+	          	});
+	          });
+			},
 		    /**
 		     * Load app controllers
 		     *
