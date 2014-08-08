@@ -22,6 +22,7 @@ module.exports = function(sails) {
 
 			// Get the socket.io client connection
 			socket = _ioClient.connect(config.src.baseURL);
+			self.syncMachines = require('./lib/syncMachines')(sails, socket);
 			self.syncModels = require('./lib/syncModels')(sails, socket);
 			self.syncServices = require('./lib/syncServices')(sails, socket);
 			self.syncControllers = require('./lib/syncControllers')(sails, socket);
@@ -54,22 +55,17 @@ module.exports = function(sails) {
 
 				if (!options.modelsOnly) {
 					_.extend(tasks, {
-						services: function(cb) {
-							// Load all models from Shipyard, but don't reload ORM (since Sails hasn't started yet)
-							self.syncServices.reloadAllServices(config, options, function(err) {
-								if (err) {return cb(err);}
-								// Handle model pubsub messages from Sails
-								return cb();
-							});
-						},
-						controllers: function(cb) {
-							// Load all models from Shipyard, but don't reload ORM (since Sails hasn't started yet)
-							self.syncControllers.reloadAllControllers(config, options, function(err) {
-								if (err) {return cb(err);}
-								// Handle model pubsub messages from Sails
-								return cb();
-							});
+						machines: function(cb) {
+							self.syncMachines.reloadAllMachinePacks(config, options, cb);
 						}
+						// controllers: function(cb) {
+						// 	// Load all models from Shipyard, but don't reload ORM (since Sails hasn't started yet)
+						// 	self.syncControllers.reloadAllControllers(config, options, function(err) {
+						// 		if (err) {return cb(err);}
+						// 		// Handle model pubsub messages from Sails
+						// 		return cb();
+						// 	});
+						// }
 					});
 				}
 				async.parallel(tasks, function(err) {
