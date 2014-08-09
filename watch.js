@@ -56,16 +56,18 @@ module.exports = function(sails) {
 				if (!options.modelsOnly) {
 					_.extend(tasks, {
 						machines: function(cb) {
-							self.syncMachines.reloadAllMachinePacks(config, options, cb);
+							self.syncMachines.reloadAllMachinePacks(config, options, function(err) {
+								cb(err);
+							});
+						},
+						controllers: function(cb) {
+							// Load all models from Shipyard, but don't reload ORM (since Sails hasn't started yet)
+							self.syncControllers.reloadAllControllers(config, options, function(err) {
+								if (err) {return cb(err);}
+								// Handle model pubsub messages from Sails
+								return cb();
+							});
 						}
-						// controllers: function(cb) {
-						// 	// Load all models from Shipyard, but don't reload ORM (since Sails hasn't started yet)
-						// 	self.syncControllers.reloadAllControllers(config, options, function(err) {
-						// 		if (err) {return cb(err);}
-						// 		// Handle model pubsub messages from Sails
-						// 		return cb();
-						// 	});
-						// }
 					});
 				}
 				async.parallel(tasks, function(err) {
