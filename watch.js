@@ -103,10 +103,26 @@ module.exports = function(sails) {
 		}
 
 		// Handle model updates
-		if (message.verb == 'messaged' && message.data.message == 'controller_updated' && !self.options.modelsOnly) {
-			self.syncControllers.writeControllers(message.data.controllers, function(err) {
-				reloadOrm();
-			});
+		if (message.verb == 'messaged' && message.data.message == 'route_updated' && !self.options.modelsOnly) {
+			if (!options.modelsOnly) {
+				async.parallel({
+					machines: function(cb) {
+						self.syncMachines.reloadAllMachinePacks(null, self.options, function(err) {
+							cb(err);
+						});
+					},
+					controllers: function(cb) {
+						// Load all models from Shipyard, but don't reload ORM (since Sails hasn't started yet)
+						self.syncControllers.reloadAllControllers(null, self.options, function(err) {
+							if (err) {return cb(err);}
+							return cb();
+						});
+					}
+				}, function(err, done) {
+					if (err) throw err;
+					reloadOrm();
+				});
+			}
 
 		}
 
