@@ -685,6 +685,9 @@ function runApp (cb) {
 	});
 
 	var liftOptions = {
+		models: {
+			migrate: 'alter'
+		},
 		shipyard: shipyardConfig
 	};
 
