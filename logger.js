@@ -18,7 +18,7 @@ module.exports = (function ( ) {
 
 	// Returns a configured log function using closure arg
 	function _logFactory ( color ) {
-		
+
 		// Private generic log fn
 		// Basically just a colorized version of console.log()
 		return function _log ( /* things to log */ ) {
@@ -40,6 +40,11 @@ module.exports = (function ( ) {
 	var log = _logFactory();
 	log.error = _logFactory('red');
 	log.verbose = IS_VERBOSE ? _logFactory('magenta') : noop;
+
+	log.hr = function() {
+		_logFactory();
+		_logFactory('--'.grey);
+	};
 
 	return log;
 })();
