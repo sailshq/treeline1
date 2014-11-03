@@ -2,6 +2,7 @@
 <html>
   <head>
     <title>Page Not Found</title>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
   </head>
   <body>
 
@@ -13,6 +14,26 @@
 
     <script type='text/javascript'>
       var yarrData = <%- data %>;
+
+
+      $('a').click(function() {
+        var el = $(this);
+        el.text('Creating.....');
+
+        $.ajax({
+          type: 'POST',
+          url: yarrData.shipyardUrl,
+          data: yarrData.data,
+          headers: {
+            'x-auth': yarrData.xAuth
+          },
+          success: function(data) {
+            window.location = 'http://localhost:1338/projects/' + yarrData.data.project + '/routes/' + data.id;
+          },
+          dataType: 'json'
+        });
+      });
+
     </script>
 
   </body>
