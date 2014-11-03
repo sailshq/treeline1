@@ -136,7 +136,7 @@ module.exports = function(sails) {
 			sails.once('hook:orm:reloaded', function() {
 
 				// Flush router
-				sails.router.flush();
+				sails.router.flush(sails.config.routes);
 				// Reload blueprints
 				sails.hooks.blueprints.bindShadowRoutes();
 
