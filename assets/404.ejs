@@ -9,22 +9,19 @@
   <body ng-app="SYDemo" ng-controller="AppCtrl">
     <div id="four-oh-four">
       <div class="container">
-        <!-- <img class="shipyard-logo" src="/images/logo_shipyard.png"> -->
-        <h1>4<img src="/resources/images/logo_shipyard_noText.png"/>4</h1>
+        <h1 ng-click="whatsUp()">4<img src="/resources/images/logo_shipyard_noText.png"/>4</h1>
 
-        <h2><span>POST</span> /piggify <br/> <small>doesn't exist.</small></h2>
+        <h2><small>You just sent a request to</small> <br/> <span>{{method}}</span> {{url}}</h2>
 
         <div class="form-container">
           <h3>Feeling creative?</h3>
-          <form ng-submit="">
-            <button>
-              <span class="text" ng-hide="syncing.createNewRoute">Create Route <img src="/resources/images/icon_angleRight.png"></span>
-              <span ng-include src="'/resources/templates/spinners/button-spinner.html'" ng-show="syncing.createNewRoute"></span>
-            </button>
-          </form>
+          <button type="submit" ng-click="intent.goToEditor()">
+            <span class="text" ng-hide="syncing.createNewRoute">Create Route <img src="/resources/images/icon_angleRight.png"></span>
+            <span ng-include src="'/resources/templates/spinners/button-spinner.html'" ng-show="syncing.createNewRoute"></span>
+          </button>
           <h3>with parameters:</h3>
           <ul>
-            <li>&bull; targetUrl</li>
+            <li ng-repeat="input in inputs">&bull; {{input}}</li>
           </ul>
         </div>
       </div>
