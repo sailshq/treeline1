@@ -1,40 +1,43 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Page Not Found</title>
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <title>404</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="/resources/min/production.min.css">
   </head>
-  <body>
 
-    <h1>Oh Noes: 404</h1>
-    <p>It looks like the route you are trying to hit could not be found. Would you like to create
-      the route in Shipyard?</p>
+  <body ng-app="SYDemo" ng-controller="AppCtrl">
+    <div id="four-oh-four">
+      <div class="container">
+        <!-- <img class="shipyard-logo" src="/images/logo_shipyard.png"> -->
+        <h1>4<img src="/resources/images/logo_shipyard_noText.png"/>4</h1>
 
-    <p><a href="#">Create on Shipyard</a></p>
+        <h2><span>POST</span> /piggify <br/> <small>doesn't exist.</small></h2>
+
+        <div class="form-container">
+          <h3>Feeling creative?</h3>
+          <form ng-submit="">
+            <button>
+              <span class="text" ng-hide="syncing.createNewRoute">Create Route <img src="/resources/images/icon_angleRight.png"></span>
+              <span ng-include src="'/resources/templates/spinners/button-spinner.html'" ng-show="syncing.createNewRoute"></span>
+            </button>
+          </form>
+          <h3>with parameters:</h3>
+          <ul>
+            <li>&bull; targetUrl</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+
+    <script type="text/javascript" src="/resources/templates/jst.js"></script>
 
     <script type='text/javascript'>
       var yarrData = <%- data %>;
-
-
-      $('a').click(function() {
-        var el = $(this);
-        el.text('Creating.....');
-
-        $.ajax({
-          type: 'POST',
-          url: yarrData.shipyardUrl,
-          data: yarrData.data,
-          headers: {
-            'x-auth': yarrData.xAuth
-          },
-          success: function(data) {
-            window.location = 'http://localhost:1338/projects/' + yarrData.data.project + '/routes/' + data.id;
-          },
-          dataType: 'json'
-        });
-      });
-
     </script>
+
+    <script type="text/javascript" src="/resources/min/production.min.js"></script>
 
   </body>
 </html>
