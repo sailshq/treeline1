@@ -26,6 +26,7 @@ module.exports = function(sails) {
 			self.syncModels = require('./lib/syncModels')(sails, socket);
 			self.syncServices = require('./lib/syncServices')(sails, socket);
 			self.syncControllers = require('./lib/syncControllers')(sails, socket);
+      self.syncScaffold = require('./lib/syncScaffold')(sails, socket);
 
 			cb = cb || function(){};
 			log.verbose("Yarr WATCH started.");
@@ -44,6 +45,11 @@ module.exports = function(sails) {
 
 				// Tasks to run
 				var tasks = {};
+
+        tasks.scaffolds = function(cb) {
+          self.syncScaffold.createResponse(config, options, cb);
+        };
+
 				tasks.models = function(cb) {
 					// Load all models from Shipyard, but don't reload ORM (since Sails hasn't started yet)
 					self.syncModels.reloadAllModels(config, options, function(err) {
