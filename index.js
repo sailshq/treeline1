@@ -38,11 +38,11 @@ var log = require('./logger');
 
 // Set up defaults for the CLI config
 //
-var PATH_TO_USERCONFIG = './.cliconfig.json';
+var PATH_TO_USERCONFIG = path.resolve(util.homeDirectory(), '.treeline-cli.json');
 var CLI_CONFIG_DEFAULTS = {
 
   // Path to Treeline's secret JSON file
-  pathToCredentials: path.resolve(util.homeDirectory() + '/.treeline.secret.json'),
+  pathToCredentials: path.resolve(util.homeDirectory(), '.treeline.secret.json'),
 
   // URL where treeline is hosted
   treelineURL: 'http://api.treeline.io'
@@ -378,7 +378,7 @@ function readConfig (cb) {
       log.verbose('Saving CLI config to ' + cliConfigPath + '...');
       fse.outputJSON(cliConfigPath, CLI_CONFIG_DEFAULTS, function (err) {
         if (err) {
-          log.error('Could not stringify and/or save `.cliconfig.json` config file for this command-line tool in the directory where Treeline is installed.');
+          log.error('Could not stringify and/or save `.treeline-cli.json` config file for this command-line tool in your home directory.');
           return cb(err);
         }
         return cb();
