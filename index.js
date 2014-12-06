@@ -20,7 +20,7 @@ var program = require('commander'),
 // Actions
 var actions = require('./lib/actions');
 
-// Shipyard api wrapper
+// Treeline api wrapper
 var api = require('./api');
 
 // Monkey-patch `commander` with menu functionality.
@@ -41,11 +41,11 @@ var log = require('./logger');
 var PATH_TO_USERCONFIG = './.cliconfig.json';
 var CLI_CONFIG_DEFAULTS = {
 
-  // Path to Shipyard's secret JSON file
-  pathToCredentials: path.resolve(util.homeDirectory() + '/.shipyard.secret.json'),
+  // Path to Treeline's secret JSON file
+  pathToCredentials: path.resolve(util.homeDirectory() + '/.treeline.secret.json'),
 
-  // URL where shipyard is hosted
-  shipyardURL: 'http://localhost:1492'
+  // URL where treeline is hosted
+  treelineURL: 'http://localhost:1492'
 };
 
 // Customize the prompt.
@@ -59,7 +59,7 @@ prompt.delimiter = '';
 var conf = {};
 
 
-// $ yarr -v
+// $ treeline -v
 // Make version option case-insensitive
 if (argv.v || argv.V) {
   process.argv.push('-V');
@@ -74,10 +74,10 @@ program
   .version('0.0.1');
 
 
-// $ yarr logout
+// $ treeline logout
 program
   .command('logout')
-  .description('wipe cached Shipyard secret')
+  .description('wipe cached Treeline secret')
   .action(function () {
     async.auto({
       config: readConfig,
@@ -88,27 +88,27 @@ program
       // TODO: do smarter error negotiation here
       if (err) {
         log();
-        log('This computer is not currently logged in to Shipyard.'.grey);
+        log('This computer is not currently logged in to Treeline.'.grey);
         return _done();
         // log.error('Logout failed!');
-        // log(('Shipyard credentials file could not be found in the configured directory (' + pathToCredentials + ')').grey);
+        // log(('Treeline credentials file could not be found in the configured directory (' + pathToCredentials + ')').grey);
         // return cb(err);
       }
 
       log();
       _logHR();
-      log('This computer has been logged out of Shipyard.');
-      log(('Shipyard credentials were erased from `' + path.resolve(conf.config.pathToCredentials) + '`').grey);
+      log('This computer has been logged out of Treeline.');
+      log(('Treeline credentials were erased from `' + path.resolve(conf.config.pathToCredentials) + '`').grey);
       _done();
     });
   });
 
 
 
-// $ yarr login
+// $ treeline login
 program
   .command('login')
-  .description('login to Shipyard and cache secret')
+  .description('login to Treeline and cache secret')
   .action(function () {
     async.auto({
       config: readConfig,
@@ -133,17 +133,17 @@ program
 
 
 
-// $ yarr link
+// $ treeline link
 program
   .command('link')
   .description('link current dir to one of your projects')
   .action(function () {
 
-    // Determine expected location of shipyard.json file
-    var jsonPath = process.cwd() + '/shipyard.json';
+    // Determine expected location of treeline.json file
+    var jsonPath = process.cwd() + '/treeline.json';
     jsonPath = path.resolve(jsonPath);
 
-    // Check that shipyard.json doesn't already exist
+    // Check that treeline.json doesn't already exist
     if (fs.existsSync(jsonPath)) {
 
       // TODO: remove the `exists` check-- leads to transactional race conditions.
@@ -151,13 +151,13 @@ program
         // log.error('Failed to create link in current directory.');
         if (err) {
           log.error('Hmm... This directory\'s linkfile appears to be corrupted...');
-          log.error('Please run `yarr unlink` to remove it, then try linking again.'.grey);
+          log.error('Please run `treeline unlink` to remove it, then try linking again.'.grey);
           return _done(err);
         }
         // log('A linkfile already exists in this directory...'.grey);
         log();
-        log(('This directory is currently linked to project ' + (''+linkedProject.id).cyan) + ' on Shipyard.');
-        log('If you want to link it to a different backend, please run `yarr unlink` first.'.grey);
+        log(('This directory is currently linked to project ' + (''+linkedProject.id).cyan) + ' on Treeline.');
+        log('If you want to link it to a different backend, please run `treeline unlink` first.'.grey);
         log('NOTE: Unlinking a directory does not affect its views or assets directories.'.grey);
         return _done();
       });
@@ -168,14 +168,14 @@ program
     // TODO: Create assets directory
     // TODO: If either exists, warn user that the front-end stuff in there may not match up with the app they're linking.
 
-    // Create shipyard.json file
+    // Create treeline.json file
     writeLinkfile(function (err) {
       if (err) return log.error(err);
 
       log();
       _logHR();
       log('Directory is now linked to ' + ('"'+conf.targetProject.fullName+'"').cyan);
-      log('Run `yarr preview` to run the preview server.');
+      log('Run `treeline preview` to run the preview server.');
       log(('Created linkfile at: '+jsonPath).grey);
       // log('Would you like to link it with a different project?');
       // log('Any files in this directory, e.g. views and assets, will be left alone.'.grey);
@@ -187,26 +187,26 @@ program
   });
 
 
-// $ yarr unlink
+// $ treeline unlink
 program
   .command('unlink')
-  .description('wipe Shipyard link from the current dir')
+  .description('wipe Treeline link from the current dir')
   .action(function () {
 
-    // Lookup location of shipyard.json file
-    var jsonPath = process.cwd() + '/shipyard.json';
+    // Lookup location of treeline.json file
+    var jsonPath = process.cwd() + '/treeline.json';
     jsonPath = path.resolve(jsonPath);
 
     fs.unlink(jsonPath, function (err) {
       if (err) {
         log();
-        log('This directory is not linked to a Shipyard app.'.grey);
+        log('This directory is not linked to a Treeline app.'.grey);
         return _done();
       }
       log();
       _logHR();
       log('Link removed.');
-      log(('This directory is no longer linked to a Shipyard project.').grey);
+      log(('This directory is no longer linked to a Treeline project.').grey);
       log(('Removed linkfile: '+jsonPath).grey);
 
       _done();
@@ -215,7 +215,7 @@ program
 
 
 
-// $ yarr preview
+// $ treeline preview
 program
   .command('preview')
   .option('--force-sync')
@@ -245,7 +245,7 @@ program
   });
 
 
-// $ yarr configure
+// $ treeline configure
 program
   .command('configure')
   .description('interactive settings for this command-line tool')
@@ -257,8 +257,8 @@ program
     .chooseFromMenu (
     'Options',
     [
-      'Set location for cached Shipyard credentials',
-      'Configure shipyard endpoint'
+      'Set location for cached Treeline credentials',
+      'Configure treeline endpoint'
     ],
     {
       '*': function ( choice, index ){
@@ -271,7 +271,7 @@ program
   });
 
 
-// $ yarr compile
+// $ treeline compile
 program
   .command('compile')
   .description('compile project into a deployable Node.js server')
@@ -284,10 +284,10 @@ program
 
 
 
-// $ yarr status
+// $ treeline status
 program
   .command('status')
-  .description('info about the Shipyard project in the current directory')
+  .description('info about the Treeline project in the current directory')
   .action(function () {
     async.auto({
       config: readConfig,
@@ -296,20 +296,20 @@ program
       logStatus: ['target', function (cb) {
 
         log();
-        log('=='.yellow+' Shipyard Status '+'=='.yellow);
+        log('=='.yellow+' Treeline Status '+'=='.yellow);
 
         // Account information
         if (!conf.credentials) {
-          log('This computer is not currently logged in to Shipyard.'.grey);
+          log('This computer is not currently logged in to Treeline.'.grey);
         }
         else {
-          log('This computer is logged-in to Shipyard as '+((conf.credentials.username).cyan)+ '.');
+          log('This computer is logged-in to Treeline as '+((conf.credentials.username).cyan)+ '.');
         }
         // log();
 
         // Project information
         if (!conf.targetProject) {
-          log(('This directory (' + process.cwd() + ') is not linked to a Shipyard app.').grey);
+          log(('This directory (' + process.cwd() + ') is not linked to a Treeline app.').grey);
         }
         else {
           log('This directory is linked to '+((''+conf.targetProject.fullName).cyan) + '.');
@@ -324,7 +324,7 @@ program
 
 
 
-// $ yarr *
+// $ treeline *
 program
   .command('*')
   .action(program.help);
@@ -335,8 +335,8 @@ program
   .parse(process.argv);
 
 
-// If no arguments were provided, i.e. `yarr`
-// treat it just like `yarr --help`
+// If no arguments were provided, i.e. `treeline`
+// treat it just like `treeline --help`
 if ( ! argv._.length ) {
   program.help();
 }
@@ -378,7 +378,7 @@ function readConfig (cb) {
       log.verbose('Saving CLI config to ' + cliConfigPath + '...');
       fse.outputJSON(cliConfigPath, CLI_CONFIG_DEFAULTS, function (err) {
         if (err) {
-          log.error('Could not stringify and/or save `.cliconfig.json` config file for this command-line tool in the directory where Shipyard is installed.');
+          log.error('Could not stringify and/or save `.cliconfig.json` config file for this command-line tool in the directory where Treeline is installed.');
           return cb(err);
         }
         return cb();
@@ -386,18 +386,18 @@ function readConfig (cb) {
       return;
     }
 
-    var jsonPath = process.cwd() + '/shipyard.json';
+    var jsonPath = process.cwd() + '/treeline.json';
     jsonPath = path.resolve(jsonPath);
 
-    // Sort of a cheap hack to attempt to read a shipyard URL from the project's shipyard.json file
-    // if it exists, so that we can use different Shipyard instances for different projects.
+    // Sort of a cheap hack to attempt to read a treeline URL from the project's treeline.json file
+    // if it exists, so that we can use different Treeline instances for different projects.
     fse.readJSON(jsonPath, function (err, json){
 
-      config.shipyardURL = (!err && json.shipyardURL) ? json.shipyardURL : config.shipyardURL;
+      config.treelineURL = (!err && json.treelineURL) ? json.treelineURL : config.treelineURL;
       config.pathToCredentials = (!err && json.pathToCredentials) ? json.pathToCredentials : config.pathToCredentials;
 
-      // Ensure configured shipyardURL has no trailing slash.
-      config.shipyardURL = util.str.rtrim(config.shipyardURL, '/');
+      // Ensure configured treelineURL has no trailing slash.
+      config.treelineURL = util.str.rtrim(config.treelineURL, '/');
 
       // CLI config loaded successfully- save it to `conf`
       log.verbose('Loaded config :: ', config);
@@ -415,8 +415,8 @@ function readConfig (cb) {
 
 
 /**
- * Attempt to read the user's shipyard secret
- * from their local shipyard secret file.
+ * Attempt to read the user's treeline secret
+ * from their local treeline secret file.
  */
 function readSecret (cb) {
   if (conf.credentials) return cb();
@@ -446,13 +446,13 @@ function readSecret (cb) {
 
 
 /**
- * Fetch a list of the user's previewable shipyard apps
+ * Fetch a list of the user's previewable treeline apps
  */
 function fetchApps (cb) {
   if (conf.projects) return cb();
 
   api.getApps({
-    baseURL: conf.config.shipyardURL,
+    baseURL: conf.config.treelineURL,
     secret: conf.credentials.secret
   }, function (err, response) {
     if (err) {
@@ -461,7 +461,7 @@ function fetchApps (cb) {
       // wipe credentials and attempt to login again
       if (err.status == 403) {
         log('Sorry, looks like your account secret has changed, or the local file has become corrupt.');
-        log('Please run `yarr logout`, then try again.'.grey);
+        log('Please run `treeline logout`, then try again.'.grey);
         conf.credentials = null;
         return cb('Access denied.');
       }
@@ -485,7 +485,7 @@ function doLogin (cb) {
   // Get two properties from the user: username and password
   //
   log();
-  log('Login to Shipyard:'.green);
+  log('Login to Treeline:'.green);
   prompt.message = '';
   prompt.delimiter = '';
   prompt.start();
@@ -514,7 +514,7 @@ function doLogin (cb) {
     }
 
     api.login({
-      baseURL: conf.config.shipyardURL,
+      baseURL: conf.config.treelineURL,
       params: {
         username: userInput.username,
         password: userInput.password
@@ -533,7 +533,7 @@ function doLogin (cb) {
       }
 
       if (!response || !response.secret) {
-        return cb('Unexpected response from Shipyard (no secret):' + util.inspect(response));
+        return cb('Unexpected response from Treeline (no secret):' + util.inspect(response));
       }
 
 
@@ -548,16 +548,16 @@ function doLogin (cb) {
         credentials, function (err) {
         if (err) {
           log.error('Login failed.');
-          log('Could not stringify and/or save Shipyard credentials file in the configured directory ('+pathToCredentials+')');
+          log('Could not stringify and/or save Treeline credentials file in the configured directory ('+pathToCredentials+')');
           log('That directory may not exist, or there could be a permissions issue.'.grey);
           return cb(util.inspect(err));
         }
 
         log();
         _logHR();
-        log('This computer is now logged in to Shipyard as '+((credentials.username).cyan));
-        log(('Shipyard credentials were saved in `'+conf.config.pathToCredentials+'`').grey);
-        log('You can change the location of this file by running `yarr configure`'.grey);
+        log('This computer is now logged in to Treeline as '+((credentials.username).cyan));
+        log(('Treeline credentials were saved in `'+conf.config.pathToCredentials+'`').grey);
+        log('You can change the location of this file by running `treeline configure`'.grey);
         conf.credentials = credentials;
 
         // Clear out projects so they'll be re-fetched
@@ -606,7 +606,7 @@ function doChooseApp (cb) {
         } else {
           var createApp = function(appName, cb) {
             api.createNewApp({
-              baseURL: conf.config.shipyardURL,
+              baseURL: conf.config.treelineURL,
               secret: conf.credentials.secret,
               params: {name: appName, fullName: appName, account: conf.credentials.accountId}
             }, cb);
@@ -633,7 +633,7 @@ function doChooseApp (cb) {
 
 
 function logout (cb) {
-  log.verbose('Erasing Shipyard credentials...');
+  log.verbose('Erasing Treeline credentials...');
 
   // Lookup location of json credentials file
   var pathToCredentials = conf.config.pathToCredentials;
@@ -691,7 +691,7 @@ function writeLinkfile (cb) {
     // Use cached credentials or enter login flow
     credentials: authenticate,
 
-    // Fetch apps available to this user from shipyard server
+    // Fetch apps available to this user from treeline server
     // or prompt user for login credentials if necessary.
     apps: ['credentials', fetchApps],
 
@@ -702,8 +702,8 @@ function writeLinkfile (cb) {
     if (err) return cb(err);
 
 
-    // Determine expected location of shipyard.json file
-    var jsonPath = process.cwd() + '/shipyard.json';
+    // Determine expected location of treeline.json file
+    var jsonPath = process.cwd() + '/treeline.json';
     jsonPath = path.resolve(jsonPath);
 
     // Then write the linkfile to disk
@@ -727,7 +727,7 @@ function acquireLink (cb) {
 
     readLinkfile: ['credentials', readLink],
 
-    // Fetch apps available to this user from shipyard server
+    // Fetch apps available to this user from treeline server
     // or prompt user for login credentials if necessary.
     // Ask user to pick an app
     target: ['readLinkfile', doChooseApp],
@@ -743,8 +743,8 @@ function readLink (cb) {
 
   if (conf.targetProject) return cb();
 
-  // Determine expected location of shipyard.json file
-  var jsonPath = process.cwd() + '/shipyard.json';
+  // Determine expected location of treeline.json file
+  var jsonPath = process.cwd() + '/treeline.json';
   jsonPath = path.resolve(jsonPath);
 
   async.auto({
@@ -761,7 +761,7 @@ function readLink (cb) {
 
           // If some other sort of error occurred, we'll assume the file is corrupted.
           log.error('Linkfile in current directory is corrupted.');
-          log.error('Please run `yarr unlink` here, then try again.'.grey);
+          log.error('Please run `treeline unlink` here, then try again.'.grey);
           return cb(err);
         }
 
@@ -776,7 +776,7 @@ function readLink (cb) {
 
     // and (2) ensure the target (linked) project is accessibile to that logged-in user.
     // Not a security issue, but important for good UX
-    // (running `yarr status` should always result in accurate information, for instance)
+    // (running `treeline status` should always result in accurate information, for instance)
     validate: ['apps', function (cb) {
 
       // If no target project is currently defined, skip this check
@@ -785,7 +785,7 @@ function readLink (cb) {
       // Ensure account has access to the target app
       if ( !util.contains( util.pluck(conf.projects, 'id'), conf.targetProject.id ) ) {
         log('Sorry, you do not have permission to preview the linked project: '+conf.targetProject.fullName+'  (' + conf.targetProject.id +')');
-        log('Please run `yarr unlink` here, then try again to set up a new link.'.grey);
+        log('Please run `treeline unlink` here, then try again to set up a new link.'.grey);
         conf.targetProject = null;
         return cb('Access denied.');
       }

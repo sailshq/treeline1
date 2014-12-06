@@ -15,7 +15,7 @@ module.exports = function(sails) {
 	return {
 		start: function(config, options, cb) {
 
-			// Get the Shipyard URL
+			// Get the Treeline URL
 			var src = config.src;
 			self.options = _.clone(options);
 			delete self.options.forceSync;
@@ -29,7 +29,7 @@ module.exports = function(sails) {
       self.syncScaffold = require('./lib/syncScaffold')(sails, socket);
 
 			cb = cb || function(){};
-			log.verbose("Yarr WATCH started.");
+			log.verbose("Treeline WATCH started.");
 
 			// When Sails lowers, stop watching
 			sails.on('lower', stop);
@@ -51,7 +51,7 @@ module.exports = function(sails) {
         };
 
 				tasks.models = function(cb) {
-					// Load all models from Shipyard, but don't reload ORM (since Sails hasn't started yet)
+					// Load all models from Treeline, but don't reload ORM (since Sails hasn't started yet)
 					self.syncModels.reloadAllModels(config, options, function(err) {
 						if (err) {return cb(err);}
 						// Handle model pubsub messages from Sails
@@ -62,7 +62,7 @@ module.exports = function(sails) {
 				if (!options.modelsOnly) {
 					_.extend(tasks, {
 						controllers: function(cb) {
-							// Load all models from Shipyard, but don't reload ORM (since Sails hasn't started yet)
+							// Load all models from Treeline, but don't reload ORM (since Sails hasn't started yet)
 							self.syncControllers.reloadAllControllers(config, options, function(err) {
 								if (err) {return cb(err);}
 								// Handle model pubsub messages from Sails
@@ -85,7 +85,7 @@ module.exports = function(sails) {
 			});
 
 			socket.on('disconnect', function() {
-				sails.log.error("Shipyard went offline; lowering Sails.");
+				sails.log.error("Treeline went offline; lowering Sails.");
 				sails.lower(function(){process.exit();});
 			});
 		}
@@ -94,7 +94,7 @@ module.exports = function(sails) {
 
 
 	function stop() {
-		sails.log.verbose("Yarr WATCH stopped.");
+		sails.log.verbose("Treeline WATCH stopped.");
 	}
 
 
@@ -113,7 +113,7 @@ module.exports = function(sails) {
 			if (!options.modelsOnly) {
 				async.series({
 					controllers: function(cb) {
-						// Load all models from Shipyard, but don't reload ORM (since Sails hasn't started yet)
+						// Load all models from Treeline, but don't reload ORM (since Sails hasn't started yet)
 						self.syncControllers.reloadAllControllers(null, self.options, function(err) {
 							if (err) {return cb(err);}
 							return cb();

@@ -1,4 +1,4 @@
-yarr
+treeline
 ====
 
-Shipyard command-line tool
+Treeline command-line tool

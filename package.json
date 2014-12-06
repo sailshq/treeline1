@@ -1,28 +1,28 @@
 {
-  "name": "yarr",
+  "name": "treeline",
   "private": true,
   "version": "0.0.0",
-  "description": "Command line tool for Shipyard.io",
+  "description": "Command line tool for Treeline.io",
   "main": "index.js",
   "bin": {
-    "yarr": "./index.js"
+    "treeline": "./index.js"
   },
   "scripts": {
     "test": "mocha"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/shipyard.io/yarr.git"
+    "url": "git://github.com/treeline.io/treeline.git"
   },
   "keywords": [
-    "shipyard",
+    "treeline",
     "sails",
     "app"
   ],
   "author": "Mike McNeil",
   "license": "",
   "bugs": {
-    "url": "https://github.com/shipyard.io/yarr/issues"
+    "url": "https://github.com/treeline.io/treeline/issues"
   },
   "dependencies": {
     "async": "~0.2.9",
