@@ -13,7 +13,7 @@
     "treeline"
   ],
   "author": "Mike McNeil",
-  "license": "Proprietary (at least for now)",
+  "license": "All Rights Reserved (proprietary)",
   "dependencies": {
     "async": "~0.2.9",
     "colors": "~0.6.2",
