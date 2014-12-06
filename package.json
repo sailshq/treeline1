@@ -1,7 +1,6 @@
 {
   "name": "treeline",
-  "private": true,
-  "version": "0.0.0",
+  "version": "0.0.2",
   "description": "Command line tool for Treeline.io",
   "main": "index.js",
   "bin": {
@@ -10,20 +9,11 @@
   "scripts": {
     "test": "mocha"
   },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/treeline.io/treeline.git"
-  },
   "keywords": [
-    "treeline",
-    "sails",
-    "app"
+    "treeline"
   ],
   "author": "Mike McNeil",
-  "license": "",
-  "bugs": {
-    "url": "https://github.com/treeline.io/treeline/issues"
-  },
+  "license": "Proprietary (at least for now)",
   "dependencies": {
     "async": "~0.2.9",
     "colors": "~0.6.2",
