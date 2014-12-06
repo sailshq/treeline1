@@ -45,7 +45,7 @@ var CLI_CONFIG_DEFAULTS = {
   pathToCredentials: path.resolve(util.homeDirectory() + '/.treeline.secret.json'),
 
   // URL where treeline is hosted
-  treelineURL: 'http://localhost:1492'
+  treelineURL: 'http://api.treeline.io'
 };
 
 // Customize the prompt.
