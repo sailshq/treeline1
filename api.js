@@ -14,14 +14,14 @@ var http = require('request'),
 module.exports = {
 	login: function (options, cb) {
 		return _fetch({
-			url: options.baseURL + '/treeline/login',
+			url: options.baseURL + '/cli/login',
 			method: 'put',
 			json: options.params
 		}, cb);
 	},
 	getApps: function (options, cb) {
 		return _fetch({
-			url: options.baseURL + '/treeline/apps',
+			url: options.baseURL + '/cli/apps',
 			method: 'get',
 			qs: {
 				secret: options.secret

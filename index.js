@@ -481,6 +481,7 @@ function fetchApps (cb) {
 function doLogin (cb) {
   if ( conf.credentials ) return cb();
 
+
   // Start the prompt
   // Get two properties from the user: username and password
   //

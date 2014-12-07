@@ -43,6 +43,8 @@ module.exports = function(sails) {
 				// Subscribe to updates
 				socket.get(config.src.baseURL + '/project/subscribe/'+config.src.projectId+'?secret='+config.src.secret);
 
+        console.log('Socket sent msg to %s to subscribe...', config.src.baseURL + '/project/subscribe/'+config.src.projectId+'?secret='+config.src.secret);
+
 				// Tasks to run
 				var tasks = {};
 
