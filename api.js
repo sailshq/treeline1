@@ -35,11 +35,11 @@ module.exports = {
 	createNewApp: function (options, cb) {
 
 		return _fetch({
-			url: options.baseURL + '/project',
+			url: options.baseURL + '/api/v1/projects',
 			method: 'post',
-			qs: {
-				secret: options.secret
-			},
+      headers: {
+       'x-auth': options.secret
+      },
 			json: options.params
 		}, cb);
 	}

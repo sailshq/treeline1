@@ -25,7 +25,12 @@ module.exports = function (victim) {
 		//
 		log ();
 		// log (hr);
-		log (("==").yellow + " Enter a name for your new Treeline project, or <enter> for the default ("+(defaultName).yellow+") "+("==").yellow);
+    var msg =  ("==").yellow + " Enter a name for your new Treeline project";
+    if (defaultName) {
+      msg += ", or <enter> for the default ("+(defaultName).yellow+") ";
+    }
+    msg += ("==").yellow;
+		log (msg);
 
 		// Customize the prompt.
 		//
@@ -49,7 +54,11 @@ module.exports = function (victim) {
 
 				choice = result.choice;
 				if (!choice) {
-					choice = defaultName;
+          if (defaultName) {
+					 choice = defaultName;
+          } else {
+            return promptLoop();
+          }
 				}
 
 				// Attempt to create a new project
