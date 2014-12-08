@@ -20,18 +20,18 @@ module.exports = function (victim) {
 	 * Require the user to make a choice from a set of options.
 	 */
 	victim.createNewApp = function ( defaultName, createAppFn, cb ) {
-		
+
 		// Display the menu prompt msg, plus hr(s)
 		//
 		log ();
 		// log (hr);
-		log (("==").yellow + " Enter a name for your new Shipyard project, or <enter> for the default ("+(defaultName).yellow+") "+("==").yellow);
+		log (("==").yellow + " Enter a name for your new Treeline project, or <enter> for the default ("+(defaultName).yellow+") "+("==").yellow);
 
 		// Customize the prompt.
 		//
 		prompt.message = '>'.yellow;
 		prompt.delimiter = '';
-		
+
 		function promptLoop () {
 
 			// Start the prompt
@@ -64,8 +64,8 @@ module.exports = function (victim) {
 						cb(null, {name: choice, fullName: choice, id: body.id});
 					}
 				});
-				
-				
+
+
 			});
 		}
 		promptLoop();

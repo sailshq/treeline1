@@ -9,7 +9,7 @@ require('colors');
 
 
 // Log level configuration is just a dumb constant at the moment
-var IS_VERBOSE = false;
+var IS_VERBOSE = true;
 
 
 module.exports = (function ( ) {

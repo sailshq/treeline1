@@ -7,28 +7,28 @@ var http = require('request'),
 
 
 /**
- * Fetch and parse JSON data from Shipyard
+ * Fetch and parse JSON data from Treeline
  *
  * @api private
  */
 module.exports = {
 	login: function (options, cb) {
 		return _fetch({
-			url: options.baseURL + '/yarr/login',
+			url: options.baseURL + '/cli/login',
 			method: 'put',
 			json: options.params
 		}, cb);
 	},
 	getApps: function (options, cb) {
 		return _fetch({
-			url: options.baseURL + '/yarr/apps',
+			url: options.baseURL + '/cli/apps',
 			method: 'get',
 			qs: {
 				secret: options.secret
 			}
 			// TODO: add this back in - requires socket interpreter work.
 			// headers: {
-			// 	'x-auth-yarr': options.secret
+			// 	'x-auth-treeline': options.secret
 			// }
 		}, cb);
 	},
@@ -56,13 +56,13 @@ function _fetch (options, cb) {
 	function gotResponse (err, resp, body) {
 		if (err || !body) {
 			log.error();
-			log.error('Error communicating with Shipyard!');
+			log.error('Error communicating with Treeline!');
 			log.error('Please make sure you are connected to the internet.');
 			log.error();
 			return cb(err, body);
 		}
 
-		// Shipyard responded with an error:');
+		// Treeline responded with an error:');
 		// HTTP Status === resp.statusCode
 		if (resp.statusCode < 200 || resp.statusCode > 300) {
 
@@ -71,7 +71,7 @@ function _fetch (options, cb) {
 			if (typeof body === 'string') {
 				try {
 					parsedErr = JSON.parse(body);
-					
+
 				}
 				catch (e) {}
 			}
@@ -85,12 +85,12 @@ function _fetch (options, cb) {
 				body = JSON.parse(body);
 			}
 			catch (e) {
-				log.error('Error parsing JSON response from Shipyard ::','\n',body,'\n\n');
+				log.error('Error parsing JSON response from Treeline ::','\n',body,'\n\n');
 				return cb(e);
 			}
 		}
 
-		// Successfully parsed response from Shipyard
+		// Successfully parsed response from Treeline
 		return cb(null, body);
 	});
 }
