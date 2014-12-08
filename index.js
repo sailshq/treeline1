@@ -58,7 +58,10 @@ prompt.delimiter = '';
 // This was used instead of async.auto's `data` argument to avoid repetetive code.
 var conf = {};
 
-
+// If called with no arguments, default to "preview"
+if (argv._.length === 0) {
+  process.argv.push('preview');
+}
 // $ treeline -v
 // Make version option case-insensitive
 if (argv.v || argv.V) {
@@ -335,14 +338,6 @@ program
   .parse(process.argv);
 
 
-// If no arguments were provided, i.e. `treeline`
-// treat it just like `treeline --help`
-if ( ! argv._.length ) {
-  program.help();
-}
-
-
-
 
 
 
@@ -614,7 +609,7 @@ function doChooseApp (cb) {
               params: {name: appName, fullName: appName, account: conf.credentials.accountId}
             }, cb);
           };
-          program.createNewApp(localApp.name, createApp, function(err, newApp) {
+          program.createNewApp(localApp && localApp.name, createApp, function(err, newApp) {
             if (err) {
               log((err).red);
               return doChooseApp(cb);
