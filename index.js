@@ -584,9 +584,11 @@ function doChooseApp (cb) {
     }
 
     // If there's an app that matches the local app's name exactly, pull it out to put at the top of the list
-    var localApp = require(process.cwd()+'/package.json');
-    var matchingApp = util.remove(conf.projects, function(project) {return project.name == localApp.name;});
-    conf.projects = matchingApp.concat(conf.projects);
+    if (fs.existsSync(process.cwd()+'/package.json')) {
+        var localApp = require(process.cwd()+'/package.json');
+        var matchingApp = util.remove(conf.projects, function(project) {return project.name == localApp.name;});
+        conf.projects = matchingApp.concat(conf.projects);
+    }
 
     // Map apps for use in the menu
     var apps = util.map(conf.projects, function (app) {
