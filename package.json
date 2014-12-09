@@ -1,6 +1,6 @@
 {
   "name": "treeline",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Command line interface which integrates with Treeline.io.",
   "main": "index.js",
   "bin": {
@@ -27,7 +27,7 @@
     "prompt": "~0.2.11",
     "rc": "~0.3.5",
     "request": "~2.27.0",
-    "sails": "~0.10.4",
+    "sails": "~0.10.5",
     "sails-build-dictionary": "~0.10.1",
     "sails-disk": "~0.10.0",
     "semver": "~2.3.0",
