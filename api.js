@@ -23,9 +23,9 @@ module.exports = {
 		return _fetch({
 			url: options.baseURL + '/cli/apps',
 			method: 'get',
-			qs: {
-				secret: options.secret
-			}
+      headers: {
+       'x-auth': options.secret
+      },
 			// TODO: add this back in - requires socket interpreter work.
 			// headers: {
 			// 	'x-auth-treeline': options.secret
