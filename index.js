@@ -368,7 +368,10 @@ program
  * Look up the configuration for this CLI tool
  */
 function readConfig (cb) {
-  var cliConfigPath = path.resolve(__dirname, PATH_TO_USERCONFIG);
+  var rcConfig = rc('treeline', {
+    cliConfigPath: PATH_TO_USERCONFIG
+  });
+  var cliConfigPath = path.resolve(__dirname, rcConfig.cliConfigPath);
   fse.readJSON(cliConfigPath, function (err, config) {
     // If an error occured, the config file probably doesn't exist.
     // So try creating it
