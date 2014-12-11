@@ -15,7 +15,9 @@ var program = require('commander'),
   _ = require('lodash'),
   buildDictionary = require('sails-build-dictionary'),
   rc = require('rc'),
-  argv = require('optimist').argv;
+  argv = require('optimist').argv,
+  exec = require('child_process').exec;
+
 
 // Actions
 var actions = require('./lib/actions');
@@ -238,8 +240,11 @@ program
       // Figure out which project to lift
       target: ['credentials', acquireLink],
 
+      // Make sure node_machine is installed
+      installNodeMachine: ['target', installNodeMachine],
+
       // Lift app
-      _runApp: ['target', function(cb, results) {
+      _runApp: ['installNodeMachine', function(cb, results) {
         actions.run(conf, program.args, cb);
       }]
 
@@ -709,8 +714,16 @@ function writeLinkfile (cb) {
   });
 }
 
-
-
+function installNodeMachine (cb) {
+  // Check for existing node_machine install
+  if (fs.existsSync(path.resolve(process.cwd(), "node_modules", "machine", "package.json"))) {
+    return cb();
+  }
+  exec("npm install machine", {cwd: process.cwd()}, function(err, stdout) {
+    console.log(stdout);
+    cb(err);
+  });
+}
 
 function acquireLink (cb) {
   if (conf.targetProject) return cb();
