@@ -138,6 +138,13 @@ module.exports = function(sails) {
 
 	function reloadOrm(cb) {
 
+    // Clear all node machines out of the require cache
+    _.each(_.keys(require.cache), function(key) {
+      if (key.match(/\/node_machines\//)) {
+        delete require.cache[key];
+      }
+    });
+
 		// Reload controller middleware
 		sails.hooks.controllers.loadAndRegisterControllers(function() {
 
