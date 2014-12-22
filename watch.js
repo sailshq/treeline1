@@ -1,4 +1,3 @@
-var _ioClient = require('./sails.io')(require('socket.io-client'));
 var path = require('path');
 var fs = require('fs');
 var glob = require('glob');
@@ -15,13 +14,16 @@ module.exports = function(sails) {
 	return {
 		start: function(config, options, cb) {
 
+      var _ioClient = require('./sails.io')(require('socket.io-client'));
+
 			// Get the Treeline URL
 			var src = config.src;
 			self.options = _.clone(options);
 			delete self.options.forceSync;
 
 			// Get the socket.io client connection
-			socket = _ioClient.connect(config.src.baseURL);
+      _ioClient.sails.autoConnect = false;
+			socket = _ioClient.sails.connect(config.src.baseURL, {multiplex: false});
 			self.syncMachines = require('./lib/syncMachines')(sails, socket);
 			self.syncModels = require('./lib/syncModels')(sails, socket);
 			self.syncServices = require('./lib/syncServices')(sails, socket);

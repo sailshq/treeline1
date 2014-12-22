@@ -31,7 +31,7 @@
     "sails-build-dictionary": "~0.10.1",
     "sails-disk": "~0.10.0",
     "semver": "~2.3.0",
-    "socket.io-client": "~0.9.16",
+    "socket.io-client": "^1.2.1",
     "wrench": "~1.5.8"
   }
 }
