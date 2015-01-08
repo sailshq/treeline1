@@ -37,6 +37,10 @@
     "yargs": "^1.3.3",
     "chalk": "^0.5.1",
     "machine": "^1.2.3",
-    "machinepack-machines": "^1.1.1"
+    "machinepack-machines": "^1.1.1",
+    "machinepack-http": "^0.2.3",
+    "inquirer": "^0.8.0",
+    "machinepack-npm": "^0.3.1",
+    "enpeem": "^0.1.1"
   }
 }

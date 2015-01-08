@@ -21,28 +21,20 @@ program
   .parse(process.argv);
 
 
-// var identity = program.args[0];
-
-
-
-// exposed via closure simply for convenience
-var machinepackVarName;
-var machineMethodName;
-
-
 (Machine.build({
-  inputs: {
-    identity: {
-      example: 'do-stuff'
-    },
-    dir: {
-      example: '/Users/mikermcneil/machinepack-foo/'
-    }
-  },
+  inputs: {},
   defaultExit: 'success',
   exits: {
     success: {
       example: {
+        machinepack: {
+          identity: 'machinepack-whatever',
+          variableName: 'Whatever'
+        },
+        machine: {
+          identity: 'do-stuff',
+          variableName: 'doStuff'
+        },
         withInputs: [
           {
             name: 'foobar',
@@ -59,119 +51,196 @@ var machineMethodName;
       }
     },
     error: {},
-    invalidMachine: {}
+    invalidMachine: {
+      example: {
+        machine: 'do-stuff'
+      }
+    }
   },
-  fn: function (inputs, exits, env){
+  fn: function (inputs, exits) {
 
-    // Dependencies
-    var Path = require('path');
-    var _ = require('lodash');
-    var Filesystem = require('machinepack-fs');
-    var Machinepacks = require('machinepack-machines');
+    var util = require('util');
+    var inquirer = require('inquirer');
+    var Http = require('machinepack-http');
+    var Npm = require('machinepack-npm');
+    var Machines = require('machinepack-machines');
+    var enpeem = require('enpeem');
 
-    var machinepackPath = Path.resolve(process.cwd(), inputs.dir);
-
-    console.log('\n'+chalk.gray(' Running machine...'));
+    console.log();
+    console.log();
+    console.log('Preview machine from registry');
+    console.log('================================');
     console.log();
 
-    Filesystem.readJson({
-      source: Path.resolve(process.cwd(), 'package.json')
+    var REGISTRY_BASE_URL = 'http://node-machine.org';
+
+
+    // Look up list of machinepacks
+    Http.sendHttpRequest({
+      baseUrl: REGISTRY_BASE_URL,
+      url: '/machinepacks'
     }).exec({
-      error: function (err){
-        return exits.error(err);
-      },
-      success: function (jsonData){
+      error: exits.error,
+      success: function (resp){
+
+        var machinepacks;
         try {
-          if (!_.contains(jsonData.machinepack.machines, inputs.identity)) {
-            return exits.notFound();
-          }
-          jsonData.machinepack.machines = _.difference(jsonData.machinepack.machines, [inputs.identity]);
+          machinepacks = JSON.parse(resp.body);
         }
-        catch (e) {
+        catch (e){
           return exits.error(e);
         }
 
-        // Calculate appropriate variable name for machinepack
-        machinepackVarName = (function (moduleName){
-          var varname = moduleName.replace(/^machinepack-/,'');
-          varname = varname.replace(/-[a-z]/ig,function (match){
-            return match.slice(1).toUpperCase();
-          });
-          varname = varname[0].toUpperCase() + varname.slice(1);
-          return varname;
-        })(jsonData.name);
+        inquirer.prompt([{
+          name: 'machinepackIdentity',
+          message: 'Please choose a machinepack',
+          type: 'list',
+          choices: _.reduce(machinepacks, function (memo, pack){
+            memo.push({
+              name: pack.friendlyName,
+              value: pack.identity
+            });
+            return memo;
+          }, [])
+        }], function (answers){
 
-        // Calculate appropriate machine method name
-        // TODO: use machinepack-javascript to do this
-        machineMethodName = (function(identity){
-          return identity.replace(/-[a-z]/ig, function (match) {
-            return match.slice(1).toUpperCase();
-          });
-        })(identity);
+          // Now we have a `machinepackIdentity`
+          var machinepackIdentity = answers.machinepackIdentity;
 
+          // Look up list of machines within this machinepack
+          Http.sendHttpRequest({
+            baseUrl: REGISTRY_BASE_URL,
+            url: util.format('/%s', machinepackIdentity)
+          }).exec({
+            error: exits.error,
+            success: function (resp){
 
-        Machinepacks.getMachinesDir({
-          dir: Path.resolve(process.cwd(), inputs.dir)
-        }).exec({
-          error: function (err){
-            return exits.error(err);
-          },
-          success: function (pathToMachines){
+              var machinepack;
+              try {
+                machinepack = JSON.parse(resp.body);
+              }
+              catch (e){
+                return exits.error(e);
+              }
 
-            var pathToMachine = Path.resolve(pathToMachines, inputs.identity+'.js');
-
-            Machinepacks.runMachineInteractive({
-              machinepackPath: machinepackPath,
-              identity: inputs.identity,
-              inputValues: (function (){
-                return _.reduce(cliOpts, function (memo, inputValue, inputName){
+              inquirer.prompt([{
+                name: 'machineIdentity',
+                message: 'Now choose a machine to run',
+                type: 'list',
+                choices: _.reduce(machinepack.machines, function (memo, machine){
                   memo.push({
-                    name: inputName,
-                    value: inputValue,
-                    protect: false
+                    name: machine.friendlyName,
+                    value: machine.identity
                   });
                   return memo;
-                }, []);
-              })()
-            }).exec({
-              error: function (err){
-                return exits.error(err);
-              },
-              invalidMachine: function (err){
-                return exits.invalidMachine(err);
-              },
-              success: function (result){
-                return exits.success(result);
-              }
-            });
+                }, [])
+              }], function (answers){
 
-          },
+                // Now we have a `machineIdentity`
+                var machineIdentity = answers.machineIdentity;
+
+                Http.sendHttpRequest({
+                  baseUrl: REGISTRY_BASE_URL,
+                  url: util.format('/%s/%s', machinepackIdentity, machineIdentity)
+                }).exec({
+                  error: exits.error,
+                  notOk: exits.error,
+                  success: function (resp){
+
+                    var machine;
+                    try {
+                      machine = JSON.parse(resp.body);
+                    }
+                    catch (e){
+                      return exits.error(e);
+                    }
+
+                    console.log();
+                    console.log('Fetching code for NPM module "%s"@%s...',machinepack.npmPackageName, machinepack.version);
+                    Npm.downloadPackage({
+                      name: machinepack.npmPackageName,
+                      version: machinepack.version
+                    }).exec({
+                      error: exits.error,
+                      success: function (machinepackPath){
+
+
+                        // Set present working directory to the `machinepackPath`
+                        // (remembering the previous cwd for later)
+                        var cwd = process.cwd();
+                        process.chdir(machinepackPath);
+
+                        console.log('Installing NPM dependencies for %s...',machinepackIdentity);
+                        enpeem.install({
+                          dependencies: [],
+                          loglevel: 'silent'
+                        }, function (err){
+                          if (err) return exits.error(err);
+
+                          // Return to previous present working directory
+                          process.chdir(cwd);
+
+                          console.log();
+                          console.log('Running %s...',machineIdentity);
+                          console.log();
+                          Machines.runMachineInteractive({
+                            machinepackPath: machinepackPath,
+                            identity: machineIdentity,
+                            // TODO: allow cmdline args to be provided
+                            // inputValues: (function (){
+                            //   return _.reduce(cliOpts, function (memo, inputValue, inputName){
+                            //     memo.push({
+                            //       name: inputName,
+                            //       value: inputValue,
+                            //       protect: false
+                            //     });
+                            //     return memo;
+                            //   }, []);
+                            // })()
+                          }).exec({
+                            error: function (err){
+                              return exits.error(err);
+                            },
+                            invalidMachine: function (){
+                              return exits.invalidMachine();
+                            },
+                            success: function (result){
+                              return exits.success(_.extend({
+                                machine: {
+                                  identity: machineIdentity,
+                                  variableName: machine.variableName
+                                },
+                                machinepack: {
+                                  identity: machinepackIdentity,
+                                  variableName: machinepack.variableName
+                                }
+                              },result));
+                            }
+                          });
+                        });
+                      }
+                    });
+                  }
+                });
+              });
+            }
+          });
         });
       }
     });
   }
-}))({
-  identity: identity,
-  dir: process.cwd()
-})
-.setEnvironment({
-  log: console.log
-})
-.exec({
+})).exec({
   error: function (err){
     console.error('Unexpected error occurred:\n',typeof err === 'object' && err instanceof Error ? err.stack : err);
   },
-  notFound: function (){
-    console.error('Cannot run machine `'+chalk.red(identity)+'`.  No machine with that identity exists in this machinepack.');
-  },
   invalidMachine: function (err){
-    console.error('Cannot run machine `'+chalk.red(identity)+'`. Machine is invalid.  Error details:\n',err);
+    console.error('Cannot run machine `'+chalk.red(err.machine)+'`. Machine is invalid.  Error details:\n',err);
   },
   success: function (result){
 
     console.log('___'+repeatChar('_')+'_˛');
     console.log('   '+repeatChar(' ')+'  ');
-    console.log('   '+chalk.gray('%s.%s()'), chalk.bold(chalk.white(machinepackVarName)), chalk.bold(chalk.yellow(machineMethodName)));
+    console.log('   '+chalk.gray('%s.%s()'), chalk.bold(chalk.white(result.machinepack.variableName)), chalk.bold(chalk.yellow(result.machine.variableName)));
 
     // console.log('');
     // console.log(chalk.white(' * * * * * * * * * * * * * * * * * * * * * * * * '));
@@ -218,7 +287,7 @@ var machineMethodName;
     console.log();
     console.log(chalk.white(' To run again:'));
     console.log(chalk.white((function (){
-      var cmd = ' machinepack exec '+identity;
+      var cmd = ' treeline exec '+result.machinepack.identity + '/' + result.machine.identity;
       _.each(result.withInputs, function (configuredInput){
 
         // Skip protected inputs (they need to be re-entered)
@@ -232,6 +301,7 @@ var machineMethodName;
     console.log();
   }
 });
+
 
 
 
