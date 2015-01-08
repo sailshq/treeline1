@@ -110,11 +110,10 @@ program
 
 
 // $ treeline exec
-program
-  .command('exec')
-  .description('run a machine on the http://node-machine.org registry')
-  .action(function () {
-  });
+program.command('exec').description('run a machine from the registry at http://node-machine.org').action(function (){
+  process.argv.splice(process.argv.indexOf(program.args[0]),1);
+  require('./treeline-exec');
+});
 
 
 // $ treeline login
