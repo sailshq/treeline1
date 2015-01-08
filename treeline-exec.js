@@ -21,6 +21,24 @@ program
   .parse(process.argv);
 
 
+var machinepackIdentity;
+var machineIdentity;
+
+// Parse command-line argument (i.e. not options)
+// which indicates an optional machinepack and/or machine
+if (program.args[0]){
+  if (program.args[0].match(/\//)) {
+    machinepackIdentity = program.args[0].split('/')[0];
+    machineIdentity = program.args[0].split('/')[1];
+  }
+  else {
+    machinepackIdentity = program.args[0];
+  }
+}
+
+// Allow unknown options.
+program.unknownOption = function NOOP(){};
+
 (Machine.build({
   inputs: {},
   defaultExit: 'success',
@@ -95,6 +113,9 @@ program
           name: 'machinepackIdentity',
           message: 'Please choose a machinepack',
           type: 'list',
+          when: function (){
+            return !machinepackIdentity;
+          },
           choices: _.reduce(machinepacks, function (memo, pack){
             memo.push({
               name: pack.friendlyName,
@@ -104,8 +125,8 @@ program
           }, [])
         }], function (answers){
 
-          // Now we have a `machinepackIdentity`
-          var machinepackIdentity = answers.machinepackIdentity;
+          // Now we have a `machinepackIdentity` if we didn't already
+          machinepackIdentity = machinepackIdentity || answers.machinepackIdentity;
 
           // Look up list of machines within this machinepack
           Http.sendHttpRequest({
@@ -127,6 +148,9 @@ program
                 name: 'machineIdentity',
                 message: 'Now choose a machine to run',
                 type: 'list',
+                when: function (){
+                  return !machineIdentity;
+                },
                 choices: _.reduce(machinepack.machines, function (memo, machine){
                   memo.push({
                     name: machine.friendlyName,
@@ -136,8 +160,8 @@ program
                 }, [])
               }], function (answers){
 
-                // Now we have a `machineIdentity`
-                var machineIdentity = answers.machineIdentity;
+                // Now we have a `machineIdentity` if we didn't already
+                machineIdentity = machineIdentity || answers.machineIdentity;
 
                 Http.sendHttpRequest({
                   baseUrl: REGISTRY_BASE_URL,
@@ -186,17 +210,16 @@ program
                           Machines.runMachineInteractive({
                             machinepackPath: machinepackPath,
                             identity: machineIdentity,
-                            // TODO: allow cmdline args to be provided
-                            // inputValues: (function (){
-                            //   return _.reduce(cliOpts, function (memo, inputValue, inputName){
-                            //     memo.push({
-                            //       name: inputName,
-                            //       value: inputValue,
-                            //       protect: false
-                            //     });
-                            //     return memo;
-                            //   }, []);
-                            // })()
+                            inputValues: (function (){
+                              return _.reduce(cliOpts, function (memo, inputValue, inputName){
+                                memo.push({
+                                  name: inputName,
+                                  value: inputValue,
+                                  protect: false
+                                });
+                                return memo;
+                              }, []);
+                            })()
                           }).exec({
                             error: function (err){
                               return exits.error(err);

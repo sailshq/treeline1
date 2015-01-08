@@ -78,7 +78,6 @@ if (argv.v || argv.V) {
 program
   .version('0.0.1');
 
-
 // $ treeline logout
 program
   .command('logout')
@@ -110,8 +109,10 @@ program
 
 
 // $ treeline exec
-program.command('exec').description('run a machine from the registry at http://node-machine.org').action(function (){
-  process.argv.splice(process.argv.indexOf(program.args[0]),1);
+var cmd = program.command('exec');
+cmd.unknownOption = function NOOP(){}; // Allow unknown options.
+cmd.description('run a machine from the registry at http://node-machine.org').action(function (){
+  // process.argv.splice(process.argv.indexOf(program.args[0]),1);
   require('./treeline-exec');
 });
 
