@@ -26,7 +26,7 @@ var machineIdentity;
 
 // Parse command-line argument (i.e. not options)
 // which indicates an optional machinepack and/or machine
-if (program.args[0]){
+if (_.isString(program.args[0])){
   if (program.args[0].match(/\//)) {
     machinepackIdentity = program.args[0].split('/')[0];
     machineIdentity = program.args[0].split('/')[1];
