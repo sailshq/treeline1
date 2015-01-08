@@ -109,6 +109,13 @@ program
   });
 
 
+// $ treeline exec
+program
+  .command('exec')
+  .description('run a machine on the http://node-machine.org registry')
+  .action(function () {
+  });
+
 
 // $ treeline login
 program
