@@ -23,6 +23,10 @@ module.exports = function(sails) {
 
 			// Get the socket.io client connection
       _ioClient.sails.autoConnect = false;
+
+      // Only use websockets to connect
+      _ioClient.sails.transports = ["websocket"];
+
 			socket = _ioClient.sails.connect(config.src.baseURL, {multiplex: false});
 			self.syncMachines = require('./lib/syncMachines')(sails, socket);
 			self.syncModels = require('./lib/syncModels')(sails, socket);
