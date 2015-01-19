@@ -133,8 +133,13 @@ module.exports = function(sails) {
             });
           }
 				}, function(err, done) {
-					if (err) throw err;
-					reloadOrm();
+					if (err) {
+            sails.log.error("Treeline encountered an error trying to update your app:");
+            sails.log.error(err);
+            sails.log.error("If this problem persists, try quitting and restarting treeline.");
+          } else {
+					 reloadOrm();
+          }
 				});
 			}
 
