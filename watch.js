@@ -161,6 +161,9 @@ module.exports = function(sails) {
 
 			sails.once('hook:orm:reloaded', function() {
 
+        // Merge with original explicit routes
+        sails.config.routes = _.extend({}, sails.router.explicitRoutes, sails.config.routes);
+
 				// Flush router
 				sails.router.flush(sails.config.routes);
 				// Reload blueprints
