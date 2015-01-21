@@ -41,6 +41,7 @@
     "machinepack-http": "^0.2.3",
     "inquirer": "^0.8.0",
     "machinepack-npm": "^0.3.1",
-    "enpeem": "^1.0.0"
+    "enpeem": "^1.0.0",
+    "path-to-regexp": "^1.0.3"
   }
 }
