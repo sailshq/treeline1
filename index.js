@@ -231,7 +231,7 @@ program
 program
   .command('preview')
   .option('--force-sync')
-  .option('--export')
+  .option('--plugin')
   .option('--models-only')
   .description('preview the app in the current dir')
   .action(function () {
