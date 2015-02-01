@@ -250,8 +250,11 @@ program
       // Make sure node_machine is installed
       installNodeMachine: ['target', installNodeMachine],
 
+      // Make sure sails-hook-machines is installed
+      installSailsHookMachines: ['target', installSailsHookMachines],
+
       // Lift app
-      _runApp: ['installNodeMachine', function(cb, results) {
+      _runApp: ['installNodeMachine', 'installSailsHookMachines', function(cb, results) {
         actions.run(conf, program.args, cb);
       }]
 
@@ -730,6 +733,17 @@ function installNodeMachine (cb) {
     return cb();
   }
   exec("npm install machine", {cwd: process.cwd()}, function(err, stdout) {
+    console.log(stdout);
+    cb(err);
+  });
+}
+
+function installSailsHookMachines (cb) {
+  // Check for existing sails-hook-machines install
+  if (fs.existsSync(path.resolve(process.cwd(), "node_modules", "sails-hook-machines", "package.json"))) {
+    return cb();
+  }
+  exec("npm install sails-hook-machines", {cwd: process.cwd()}, function(err, stdout) {
     console.log(stdout);
     cb(err);
   });
