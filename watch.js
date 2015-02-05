@@ -131,6 +131,9 @@ module.exports = function(sails) {
             self.syncMachines.reloadAllMachinePacks(null, self.options, function(err) {
               cb(err);
             });
+          },
+          models: function(cb) {
+            self.syncModels.reloadAllModels(null, self.options, cb);
           }
 				}, function(err, done) {
 					if (err) {
