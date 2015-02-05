@@ -732,7 +732,7 @@ function installNodeMachine (cb) {
   if (fs.existsSync(path.resolve(process.cwd(), "node_modules", "machine", "package.json"))) {
     return cb();
   }
-  exec("npm install machine", {cwd: process.cwd()}, function(err, stdout) {
+  exec("npm install machine --save", {cwd: process.cwd()}, function(err, stdout) {
     console.log(stdout);
     cb(err);
   });
@@ -743,7 +743,7 @@ function installSailsHookMachines (cb) {
   if (fs.existsSync(path.resolve(process.cwd(), "node_modules", "sails-hook-machines", "package.json"))) {
     return cb();
   }
-  exec("npm install sails-hook-machines", {cwd: process.cwd()}, function(err, stdout) {
+  exec("npm install sails-hook-machines --save", {cwd: process.cwd()}, function(err, stdout) {
     console.log(stdout);
     cb(err);
   });
