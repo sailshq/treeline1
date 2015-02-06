@@ -58,15 +58,6 @@ module.exports = function(sails) {
           self.syncScaffold.createResponse(config, options, cb);
         };
 
-				tasks.models = function(cb) {
-					// Load all models from Treeline, but don't reload ORM (since Sails hasn't started yet)
-					self.syncModels.reloadAllModels(config, options, function(err) {
-						if (err) {return cb(err);}
-						// Handle model pubsub messages from Sails
-						return cb();
-					});
-				};
-
 				if (!options.modelsOnly) {
 					_.extend(tasks, {
 						controllers: function(cb) {
@@ -84,6 +75,16 @@ module.exports = function(sails) {
             }
 					});
 				}
+
+        tasks.models = function(cb) {
+          // Load all models from Treeline, but don't reload ORM (since Sails hasn't started yet)
+          self.syncModels.reloadAllModels(config, options, function(err) {
+            if (err) {return cb(err);}
+            // Handle model pubsub messages from Sails
+            return cb();
+          });
+        };
+
 				async.series(tasks, function(err) {
 					if (err) return cb(err);
 					socket.on('project', handleProjectMessage);
