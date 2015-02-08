@@ -1,6 +1,6 @@
 {
   "name": "treeline",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "description": "Command line interface which integrates with Treeline.io.",
   "main": "index.js",
   "bin": {
