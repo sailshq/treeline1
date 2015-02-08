@@ -153,6 +153,8 @@ module.exports = function(sails) {
 
 	function reloadOrm(cb) {
 
+    cb = cb || function(){};
+
     // Clear all node machines out of the require cache
     _.each(_.keys(require.cache), function(key) {
       if (key.match(/\/node_machines\//)) {
@@ -170,10 +172,12 @@ module.exports = function(sails) {
 
 				// Flush router
 				sails.router.flush(sails.config.routes);
+
 				// Reload blueprints
 				sails.hooks.blueprints.bindShadowRoutes();
 
-				return cb && cb();
+        // Reload machines
+        sails.hooks.machines.loadMachines(cb);
 
 			});
 
