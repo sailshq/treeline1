@@ -247,11 +247,14 @@ program
       // Figure out which project to lift
       target: ['credentials', acquireLink],
 
+      // Make sure there's a package.json
+      createPackageJson: ['target', createPackageJson],
+
       // Make sure node_machine is installed
-      installNodeMachine: ['target', installNodeMachine],
+      installNodeMachine: ['createPackageJson', installNodeMachine],
 
       // Make sure sails-hook-machines is installed
-      installSailsHookMachines: ['target', installSailsHookMachines],
+      installSailsHookMachines: ['createPackageJson', installSailsHookMachines],
 
       // Lift app
       _runApp: ['installNodeMachine', 'installSailsHookMachines', function(cb, results) {
@@ -725,6 +728,17 @@ function writeLinkfile (cb) {
     // Then write the linkfile to disk
     fse.outputJSON(jsonPath, conf.targetProject, cb);
   });
+}
+
+function createPackageJson(cb) {
+  // Check for existing package.json
+  if (fs.existsSync(path.resolve(process.cwd(), "package.json"))) {
+    return cb();
+  }
+  fse.outputJSON(path.resolve(process.cwd(), "package.json"), {
+    name: conf.targetProject.fullName,
+    version: "0.0.0"
+  }, cb);
 }
 
 function installNodeMachine (cb) {
