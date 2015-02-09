@@ -93,7 +93,7 @@ module.exports = function(sails) {
 			});
 
 			socket.on('disconnect', function() {
-				sails.log.error("Treeline went offline; lowering Sails.");
+				sails.log.error("Treeline mothership went offline; exiting preview...");
 				sails.lower(function(){process.exit();});
 			});
 		}
