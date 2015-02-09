@@ -23,6 +23,7 @@ module.exports = function(sails) {
 
 			// Get the socket.io client connection
       _ioClient.sails.autoConnect = false;
+      _ioClient.sails.environment = "production";
 
       // Only use websockets to connect
       _ioClient.sails.transports = ["websocket"];
@@ -35,7 +36,7 @@ module.exports = function(sails) {
       self.syncScaffold = require('./lib/syncScaffold')(sails, socket);
 
 			cb = cb || function(){};
-			log.verbose("Treeline WATCH started.");
+			// log.verbose("Treeline WATCH started.");
 
 			// When Sails lowers, stop watching
 			sails.on('lower', stop);
@@ -48,8 +49,6 @@ module.exports = function(sails) {
 
 				// Subscribe to updates
 				socket.get(config.src.baseURL + '/project/subscribe/'+config.src.projectId+'?secret='+config.src.secret);
-
-        console.log('Socket sent msg to %s to subscribe...', config.src.baseURL + '/project/subscribe/'+config.src.projectId+'?secret='+config.src.secret);
 
 				// Tasks to run
 				var tasks = {};

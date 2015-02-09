@@ -416,7 +416,7 @@ function readConfig (cb) {
       config.treelineURL = util.str.rtrim(config.treelineURL, '/');
 
       // CLI config loaded successfully- save it to `conf`
-      log.verbose('Loaded config :: ', config);
+      // log.verbose('Loaded config :: ', config);
       conf.config = config;
 
       return cb();
