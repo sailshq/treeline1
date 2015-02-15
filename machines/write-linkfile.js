@@ -9,16 +9,21 @@ module.exports = {
 
   inputs: {
 
-    data: {
-      description: 'The data to write to the linkfile',
-      typeclass: 'dictionary',
-      // e.g. {
-      //   id: '38ab32813-a81385b',
-      //   type: 'app',
-      //   slug: 'my-cool-app',
-      //   displayName: 'My Cool App'
-      // }
+    identity: {
+      description: 'The identity (i.e. slug) of the linked machinepack or app',
+      example: 'my-cool-app'
+    },
+
+    displayName: {
+      example: 'My Cool App'
+    },
+
+    type: {
+      description: 'The type of linked Treeline project this is (i.e. "app", "machinepack", etc.)',
+      example: 'app'
     }
+
+
   },
 
 

@@ -22,10 +22,9 @@ module.exports = {
     success: {
       description: 'Done.',
       example: {
-        id: '38ab32813-a81385b',
-        type: 'app',
-        slug: 'my-cool-app',
-        displayName: 'My Cool App'
+        identity: 'my-cool-app',
+        displayName: 'My Cool App',
+        type: 'app'
       }
     },
 

@@ -19,10 +19,17 @@ module.exports = {
       description: 'Unexpected error occurred'
     },
 
+    doesNotExist: {
+      description: 'Keychain file does not exist.'
+    },
+
+    couldNotParse: {
+      description: 'Keychain file is corrupted (cannot be parsed as JSON).'
+    },
+
     success: {
       description: 'Done.',
       example: {
-        id: '1949b41-ab193058133-919aec3513b-4921a',
         username: 'mikermcneil',
         secret: '29f559ae-3bec-4d0a-8458-1f4e32a72407'
       }
@@ -41,7 +48,6 @@ module.exports = {
     Filesystem.readJson({
       source: path.resolve(getHomeDirectoryPath(), '.treeline.secret.json'),
       schema: {
-        id: '1949b41-ab193058133-919aec3513b-4921a',
         username: 'mikermcneil',
         secret: '29f559ae-3bec-4d0a-8458-1f4e32a72407'
       }
