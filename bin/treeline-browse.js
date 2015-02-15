@@ -11,10 +11,10 @@ require('../standalone/build-script')({
 
 
   exits: {
+
     success: {
-      description: 'Done.',
       example: 'http://treeline.io/foo/bar'
-    },
+    }
 
   },
 

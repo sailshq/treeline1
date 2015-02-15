@@ -38,7 +38,8 @@
     "commander": "^2.6.0",
     "open": "0.0.5",
     "machine": "^4.0.0",
-    "machinepack-urls": "^3.0.0"
+    "machinepack-urls": "^3.0.0",
+    "machinepack-fs": "^2.1.0"
   },
   "machinepack": {
     "machineDir": "machines/",
