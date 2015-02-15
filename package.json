@@ -21,6 +21,8 @@
   "bin": {
     "treeline": "./bin/treeline.js",
     "treeline-browse": "./bin/treeline-browse.js",
+    "treeline-preview": "./bin/treeline-preview.js",
+    "treeline-about": "./bin/treeline-about.js",
     "tl": "./bin/treeline.js"
   },
   "scripts": {

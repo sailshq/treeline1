@@ -20,7 +20,7 @@ program
 .unknownOption = function NOOP(){};
 program.usage(chalk.gray('[options]')+' '+chalk.bold('<command>'))
 .command('browse', 'view on treeline.io')
-.command('lift', 'preview app locally')
+.command('preview', 'run app locally (like sails lift)')
 .command('deploy', 'deploy app to hosting environment')
 .command('login', 'log in to Treeline on this computer')
 .command('logout', 'log out of Treeline on this computer')
@@ -51,11 +51,11 @@ if (matchedCommand){
 }
 
 
-// $ treeline <??>
+// $ treeline <alias>
 //
 // (i.e. check aliases, since wasn't matched by any overtly exposed commands)
-if (program.args[0] === 'start' || program.args[0] === 'preview') {
-  return _alias('lift');
+if (program.args[0] === 'start' || program.args[0] === 'lift') {
+  return _alias('preview');
 }
 // ...
 
