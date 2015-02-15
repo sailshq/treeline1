@@ -32,7 +32,19 @@ module.exports = {
 
 
   fn: function(inputs, exits) {
-    return exits.success();
+    var path = require('path');
+    var Filesystem = require('machinepack-fs');
+    var dir = process.cwd();
+
+    // Read and parse JSON file located at source path on disk into usable data.
+    Filesystem.readJson({
+      source: path.resolve(dir, '.treeline.json'),
+      schema: {
+        identity: 'my-cool-app',
+        displayName: 'My Cool App',
+        type: 'app'
+      }
+    }).exec(exits);
   }
 
 
