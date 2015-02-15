@@ -32,9 +32,10 @@
   "dependencies": {
     "commander": "^2.6.0",
     "open": "0.0.5",
-    "machine": "^4.0.0"
+    "machine": "^4.0.0",
+    "machinepack-urls": "^3.0.0"
   },
-  "machinepack":{
+  "machinepack": {
     "machineDir": "standalone/",
     "machines": [
       "browse-to-url"
