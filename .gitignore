@@ -1,3 +1,23 @@
+############################
+# npm
+############################
+node_modules
+npm-debug.log
+
+
+############################
+# tmp, editor & OS files
+############################
+.tmp
+*.swo
+*.swp
+*.swn
+*.swm
+.DS_STORE
+*#
+*~
+.idea
+nbproject
 lib-cov
 *.seed
 *.log
@@ -11,6 +31,16 @@ pids
 logs
 results
 
-npm-debug.log
-node_modules
+
+############################
+# Other
+############################
+.node_history
+coverage
+
+
+
+############################
+# Package-specific
+############################
 .cliconfig.json
