@@ -7,9 +7,7 @@
 
 var program = require('commander');
 var chalk = require('chalk');
-var browseToUrl = require('../standalone/browse-to-url');
-
-
+var Machine = require('machine');
 
 
 program
@@ -17,12 +15,58 @@ program
 .parse(process.argv);
 
 
-// TODO: make this the actual url
-var url = 'http://treeline.io/';
 
-browseToUrl({
-  url: url
-}).exec({
+(Machine.build({
+
+  friendlyName: '',
+
+
+  description: '',
+
+
+  inputs: {
+
+  },
+
+
+  exits: {
+
+    error: {
+      description: 'Unexpected error occurred.'
+    },
+
+    success: {
+      description: 'Done.',
+      example: 'http://treeline.io/foo/bar'
+    },
+
+  },
+
+
+  fn: function (inputs, exits){
+
+    var util = require('util');
+    var browseToUrl = require('../standalone/browse-to-url');
+
+    // TODO: make this the actual url
+    var url = 'http://treeline.io/';
+
+    browseToUrl({
+      url: url
+    }).exec({
+      error: exits.error,
+      success: function() {
+        return exits.success(url);
+      }
+    });
+
+
+  }
+
+
+}))
+.configure({})
+.exec({
   error: function(err) {
     console.error(chalk.red('Unexpected error occurred:\n'), err);
   },

@@ -17,7 +17,7 @@
     "The Treeline Company",
     "Scott Gress"
   ],
-  "license": "",
+  "license": "MIT",
   "bin": {
     "treeline": "./bin/treeline.js",
     "treeline-browse": "./bin/treeline-browse.js",
@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "commander": "^2.6.0",
-    "open": "0.0.5"
+    "open": "0.0.5",
+    "machine": "^4.0.0"
   }
 }

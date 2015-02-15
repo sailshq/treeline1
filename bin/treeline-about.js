@@ -15,8 +15,8 @@ var VERSION = require('../package.json').version;
 
 
 program
-  .usage('[options] <command>')
-  .parse(process.argv);
+.usage('[options]')
+.parse(process.argv);
 
 
 var ABOUT =
