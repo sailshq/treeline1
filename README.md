@@ -4,7 +4,7 @@
 </h1>
 
 
-### [Website](http://treeline.io) &nbsp; [Reference](http://treeline.io/docs) &nbsp;  [FAQ](http://node-machine.org/implementing/FAQ)  &nbsp;  [Newsgroup](https://groups.google.com/forum/?hl=en#!forum/node-machine)
+### [Website](http://treeline.io) &nbsp;  [Getting Started](http://node-machine.org) &nbsp; [Docs](http://treeline.io/docs)  &nbsp;  [Newsgroup](https://groups.google.com/forum/?hl=en#!forum/node-machine)
 
 Command-line utility for working with Sails apps and machines in Treeline.
 
@@ -81,6 +81,14 @@ So... Treeline is not publicly available yet. We're working very hard to get rea
 If you're interested in beta testing, please visit our website and sign up for early access.
 
 > _If you're a Sails.js contributor still waiting on your beta code, hit me up on Twitter ([@mikermcneil](http://twitter.com/mikermcneil)) and I'll set up your account personally._
+
+
+## Team
+This module is developed and actively maintained with the help of these [contributors](https://github.com/treeline-io/cli/graphs/contributors):
+
+[![Mike McNeil](http://gravatar.com/avatar/199046437b76e6ca73e00b4cc182a1c5?s=144)](http://michaelmcneil.com) |  [![Scott Gress](https://0.gravatar.com/avatar/b74e07aa543552709bf546ca279c9c67?s=144)](http://www.pigandcow.com/) | [![Cody Stoltman](https://1.gravatar.com/avatar/368567acca0c5dfb9a4ff512c5c0c3fa?s=144)](http://particlebanana.com) | [![Rachael Shaw](https://avatars0.githubusercontent.com/u/3065949?v=3&s=144)](http://twitter.com/fancydoilies) | [![Irl Nathan](https://avatars0.githubusercontent.com/u/1598650?v=3&s=144)](http://irlnathan.github.io/sailscasts/)
+:---:|:---:|:---:|:---:|:---:
+[Mike McNeil](http://michaelmcneil.com) | [Scott Gress](https://github.com/sgress454) | [Cody Stoltman](https://github.com/particlebanana) | [Rachael Shaw](https://github.com/rachaelshaw) | [Irl Nathan](https://github.com/irlnathan)
 
 
 
