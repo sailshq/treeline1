@@ -39,7 +39,8 @@ module.exports = {
     var Urls = require('machinepack-urls');
     var openUrlInBrowser = require('open');
 
-    openUrlInBrowser(Urls.sanitize({url: inputs.url}).execSync());
+    inputs.url = Urls.sanitize({url: inputs.url}).execSync();
+    openUrlInBrowser(inputs.url);
 
     return exits.success();
   }
