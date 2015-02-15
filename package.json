@@ -40,7 +40,8 @@
     "open": "0.0.5",
     "machine": "^4.0.0",
     "machinepack-urls": "^3.0.0",
-    "machinepack-fs": "^2.2.0"
+    "machinepack-fs": "^2.2.0",
+    "machinepack-http": "^2.0.1"
   },
   "machinepack": {
     "machineDir": "machines/",

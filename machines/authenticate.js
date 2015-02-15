@@ -14,11 +14,14 @@ module.exports = {
 
     username: {
       description: 'A Treeline username or email address',
+      example: 'mikermcneil',
       required: true
     },
 
     password: {
       description: 'The password for the Treeline account with this username',
+      example: 'sh4rkw33k',
+      protect: true,
       required: true
     },
 
