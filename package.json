@@ -25,5 +25,8 @@
   },
   "scripts": {
     "test": "node ./node_modules/mocha/bin -t 10000"
+  },
+  "dependencies": {
+    "commander": "^2.6.0"
   }
 }

@@ -19,16 +19,12 @@ program
 // Allow unknown options.
 .unknownOption = function NOOP(){};
 program.usage(chalk.gray('[options]')+' '+chalk.bold('<command>'))
-.command('browse', 'view on node-machine.org')
-.command('info', 'get pack metadata')
-.command('ls', 'list machines')
-.command('add', 'add a new machine')
-.command('exec <identity>', 'run machine')
-.command('rm <identity>', 'delete existing machine')
-.command('mv <originalIdentity> <newIdentity>', 'rename machine')
-.command('cp <originalIdentity> <newIdentity>', 'copy machine')
-.command('init', 'make this module a machinepack')
-.command('scrub', 'scrub pack; generate missing tests, etc.')
+.command('browse', 'view on treeline.io')
+.command('lift', 'preview app locally')
+.command('deploy', 'deploy app to hosting environment')
+.command('login', 'log in to Treeline on this computer')
+.command('logout', 'log out of Treeline on this computer')
+.command('whoami', 'show the username of the logged-in Treeline account')
 .command('about', 'about this module')
 .parse(process.argv);
 
