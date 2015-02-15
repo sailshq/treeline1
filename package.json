@@ -40,7 +40,7 @@
     "open": "0.0.5",
     "machine": "^4.0.0",
     "machinepack-urls": "^3.0.0",
-    "machinepack-fs": "^2.1.0"
+    "machinepack-fs": "^2.2.0"
   },
   "machinepack": {
     "machineDir": "machines/",
@@ -53,7 +53,7 @@
       "authenticate",
       "list-apps"
     ],
-    "testsUrl": "https://travis-ci.org/shipyard-io/yarr"
+    "testsUrl": "https://travis-ci.org/treeline-io/cli"
   },
   "devDependencies": {
     "test-machinepack-mocha": "^0.2.2"

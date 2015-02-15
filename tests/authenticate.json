@@ -1,0 +1,10 @@
+{
+  "machine": "authenticate",
+  "expectations": [
+    {
+      "todo": true,
+      "using": {},
+      "outcome": "success"
+    }
+  ]
+}
