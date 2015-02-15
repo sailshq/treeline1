@@ -1,17 +1,38 @@
 module.exports = require('machine').build({
-  identity: 'browse-to-url',
+
+
+  friendlyName: 'Open URL in browser',
+
+
   description: 'Open the provided url in the browser.',
+
+
   inputs: {
+
     url: {
       example: 'http://node-machine.org/machinepack-facebook',
       required: true
     }
+
   },
+
+
   defaultExit: 'success',
+
+
   exits: {
-    error: {},
-    success: {},
+
+    error: {
+      description: 'Unexpected error occurred'
+    },
+
+    success: {
+      description: 'Done.'
+    },
+
   },
+
+
   fn: function (inputs, exits){
 
     var openUrlInBrowser = require('open');
@@ -19,4 +40,6 @@ module.exports = require('machine').build({
     openUrlInBrowser(inputs.url);
     return exits.success();
   }
+
+
 });
