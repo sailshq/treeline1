@@ -1,4 +1,4 @@
-module.exports = require('machine').build({
+module.exports = {
 
 
   friendlyName: 'Read linkfile',
@@ -37,4 +37,4 @@ module.exports = require('machine').build({
   }
 
 
-});
+};

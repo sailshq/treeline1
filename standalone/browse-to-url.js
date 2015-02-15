@@ -1,4 +1,4 @@
-module.exports = require('machine').build({
+module.exports = {
 
 
   friendlyName: 'Open URL in browser',
@@ -10,6 +10,7 @@ module.exports = require('machine').build({
   inputs: {
 
     url: {
+      description: 'The URL to open',
       example: 'http://node-machine.org/machinepack-facebook',
       required: true
     }
@@ -35,11 +36,13 @@ module.exports = require('machine').build({
 
   fn: function (inputs, exits){
 
+    var Urls = require('machinepack-urls');
     var openUrlInBrowser = require('open');
 
-    openUrlInBrowser(inputs.url);
+    openUrlInBrowser(Urls.sanitize({url: inputs.url}).execSync());
+
     return exits.success();
   }
 
 
-});
+};

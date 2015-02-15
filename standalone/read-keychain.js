@@ -1,4 +1,4 @@
-module.exports = require('machine').build({
+module.exports = {
 
 
   friendlyName: 'Read keychain',
@@ -36,4 +36,4 @@ module.exports = require('machine').build({
   }
 
 
-});
+};

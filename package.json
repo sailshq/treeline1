@@ -17,6 +17,7 @@
     "The Treeline Company",
     "Scott Gress"
   ],
+  "main": "pack.js",
   "license": "MIT",
   "bin": {
     "treeline": "./bin/treeline.js",
@@ -32,5 +33,11 @@
     "commander": "^2.6.0",
     "open": "0.0.5",
     "machine": "^4.0.0"
+  },
+  "machinepack":{
+    "machineDir": "standalone/",
+    "machines": [
+      "browse-to-url"
+    ]
   }
 }
