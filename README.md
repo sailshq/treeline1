@@ -6,16 +6,7 @@
 
 ### [Website](http://treeline.io) &nbsp; [Reference](http://treeline.io/docs) &nbsp;  [FAQ](http://node-machine.org/implementing/FAQ)  &nbsp;  [Newsgroup](https://groups.google.com/forum/?hl=en#!forum/node-machine)
 
-CLI tool for working with Sails apps and machines in Treeline.
-
-
-## The Treeline.io Beta
-
-So... Treeline is not publicly available yet. We're working very hard to get ready for GA, especially on docs and examples.  For the latest release schedule, check out our website or @treeline on Twitter.
-
-If you're interested in beta testing, please visit our website and sign up for early access.
-
-> _If you're a Sails.js contributor still waiting on your beta code, hit me up on Twitter ([@mikermcneil](http://twitter.com/mikermcneil)) and I'll set up your account personally._
+Command-line utility for working with Sails apps and machines in Treeline.
 
 
 ## Installation &nbsp; [![NPM version](https://badge.fury.io/js/treeline.svg)](http://badge.fury.io/js/treeline)
@@ -81,6 +72,16 @@ The underlying technology at work is mostly composed of a number of open-source 
 </h4>
 
 If you are interested in contributing to any of these modules, please follow the directions outlined in the relevant repo(s).  Feature requests, bug reports, patches, tests, documentation, or even proof-reads are all welcome :)
+
+
+## The Treeline.io Beta
+
+So... Treeline is not publicly available yet. We're working very hard to get ready for GA, especially on docs and examples.  For the latest release schedule, check out our website or @treeline on Twitter.
+
+If you're interested in beta testing, please visit our website and sign up for early access.
+
+> _If you're a Sails.js contributor still waiting on your beta code, hit me up on Twitter ([@mikermcneil](http://twitter.com/mikermcneil)) and I'll set up your account personally._
+
 
 
 ## License
