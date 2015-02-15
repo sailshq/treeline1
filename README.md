@@ -1,12 +1,12 @@
 <h1>
-  <a href="http://treeline.io" title="Treeline website"><img alt="Treeline logo" title="Treeline.io" src="http://i.imgur.com/lyxMr9Z.png" width="50" /></a>
-  treeline (CLI)
+  <a href="http://treeline.io" title="Visit the Treeline website"><img alt="A line of geometric trees" title="Treeline.io logo" src="http://i.imgur.com/lyxMr9Z.png" width="100" /></a>
+  treeline
 </h1>
 
 
 ### [Website](http://treeline.io) &nbsp; [Reference](http://treeline.io/docs) &nbsp;  [FAQ](http://node-machine.org/implementing/FAQ)  &nbsp;  [Newsgroup](https://groups.google.com/forum/?hl=en#!forum/node-machine)
 
-CLI tool for working with your Sails apps and machinepacks in Treeline.
+CLI tool for working with Sails apps and machines in Treeline.
 
 
 ## The Treeline.io Beta
@@ -80,12 +80,13 @@ The underlying technology at work is mostly composed of a number of open-source 
   <a href="http://sailsjs.org"><img width="50" src="https://www.rosehosting.com/blog/wp-content/uploads/2014/03/sails.png"/></a>
 </h4>
 
-If you are interested in contributing to any of these modules, please follow the directions outlined in the relevant repo(s).  Features, bug fixes, tests, documentation, or even proof-reading are all welcome :)
+If you are interested in contributing to any of these modules, please follow the directions outlined in the relevant repo(s).  Feature requests, bug reports, patches, tests, documentation, or even proof-reads are all welcome :)
 
 
 ## License
 
-&copy; 2013 Mike McNeil
-&copy; 2014 The Treeline Company
+The Treeline CLI tool is available under the MIT license.
 
-All rights reserved.
+&copy; 2013 Mike McNeil
+
+&copy; 2014 The Treeline Company
