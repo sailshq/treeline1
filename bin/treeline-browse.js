@@ -47,7 +47,7 @@ program.parse(process.argv);
   fn: function (inputs, exits){
 
     var util = require('util');
-    var browseToUrl = require('../standalone/browse-to-url');
+    var browseToUrl = require('../').browseToUrl;
 
     // TODO: make this the actual url
     var url = 'http://treeline.io/';
