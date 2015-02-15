@@ -49,7 +49,9 @@
       "read-keychain",
       "read-linkfile",
       "write-linkfile",
-      "write-keychain"
+      "write-keychain",
+      "authenticate",
+      "list-apps"
     ],
     "testsUrl": "https://travis-ci.org/shipyard-io/yarr"
   },
