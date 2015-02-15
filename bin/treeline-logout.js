@@ -1,21 +1,8 @@
 #!/usr/bin/env node
 
-/**
- * Module dependencies
- */
 
-var util = require('util');
-var program = require('commander');
-var chalk = require('chalk');
-var Machine = require('machine');
+require('../standalone/build-script')({
 
-program
-  .usage('[options]')
-  .unknownOption = function NOOP(){};
-program.parse(process.argv);
-
-
-(Machine.build({
 
   friendlyName: 'Log out',
 
@@ -23,21 +10,11 @@ program.parse(process.argv);
   description: '',
 
 
-  inputs: {
-
-  },
-
-
   exits: {
 
-    error: {
-      description: 'Unexpected error occurred.'
-    },
-
-    success: {
-      description: 'Done.'
-    },
-
+    notLoggedIn: {
+      description: 'This computer is not authenticated with a Treeline account.'
+    }
   },
 
 
@@ -50,15 +27,4 @@ program.parse(process.argv);
   }
 
 
-}))
-.configure({
-
-})
-.exec({
-  error: function(err) {
-    console.error(chalk.red('Unexpected error occurred:\n'), err);
-  },
-  success: function() {
-    console.log('OK.');
-  }
 });

@@ -1,41 +1,16 @@
 #!/usr/bin/env node
 
 
-/**
- * Module dependencies
- */
+require('../standalone/build-script')({
 
-var program = require('commander');
-var chalk = require('chalk');
-var Machine = require('machine');
-
-
-program
-  .usage('[options]')
-  .unknownOption = function NOOP(){};
-program.parse(process.argv);
-
-
-
-(Machine.build({
 
   friendlyName: 'Browse on Treeline.io',
 
 
-  description: '',
-
-
-  inputs: {
-
-  },
+  description: 'Open the browser and navigate to the Treeline.io URL for the app/machinepack in the current directory.',
 
 
   exits: {
-
-    error: {
-      description: 'Unexpected error occurred.'
-    },
-
     success: {
       description: 'Done.',
       example: 'http://treeline.io/foo/bar'
@@ -65,13 +40,8 @@ program.parse(process.argv);
   }
 
 
-}))
-.configure({})
-.exec({
-  error: function(err) {
-    console.error(chalk.red('Unexpected error occurred:\n'), err);
-  },
+}, {
   success: function(url) {
-    console.log('Opening %s...',chalk.underline(url));
+    console.log('Opening %s...',require('chalk').underline(url));
   }
 });

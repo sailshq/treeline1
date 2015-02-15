@@ -1,31 +1,8 @@
 #!/usr/bin/env node
 
-/**
- * Module dependencies
- */
 
-var util = require('util');
-var program = require('commander');
-var chalk = require('chalk');
-var Machine = require('machine');
+require('../standalone/build-script')({
 
-program
-  .usage('[options]')
-  .unknownOption = function NOOP(){};
-program.parse(process.argv);
-
-
-// Build CLI options
-var cliOpts = (function (){
-  var _cliOpts = require('yargs').argv;
-  delete _cliOpts._;
-  delete _cliOpts.$0;
-  return _cliOpts;
-})();
-
-
-
-Machine.build({
 
   friendlyName: 'Link',
 
@@ -33,18 +10,12 @@ Machine.build({
   description: 'Link the current directory to an app or machinepack in Treeline.',
 
 
-  inputs: {},
+  inputs: {
 
-
-  exits: {
-
-    error: {
-      description: 'Unexpected error occurred.'
-    },
-
-    success: {
-      description: 'Done.'
-    },
+    identity: {
+      description: 'The identity (i.e. slug) of the machinepack or app to link',
+      example: 'my-cool-app'
+    }
 
   },
 
@@ -58,15 +29,4 @@ Machine.build({
   }
 
 
-})
-.configure(cliOpts)
-.exec({
-  error: function(err) {
-    console.error(chalk.red('Unexpected error occurred:\n'), err);
-  },
-  success: function() {
-    console.log('OK.');
-  }
 });
-
-
