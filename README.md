@@ -77,7 +77,7 @@ The underlying technology at work is mostly composed of a number of open-source 
 <h4>
   <a href="http://node-machine.org"><img width="50" src="http://node-machine.org/images/machine-anthropomorph-for-white-bg.png"/></a>
   <span>+</span>
-  <a href="http://sailsjs.org"><img width="50" src="http://sailsjs.org/images/logo_sails.png"/></a>
+  <a href="http://sailsjs.org"><img width="50" src="https://www.rosehosting.com/blog/wp-content/uploads/2014/03/sails.png"/></a>
 </h4>
 
 If you are interested in contributing to any of these modules, please follow the directions outlined in the relevant repo(s).  Features, bug fixes, tests, documentation, or even proof-reading are all welcome :)
