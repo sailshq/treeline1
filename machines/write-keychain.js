@@ -27,11 +27,10 @@ module.exports = {
   fn: function(inputs, exits) {
     var path = require('path');
     var Filesystem = require('machinepack-fs');
-    var getHomeDirectoryPath = require('../standalone/get-home-directory');
 
     // Read and parse JSON file located at source path on disk into usable data.
     Filesystem.writeJson({
-      destination: path.resolve(getHomeDirectoryPath(), '.treeline.secret.json'),
+      destination: path.resolve(Filesystem.getHomeDirpath().execSync(), '.treeline.secret.json'),
       force: true,
       json: {
         username: inputs.username,

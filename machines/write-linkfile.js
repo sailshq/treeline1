@@ -25,6 +25,12 @@ module.exports = {
       description: 'The type of linked Treeline project this is (i.e. "app", "machinepack", etc.)',
       example: 'app',
       required: true
+    },
+
+    owner: {
+      description: 'The username of the account which owns this Treeline project',
+      example: 'mikermcneil',
+      required: true
     }
 
   },
@@ -41,8 +47,8 @@ module.exports = {
       force: true,
       json: {
         identity: inputs.identity,
-        displayName: 'My Cool App',
-        type: 'app'
+        displayName: inputs.displayName,
+        type: inputs.type
       }
     }).exec(exits);
   }

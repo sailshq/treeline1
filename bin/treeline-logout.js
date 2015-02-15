@@ -10,20 +10,15 @@ require('../standalone/build-script')({
   description: '',
 
 
-  exits: {
-
-    notLoggedIn: {
-      description: 'This computer is not authenticated with a Treeline account.'
-    }
-  },
-
-
   fn: function (inputs, exits){
+    var path = require('path');
+    var Filesystem = require('machinepack-fs');
+    var dir = process.cwd();
 
-    var util = require('util');
-
-
-    return exits.success();
+    // Read and parse JSON file located at source path on disk into usable data.
+    Filesystem.rmrf({
+      dir: path.resolve(Filesystem.getHomeDirpath().execSync(), '.treeline.secret.json'),
+    }).exec(exits);
   }
 
 

@@ -22,7 +22,8 @@ module.exports = {
       example: {
         identity: 'my-cool-app',
         displayName: 'My Cool App',
-        type: 'app'
+        type: 'app',
+        owner: 'mikermcneil'
       }
     },
 

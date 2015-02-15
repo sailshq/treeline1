@@ -20,7 +20,8 @@ require('../standalone/build-script')({
     },
 
     success: {
-      description: 'Done.'
+      description: 'Done.',
+      example: 'mikermcneil'
     },
 
   },
@@ -28,11 +29,21 @@ require('../standalone/build-script')({
 
   fn: function (inputs, exits){
 
-    var util = require('util');
+    var thisPack = require('../');
 
-
-    return exits.success();
+    thisPack.readKeychain().exec({
+      error: exits.error,
+      success: function (user){
+        return exits.success(user.username);
+      }
+    });
   }
 
 
+}, {
+  success: function (username) {
+    var chalk = require('chalk');
+
+    console.log('This computer is logged in to Treeline as '+chalk.cyan(username)+ '.');
+  }
 });

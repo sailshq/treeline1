@@ -31,9 +31,50 @@ require('../standalone/build-script')({
   fn: function (inputs, exits){
 
     var util = require('util');
-
+    var async = require('async');
+    var Urls = require('machinepack-urls');
+    var thisPack = require('../');
 
     return exits.success();
+
+    // async.auto({
+
+    //   project: function (next){
+    //     thisPack.readLinkfile().exec({
+    //       error: next,
+    //       success: function (project){
+    //         next(null, project);
+    //       }
+    //     });
+    //   },
+
+    //   owner: function (next){
+    //     thisPack.readKeychain().exec({
+    //       error: next,
+    //       success: function (owner){
+    //         next(null, owner);
+    //       }
+    //     });
+    //   }
+    // }, function afterwards(err){
+    //   if (err) return exits(err);
+
+
+    //   var BASE_URL = 'http://treeline.io/';
+    //   var url = Urls.sanitize({
+    //     url: BASE_URL+'/'+owner.username+'/'+project.identity
+    //   }).execSync();
+
+    //   thisPack.browseToUrl({
+    //     url: url
+    //   }).exec({
+    //     error: exits.error,
+    //     success: function() {
+    //       return exits.success(url);
+    //     }
+    //   });
+
+    // });
   }
 
 

@@ -14,6 +14,10 @@ require('../standalone/build-script')({
 
     success: {
       example: 'http://treeline.io/foo/bar'
+    },
+
+    notLinked: {
+      description: 'The current working directory is not linked to an app or machinepack on Treeline.io.'
     }
 
   },
@@ -21,27 +25,36 @@ require('../standalone/build-script')({
 
   fn: function (inputs, exits){
 
-    var util = require('util');
-    var browseToUrl = require('../').browseToUrl;
+    var Urls = require('machinepack-urls');
+    var thisPack = require('../');
 
-    // TODO: make this the actual url
-    var url = 'http://treeline.io/';
-
-    browseToUrl({
-      url: url
-    }).exec({
+    thisPack.readLinkfile().exec({
       error: exits.error,
-      success: function() {
-        return exits.success(url);
+      doesNotExist: exits.notLinked,
+      success: function (project){
+
+        var BASE_URL = 'http://treeline.io/';
+        var url = Urls.sanitize({
+          url: BASE_URL+'/'+project.owner+'/'+project.identity
+        }).execSync();
+
+        thisPack.browseToUrl({
+          url: url
+        }).exec({
+          error: exits.error,
+          success: function() {
+            return exits.success(url);
+          }
+        });
       }
     });
-
-
   }
 
 
 }, {
+
   success: function(url) {
     console.log('Opening %s...',require('chalk').underline(url));
   }
+
 });
