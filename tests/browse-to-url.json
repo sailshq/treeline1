@@ -1,0 +1,10 @@
+{
+  "machine": "browse-to-url",
+  "expectations": [
+    {
+      "todo": true,
+      "using": {},
+      "outcome": "success"
+    }
+  ]
+}

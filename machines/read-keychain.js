@@ -7,17 +7,7 @@ module.exports = {
   description: 'Read data from the Treeline identity/config file.',
 
 
-  inputs: {},
-
-
-  defaultExit: 'success',
-
-
   exits: {
-
-    error: {
-      description: 'Unexpected error occurred'
-    },
 
     doesNotExist: {
       description: 'Keychain file does not exist.'

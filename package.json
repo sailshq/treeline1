@@ -15,6 +15,7 @@
   "author": "Mike McNeil",
   "maintainers": [
     "The Treeline Company",
+    "Mike McNeil",
     "Scott Gress"
   ],
   "main": "pack.js",
@@ -32,7 +33,7 @@
     "tl": "./bin/treeline.js"
   },
   "scripts": {
-    "test": "node ./node_modules/mocha/bin -t 10000"
+    "test": "node ./node_modules/test-machinepack-mocha/bin/testmachinepack-mocha.js"
   },
   "dependencies": {
     "commander": "^2.6.0",
@@ -49,6 +50,14 @@
       "read-linkfile",
       "write-linkfile",
       "write-keychain"
-    ]
+    ],
+    "testsUrl": "https://travis-ci.org/shipyard-io/yarr"
+  },
+  "devDependencies": {
+    "test-machinepack-mocha": "^0.2.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:shipyard-io/yarr.git"
   }
 }

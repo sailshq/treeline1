@@ -27,23 +27,6 @@ module.exports = {
       required: true
     }
 
-
-  },
-
-
-  defaultExit: 'success',
-
-
-  exits: {
-
-    error: {
-      description: 'Unexpected error occurred'
-    },
-
-    success: {
-      description: 'Done.'
-    },
-
   },
 
 

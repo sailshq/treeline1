@@ -1,0 +1,10 @@
+{
+  "machine": "read-keychain",
+  "expectations": [
+    {
+      "todo": true,
+      "using": {},
+      "outcome": "success"
+    }
+  ]
+}

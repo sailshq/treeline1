@@ -7,16 +7,14 @@ module.exports = {
   description: 'Read data from the linkfile in the current directory.',
 
 
-  inputs: {},
-
-
-  defaultExit: 'success',
-
-
   exits: {
 
-    error: {
-      description: 'Unexpected error occurred'
+    doesNotExist: {
+      description: 'Linkfile does not exist.'
+    },
+
+    couldNotParse: {
+      description: 'Linkfile is corrupted (cannot be parsed as JSON).'
     },
 
     success: {
