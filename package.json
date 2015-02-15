@@ -1,7 +1,16 @@
 {
   "name": "treeline",
   "version": "0.0.24",
-  "description": "Command line interface which integrates with Treeline.io.",
+  "description": "CLI tool for working with your Treeline/Sails apps.",
+  "keywords": [
+    "treeline",
+    "treeline.io",
+    "sails.js",
+    "sails",
+    "cli"
+  ],
+  "author": "Mike McNeil",
+  "license": "",
   "main": "index.js",
   "bin": {
     "treeline": "./index.js",
@@ -10,11 +19,6 @@
   "scripts": {
     "test": "mocha"
   },
-  "keywords": [
-    "treeline"
-  ],
-  "author": "Mike McNeil",
-  "license": "All Rights Reserved (proprietary)",
   "dependencies": {
     "async": "~0.2.9",
     "colors": "~0.6.2",
