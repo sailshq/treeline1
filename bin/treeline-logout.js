@@ -10,13 +10,14 @@ var chalk = require('chalk');
 var Machine = require('machine');
 
 program
-.usage('[options]')
-.parse(process.argv);
+  .usage('[options]')
+  .unknownOption = function NOOP(){};
+program.parse(process.argv);
 
 
 (Machine.build({
 
-  friendlyName: '',
+  friendlyName: 'Log out',
 
 
   description: '',

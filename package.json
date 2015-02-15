@@ -24,6 +24,11 @@
     "treeline-browse": "./bin/treeline-browse.js",
     "treeline-preview": "./bin/treeline-preview.js",
     "treeline-about": "./bin/treeline-about.js",
+    "treeline-link": "./bin/treeline-link.js",
+    "treeline-unlink": "./bin/treeline-unlink.js",
+    "treeline-whoami": "./bin/treeline-whoami.js",
+    "treeline-login": "./bin/treeline-login.js",
+    "treeline-logout": "./bin/treeline-logout.js",
     "tl": "./bin/treeline.js"
   },
   "scripts": {
@@ -36,7 +41,7 @@
     "machinepack-urls": "^3.0.0"
   },
   "machinepack": {
-    "machineDir": "standalone/",
+    "machineDir": "machines/",
     "machines": [
       "browse-to-url"
     ]

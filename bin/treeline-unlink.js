@@ -10,21 +10,20 @@ var chalk = require('chalk');
 var Machine = require('machine');
 
 program
-.usage('[options]')
-.parse(process.argv);
+  .usage('[options]')
+  .unknownOption = function NOOP(){};
+program.parse(process.argv);
 
 
 (Machine.build({
 
-  friendlyName: '',
+  friendlyName: 'Unlink',
 
 
-  description: '',
+  description: 'Unlink the current directory from Treeline.',
 
 
-  inputs: {
-
-  },
+  inputs: {},
 
 
   exits: {

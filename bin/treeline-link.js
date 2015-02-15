@@ -10,21 +10,30 @@ var chalk = require('chalk');
 var Machine = require('machine');
 
 program
-.usage('[options]')
-.parse(process.argv);
+  .usage('[options]')
+  .unknownOption = function NOOP(){};
+program.parse(process.argv);
 
 
-(Machine.build({
+// Build CLI options
+var cliOpts = (function (){
+  var _cliOpts = require('yargs').argv;
+  delete _cliOpts._;
+  delete _cliOpts.$0;
+  return _cliOpts;
+})();
 
-  friendlyName: '',
 
 
-  description: '',
+Machine.build({
+
+  friendlyName: 'Link',
 
 
-  inputs: {
+  description: 'Link the current directory to an app or machinepack in Treeline.',
 
-  },
+
+  inputs: {},
 
 
   exits: {
@@ -49,10 +58,8 @@ program
   }
 
 
-}))
-.configure({
-
 })
+.configure(cliOpts)
 .exec({
   error: function(err) {
     console.error(chalk.red('Unexpected error occurred:\n'), err);
@@ -61,3 +68,5 @@ program
     console.log('OK.');
   }
 });
+
+

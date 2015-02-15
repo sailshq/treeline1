@@ -11,14 +11,15 @@ var Machine = require('machine');
 
 
 program
-.usage('')
-.parse(process.argv);
+  .usage('[options]')
+  .unknownOption = function NOOP(){};
+program.parse(process.argv);
 
 
 
 (Machine.build({
 
-  friendlyName: '',
+  friendlyName: 'Browse on Treeline.io',
 
 
   description: '',
