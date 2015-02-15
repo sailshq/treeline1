@@ -54,7 +54,7 @@ module.exports = {
 
     // Read and parse JSON file located at source path on disk into usable data.
     Filesystem.writeJson({
-      destination: path.resolve(dir, '.treeline.json'),
+      destination: path.resolve(dir, 'treeline.json'),
       force: true,
       json: {
         identity: inputs.identity,

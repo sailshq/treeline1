@@ -38,7 +38,7 @@ module.exports = {
 
     // Read and parse JSON file located at source path on disk into usable data.
     Filesystem.readJson({
-      source: path.resolve(dir, '.treeline.json'),
+      source: path.resolve(dir, 'treeline.json'),
       schema: {
         identity: 'my-cool-app',
         displayName: 'My Cool App',
