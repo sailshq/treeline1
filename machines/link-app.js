@@ -23,7 +23,12 @@ module.exports = {
   exits: {
 
     success: {
-      example: 'mikermcneil/my-cool-app'
+      example: {
+        identity: 'my-cool-app',
+        displayName: 'My Cool App',
+        type: 'app',
+        owner: 'mikermcneil'
+      }
     }
 
   },
@@ -119,17 +124,19 @@ module.exports = {
       // TODO
       var owner = ''; // e.g. 'mikermcneil';
 
-      thisPack.writeLinkfile({
+      var linkedProjectData = {
         identity: appToLink.identity,
         displayName: appToLink.displayName, // TODO: look this up when identity is provided manually w/o listing apps
         type: 'app',
         owner: owner  // TODO: get this
-      }).exec({
+      };
+
+      thisPack.writeLinkfile(linkedProjectData).exec({
         error: function (err){
           return exits.error(err);
         },
         success: function (){
-          return exits.success(owner + '/' + appToLink.identity);
+          return exits.success(linkedProjectData);
         }
       });
 

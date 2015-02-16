@@ -45,7 +45,10 @@ module.exports = {
 
     success: {
       description: 'Computer is now logged in as the returned username.',
-      example: 'mikermcneil'
+      example: {
+        username: 'mikermcneil',
+        secret: 'foasdgaj382913'
+      }
     },
 
   },
@@ -105,7 +108,10 @@ module.exports = {
           }).exec({
             error: exits.error,
             success: function (){
-              return exits.success(username);
+              return exits.success({
+                username: username,
+                secret: secret
+              });
             }
           });
         }
