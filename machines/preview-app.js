@@ -4,7 +4,7 @@ module.exports = {
   friendlyName: 'Preview app',
 
 
-  description: '',
+  description: 'Lift the app in the current directory, streaming down updated backend code if necessary.',
 
 
   inputs: {
