@@ -61,6 +61,7 @@ module.exports = {
   fn: function (inputs, exits){
 
     var Http = require('machinepack-http');
+    var Util = require('machinepack-util');
 
 
     // Send an HTTP request and receive the response.
@@ -68,7 +69,10 @@ module.exports = {
       method: 'put',
       baseUrl: inputs.baseUrl||'https://api.treeline.io',
       url: '/cli/login',
-      params: {},
+      params: {
+        username: inputs.username,
+        password: inputs.password,
+      },
       headers: {}
     }).exec({
       // An unexpected error occurred.
@@ -85,8 +89,20 @@ module.exports = {
       },
       // OK.
       success: function(result) {
-        console.log(result.body);
-        return exits.success(result.body);
+        var secret;
+        try {
+          secret = (Util.parseJson({
+            json: result.body,
+            schema: {
+              secret: 'ab3193401-138a8b-e81399d1-21940e-a13b4'
+            }
+          }).execSync()).secret;
+
+          return exits.success(secret);
+        }
+        catch (e) {
+          return exits.error(e);
+        }
       },
     });
 
