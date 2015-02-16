@@ -30,6 +30,7 @@
     "treeline-whoami": "./bin/treeline-whoami.js",
     "treeline-login": "./bin/treeline-login.js",
     "treeline-logout": "./bin/treeline-logout.js",
+    "treeline-status": "./bin/treeline-status.js",
     "tl": "./bin/treeline.js"
   },
   "scripts": {

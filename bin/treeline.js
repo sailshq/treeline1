@@ -20,6 +20,7 @@ program
 .unknownOption = function NOOP(){};
 program.usage(chalk.gray('[options]')+' '+chalk.bold('<command>'))
 .command('browse', 'view on treeline.io')
+.command('status', 'show logged-in account and linked app')
 .command('preview', 'run app locally (like sails lift)')
 .command('deploy', 'deploy app to hosting environment')
 .command('login', 'log in to Treeline on this computer')
