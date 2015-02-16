@@ -41,7 +41,9 @@
     "machine": "^4.0.0",
     "machinepack-urls": "^3.0.0",
     "machinepack-fs": "^2.2.0",
-    "machinepack-http": "^2.0.1"
+    "machinepack-http": "^2.0.1",
+    "machinepack-util": "^0.8.4",
+    "lodash": "^3.2.0"
   },
   "machinepack": {
     "machineDir": "machines/",

@@ -15,6 +15,7 @@ module.exports = {
     secret: {
       description: 'The Treeline secret key of the account whose apps will be listed.',
       example: '29f559ae-3bec-4d0a-8458-1f4e32a72407',
+      protect: true,
       required: true
     },
 
@@ -56,13 +57,15 @@ module.exports = {
 
   fn: function (inputs, exits){
 
+    var _ = require('lodash');
     var Http = require('machinepack-http');
+    var Util = require('machinepack-util');
 
 
     // Send an HTTP request and receive the response.
     Http.sendHttpRequest({
       method: 'get',
-      baseUrl: inputs.baseUrl||'http://api.treeline.io',
+      baseUrl: inputs.baseUrl||'https://api.treeline.io',
       url: '/cli/apps',
       params: {},
       headers: {
@@ -83,8 +86,31 @@ module.exports = {
       },
       // OK.
       success: function(result) {
-        console.log(result.body);
-        return exits.success(result.body);
+
+        var apps;
+
+        try {
+          apps = Util.parseJson({
+            json: result.body,
+            schema: [{
+              fullName: 'some-string-like-this',
+              name: 'Some string like this'
+            }]
+          }).execSync();
+
+          apps = _.map(apps, function (app){
+            return {
+              identity: app.fullName,
+              displayName: app.name
+            };
+          });
+
+          return exits.success(apps);
+
+        }
+        catch (e) {
+          return exits.error(e);
+        }
       },
     });
 
