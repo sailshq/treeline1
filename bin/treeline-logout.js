@@ -21,4 +21,9 @@ require('../standalone/build-script')({
   }
 
 
+}, {
+  success: function (){
+    var chalk = require('chalk');
+    console.log('This computer is now '+chalk.yellow('logged out')+' of Treeline.');
+  }
 });

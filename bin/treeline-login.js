@@ -38,7 +38,8 @@ require('../standalone/build-script')({
     },
 
     success: {
-      description: 'Done.'
+      description: 'Computer is now logged in as the returned username.',
+      example: 'mikermcneil'
     },
 
   },
@@ -97,7 +98,7 @@ require('../standalone/build-script')({
           }).exec({
             error: exits.error,
             success: function (){
-              return exits.success();
+              return exits.success(username);
             }
           });
         }
@@ -107,5 +108,12 @@ require('../standalone/build-script')({
 
   }
 
+
+}, {
+
+  success: function (username){
+    var chalk = require('chalk');
+    console.log('This computer is now logged in to Treeline as '+chalk.cyan(username)+ '.');
+  }
 
 });
