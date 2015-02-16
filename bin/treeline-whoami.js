@@ -19,6 +19,10 @@ require('../standalone/build-script')({
       description: 'Unexpected error occurred.'
     },
 
+    notLoggedIn: {
+      description: 'This computer is not currently logged in to Treeline.'
+    },
+
     success: {
       description: 'Done.',
       example: 'mikermcneil'
@@ -33,6 +37,7 @@ require('../standalone/build-script')({
 
     thisPack.readKeychain().exec({
       error: exits.error,
+      doesNotExist: exits.notLoggedIn,
       success: function (user){
         return exits.success(user.username);
       }
@@ -41,9 +46,15 @@ require('../standalone/build-script')({
 
 
 }, {
+
   success: function (username) {
     var chalk = require('chalk');
-
     console.log('This computer is logged in to Treeline as '+chalk.cyan(username)+ '.');
-  }
+  },
+
+  notLoggedIn: function () {
+    var chalk = require('chalk');
+    console.log('This computer is '+chalk.yellow('not logged in')+' to Treeline.');
+  },
+
 });
