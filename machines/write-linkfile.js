@@ -36,6 +36,19 @@ module.exports = {
   },
 
 
+  exits: {
+
+    error: {
+      description: 'Unexpected error occurred'
+    },
+
+    success: {
+      description: 'Done.'
+    },
+
+  },
+
+
   fn: function(inputs, exits) {
     var path = require('path');
     var Filesystem = require('machinepack-fs');
@@ -48,7 +61,8 @@ module.exports = {
       json: {
         identity: inputs.identity,
         displayName: inputs.displayName,
-        type: inputs.type
+        type: inputs.type,
+        owner: inputs.owner
       }
     }).exec(exits);
   }

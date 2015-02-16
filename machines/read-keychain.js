@@ -9,6 +9,10 @@ module.exports = {
 
   exits: {
 
+    error: {
+      description: 'Unexpected error occurred'
+    },
+
     doesNotExist: {
       description: 'Keychain file does not exist.'
     },

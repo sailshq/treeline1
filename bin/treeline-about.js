@@ -37,7 +37,7 @@ var ABOUT =
 '                 "HbHHdF                                   \n'+
 '                  |HHHF                                   \n'+
 '                  |HHH|         '+chalk.bold(chalk.green('Treeline'))+'                    \n'+
-'                  |HHH|         '+chalk.gray('v'+VERSION+'')+'                     \n'+
+'                  |HHH|         '+chalk.gray('CLI v'+VERSION+'')+'                     \n'+
 '                  |HHH|                                   \n'+
 '                  |HHH|         '+chalk.underline('http://treeline.io')+'                     \n'+
 '                  dHHHb         \n'+

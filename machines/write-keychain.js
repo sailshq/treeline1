@@ -24,6 +24,19 @@ module.exports = {
   },
 
 
+  exits: {
+
+    error: {
+      description: 'Unexpected error occurred'
+    },
+
+    success: {
+      description: 'Done.'
+    },
+
+  },
+
+
   fn: function(inputs, exits) {
     var path = require('path');
     var Filesystem = require('machinepack-fs');

@@ -22,10 +22,40 @@ require('../standalone/build-script')({
 
   fn: function (inputs, exits){
 
-    var util = require('util');
+    var thisPack = require('../');
+
+    var identity = inputs.identity;
+
+    (function (next){
+      if (identity) {
+        return next();
+      }
+
+      // Prompt to choose an app
+      // TODO:
+      return next(new Error('not implemented yet'));
+
+    })(function afterwards(err){
+      if (err) return exits.error(err);
+
+      thisPack.writeLinkfile({
+        identity: identity,
+        displayName: identity, // TODO: get this
+        type: 'app',
+        owner: 'mikermcneil'  // TODO: get this
+      }).exec({
+        error: function (err){
+          console.error('ER',err);
+          return exits.error(err);
+        },
+        success: function (){
+          return exits.success();
+        }
+      });
+
+    });
 
 
-    return exits.success();
   }
 
 

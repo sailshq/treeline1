@@ -9,6 +9,10 @@ module.exports = {
 
   exits: {
 
+    error: {
+      description: 'Unexpected error occurred'
+    },
+
     doesNotExist: {
       description: 'Linkfile does not exist.'
     },
@@ -41,7 +45,8 @@ module.exports = {
       schema: {
         identity: 'my-cool-app',
         displayName: 'My Cool App',
-        type: 'app'
+        type: 'app',
+        owner: 'mikermcneil'
       }
     }).exec(exits);
   }
