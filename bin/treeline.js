@@ -28,13 +28,25 @@ program.usage(chalk.gray('[options]')+' '+chalk.bold('<command>'))
 .command('whoami', 'show the username of the logged-in Treeline account')
 .command('link', 'link the current directory to a Treeline app or machinepack')
 .command('unlink', 'remove the Treeline linkfile from the current directory')
-.command('about', 'about this module')
-.parse(process.argv);
+.command('about', 'about this module');
+
+
+
+// If this is a `tl` shorthand command (e.g. `tl about`), then convert it
+// to the full, spelled-out `treeline` equivalent before parsing the CLI args.
+var prg = process.argv[1];
+if (prg.match(/tl$/)) {
+  process.argv.splice(1,1, prg.replace(/tl$/, 'treeline'));
+}
+
+// Parse the CLI args / opts.
+program.parse(process.argv);
 
 
 // When `treeline help` is called, `program.help()` is triggered automatically by commander.
 // To trigger `help` manually:
 // program.outputHelp();
+
 
 
 // $ treeline
