@@ -56,7 +56,9 @@
       "write-keychain",
       "authenticate",
       "list-apps",
-      "login"
+      "login",
+      "link-app",
+      "preview-app"
     ],
     "testsUrl": "https://travis-ci.org/treeline-io/cli"
   },

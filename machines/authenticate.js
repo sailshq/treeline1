@@ -25,9 +25,10 @@ module.exports = {
       required: true
     },
 
-    baseUrl: {
+    treelineApiUrl: {
       description: 'The base URL for the Treeline API (useful if you\'re in a country that can\'t use SSL, etc.)',
-      example: 'http://api.treeline.io'
+      example: 'http://api.treeline.io',
+      defaultsTo: 'https://api.treeline.io'
     }
 
   },
@@ -68,7 +69,7 @@ module.exports = {
     // Send an HTTP request and receive the response.
     Http.sendHttpRequest({
       method: 'put',
-      baseUrl: inputs.baseUrl||'https://api.treeline.io',
+      baseUrl: inputs.treelineApiUrl||'https://api.treeline.io',
       url: '/cli/login',
       params: {
         username: inputs.username,

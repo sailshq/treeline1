@@ -20,7 +20,7 @@ module.exports = {
       protect: true
     },
 
-    baseUrl: {
+    treelineApiUrl: {
       description: 'The base URL for the Treeline API (useful if you\'re in a country that can\'t use SSL, etc.)',
       example: 'http://api.treeline.io'
     }
@@ -92,7 +92,7 @@ module.exports = {
       thisPack.authenticate({
         username: username,
         password: password,
-        baseUrl: inputs.baseUrl
+        baseUrl: inputs.treelineApiUrl
       }).exec({
         error: exits.error,
         fobidden: exits.forbidden,
