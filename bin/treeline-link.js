@@ -44,53 +44,76 @@ require('../standalone/build-script')({
       identity: inputs.identity
     };
 
-    (function (next){
+    (function getAppToLink(_doneGettingApp){
 
       // If identity was supplied, we don't need to show a prompt, but we will eventually
       // need to fetch more information about the app.  For now, we proceed.
       if (appToLink.identity) {
-        return next();
+        return _doneGettingApp();
       }
 
-      // Look up the account secret
-      thisPack.readKeychain().exec({
-        error: function (err){ return next(err); },
-        success: function (keychain) {
+      (function getSecret_loginIfNecessary(_doneGettingSecret){
+        // Look up the account secret
+        thisPack.readKeychain().exec({
+          error: function (err){ return _doneGettingSecret(err); },
+          doesNotExist: function (){
+            thisPack.login({
+              baseUrl: inputs.baseUrl
+            })
+            .exec({
+              error: function (err) {
+                return _doneGettingSecret(err);
+              },
+              success: function (){
+                thisPack.readKeychain().exec({
+                  error: function (err){ return _doneGettingSecret(err); },
+                  success: function (keychain){
+                    return _doneGettingSecret(null, keychain.secret);
+                  }
+                });
+              }
+            });
+          },
+          success: function (keychain) {
+            return _doneGettingSecret(null, keychain.secret);
+          }
+        });
+      })(function afterwards(err, secret){
+        if (err) return _doneGettingApp(err);
 
-          // Fetch list of apps, then prompt user to choose one:
-          thisPack.listApps({
-            secret: keychain.secret,
-            baseUrl: inputs.baseUrl
-          }).exec({
-            error: function (err){ return next(err); },
-            success: function (apps){
+        // Fetch list of apps, then prompt user to choose one:
+        thisPack.listApps({
+          secret: secret,
+          baseUrl: inputs.baseUrl
+        }).exec({
+          error: function (err){ return _doneGettingApp(err); },
+          success: function (apps){
 
-              // Prompt the command-line user to make a choice from a list of options.
-              Prompts.select({
-                choices: _.reduce(apps, function (memo, app) {
-                  memo.push({
-                    name: app.displayName,
-                    value: app.identity
-                  });
-                  return memo;
-                }, []),
-                message: 'Which app would you like to link with the current directory?'
-              }).exec({
-                // An unexpected error occurred.
-                error: function(err) {
-                  next(err);
-                },
-                // OK.
-                success: function(choice) {
-                  appToLink.identity = choice;
-                  appToLink.displayName = (_.find(apps, {identity: appToLink.identity}) || appToLink).displayName || appToLink.identity;
-                  next();
-                },
-              });
+            // Prompt the command-line user to make a choice from a list of options.
+            Prompts.select({
+              choices: _.reduce(apps, function (memo, app) {
+                memo.push({
+                  name: app.displayName,
+                  value: app.identity
+                });
+                return memo;
+              }, []),
+              message: 'Which app would you like to link with the current directory?'
+            }).exec({
+              // An unexpected error occurred.
+              error: function(err) {
+                _doneGettingApp(err);
+              },
+              // OK.
+              success: function(choice) {
+                appToLink.identity = choice;
+                appToLink.displayName = (_.find(apps, {identity: appToLink.identity}) || appToLink).displayName || appToLink.identity;
+                _doneGettingApp();
+              },
+            });
 
-            }
-          });
-        }
+          }
+        });
       });
 
     })(function afterwards(err){

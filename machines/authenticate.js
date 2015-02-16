@@ -43,7 +43,8 @@ module.exports = {
     },
 
     forbidden: {
-      description: 'Provided secret is invalid or corrupted.  Please reauthenticate.'
+      description: 'Unrecognized username/password combination.',
+      extendedDescription: 'Please try again or visit http://treeline.io to reset your password or locate your username.'
     },
 
     requestFailed: {

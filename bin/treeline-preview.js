@@ -21,6 +21,10 @@ require('../standalone/build-script')({
       description: 'Unexpected error occurred.'
     },
 
+    notLinked: {
+      description: 'The current working directory is not linked to an app or machinepack on Treeline.io.'
+    },
+
     success: {
       description: 'Done.'
     },
@@ -77,5 +81,12 @@ require('../standalone/build-script')({
     // });
   }
 
+
+}, {
+
+  notLinked: function (){
+    var chalk = require('chalk');
+    console.log('The current directory is '+ chalk.yellow('not linked') +' to Treeline.');
+  }
 
 });

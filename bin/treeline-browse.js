@@ -55,6 +55,11 @@ require('../standalone/build-script')({
 
   success: function(url) {
     console.log('Opening %s...',require('chalk').underline(url));
+  },
+
+  notLinked: function (){
+    var chalk = require('chalk');
+    console.log('The current directory is '+ chalk.yellow('not linked') +' to Treeline.');
   }
 
 });
