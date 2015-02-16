@@ -24,6 +24,14 @@ require('../standalone/build-script')({
 
   },
 
+  exits: {
+
+    success: {
+      example: 'mikermcneil/my-cool-app'
+    }
+
+  },
+
 
   fn: function (inputs, exits){
 
@@ -90,18 +98,19 @@ require('../standalone/build-script')({
 
       // Get more info about the app (i.e. the owner)
       // TODO
+      var owner = ''; // e.g. 'mikermcneil';
 
       thisPack.writeLinkfile({
         identity: appToLink.identity,
         displayName: appToLink.displayName, // TODO: look this up when identity is provided manually w/o listing apps
         type: 'app',
-        owner: 'mikermcneil'  // TODO: get this
+        owner: owner  // TODO: get this
       }).exec({
         error: function (err){
           return exits.error(err);
         },
         success: function (){
-          return exits.success();
+          return exits.success(owner + '/' + appToLink.identity);
         }
       });
 
@@ -110,5 +119,14 @@ require('../standalone/build-script')({
 
   }
 
+
+}, {
+
+  success: function (slug){
+    var chalk = require('chalk');
+    console.log();
+    console.log(chalk.gray('(created '+chalk.bold('treeline.json')+')'));
+    console.log('Current directory now linked to %s on Treeline.', chalk.cyan(slug));
+  }
 
 });
