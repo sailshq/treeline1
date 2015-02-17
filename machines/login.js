@@ -10,7 +10,8 @@ module.exports = {
   inputs: {
 
     username: {
-      description: 'Your Treeline username or email address (if you signed up with GitHub, this is your GitHub username)',
+      description: 'Your Treeline username or email address',
+      extendedDescription: 'If you signed up with GitHub, this is your GitHub username.',
       example: 'mikermcneil'
     },
 
@@ -67,7 +68,7 @@ module.exports = {
       function (next){
         if (username) return next();
         Prompts.text({
-          message: 'Please enter your Treeline username or email address (if you signed up with GitHub, this is your GitHub username)'
+          message: 'Please enter your Treeline username or email address'// (if you signed up with GitHub, this is your GitHub username)'
         }).exec({
           error: next,
           success: function (_username){

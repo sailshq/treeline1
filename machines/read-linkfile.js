@@ -24,6 +24,7 @@ module.exports = {
     success: {
       description: 'Done.',
       example: {
+        id: 432,
         identity: 'my-cool-app',
         displayName: 'My Cool App',
         type: 'app',

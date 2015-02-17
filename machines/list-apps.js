@@ -47,6 +47,7 @@ module.exports = {
     success: {
       description: 'Done.',
       example: [{
+        id: 432,
         identity: 'my-cool-app',
         displayName: 'My Cool App'
       }]
@@ -93,6 +94,7 @@ module.exports = {
           apps = Util.parseJson({
             json: result.body,
             schema: [{
+              id: 432,
               fullName: 'some-string-like-this',
               name: 'Some string like this'
             }]
@@ -100,6 +102,7 @@ module.exports = {
 
           apps = _.map(apps, function (app){
             return {
+              id: app.id,
               identity: app.fullName,
               displayName: app.name
             };

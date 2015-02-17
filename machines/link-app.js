@@ -22,6 +22,13 @@ module.exports = {
 
   exits: {
 
+    noApps: {
+      description: 'No apps belong to the account associated with this computer.',
+      example: {
+        username: 'mikermcneil'
+      }
+    },
+
     success: {
       example: {
         identity: 'my-cool-app',
@@ -69,26 +76,32 @@ module.exports = {
                 thisPack.readKeychain().exec({
                   error: function (err){ return _doneGettingSecret(err); },
                   success: function (keychain){
-                    return _doneGettingSecret(null, keychain.secret);
+                    return _doneGettingSecret(null, keychain);
                   }
                 });
               }
             });
           },
           success: function (keychain) {
-            return _doneGettingSecret(null, keychain.secret);
+            return _doneGettingSecret(null, keychain);
           }
         });
-      })(function afterwards(err, secret){
+      })(function afterwards(err, keychain){
         if (err) return _doneGettingApp(err);
 
         // Fetch list of apps, then prompt user to choose one:
         thisPack.listApps({
-          secret: secret,
+          secret: keychain.secret,
           treelineApiUrl: inputs.treelineApiUrl
         }).exec({
           error: function (err){ return _doneGettingApp(err); },
           success: function (apps){
+
+            if (apps.length < 1) {
+              return exits.noApps({
+                username: keychain.username
+              });
+            }
 
             // Prompt the command-line user to make a choice from a list of options.
             Prompts.select({
@@ -108,7 +121,10 @@ module.exports = {
               // OK.
               success: function(choice) {
                 appToLink.identity = choice;
-                appToLink.displayName = (_.find(apps, {identity: appToLink.identity}) || appToLink).displayName || appToLink.identity;
+
+                var appDataFromServer = (_.find(apps, {identity: appToLink.identity}) || appToLink);
+                appToLink.displayName = appDataFromServer.displayName || appToLink.identity;
+                appToLink.id = appDataFromServer.id;
                 _doneGettingApp();
               },
             });
@@ -122,9 +138,10 @@ module.exports = {
 
       // Get more info about the app (i.e. the owner)
       // TODO
-      var owner = ''; // e.g. 'mikermcneil';
+      var owner = '[APP_OWNER]'; // e.g. 'mikermcneil';
 
       var linkedProjectData = {
+        id: appToLink.id,
         identity: appToLink.identity,
         displayName: appToLink.displayName, // TODO: look this up when identity is provided manually w/o listing apps
         type: 'app',

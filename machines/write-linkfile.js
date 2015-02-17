@@ -9,6 +9,12 @@ module.exports = {
 
   inputs: {
 
+    id: {
+      description: 'The id of the app',
+      example: 432,
+      required: true
+    },
+
     identity: {
       description: 'The identity (i.e. slug) of the linked machinepack or app',
       example: 'my-cool-app',
@@ -59,6 +65,7 @@ module.exports = {
       destination: path.resolve(dir, 'treeline.json'),
       force: true,
       json: {
+        id: inputs.id,
         identity: inputs.identity,
         displayName: inputs.displayName,
         type: inputs.type,
