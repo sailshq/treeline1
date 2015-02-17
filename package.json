@@ -46,7 +46,11 @@
     "machinepack-http": "^2.0.1",
     "machinepack-util": "^0.8.4",
     "lodash": "^3.2.0",
-    "machinepack-prompts": "^0.4.0"
+    "machinepack-prompts": "^0.4.0",
+    "chalk": "^0.5.1",
+    "yargs": "^3.0.4",
+    "async": "^0.9.0",
+    "sails": "^0.11.0"
   },
   "machinepack": {
     "machineDir": "machines/",
