@@ -117,8 +117,7 @@ module.exports = {
 
         actions.run(
           (function buildConf (){
-            // build `conf` object for the delight of existing preview code
-            return {
+            var conf = {
               targetProject: {
                 id: asyncData.link.identity,
                 fullName: asyncData.link.displayName
@@ -130,6 +129,9 @@ module.exports = {
                 treelineURL: inputs.treelineApiUrl||'https://api.treeline.io'
               }
             };
+            console.log(conf);
+            // build `conf` object for the delight of existing preview code
+            return conf;
           })(),
           [{/* ...? */}],
           next
