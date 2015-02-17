@@ -44,6 +44,7 @@ module.exports = {
     Filesystem.readJson({
       source: path.resolve(dir, 'treeline.json'),
       schema: {
+        id: 123,
         identity: 'my-cool-app',
         displayName: 'My Cool App',
         type: 'app',
