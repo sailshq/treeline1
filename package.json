@@ -60,7 +60,8 @@
     "fs-extra": "^0.16.3",
     "js-beautify": "^1.5.4",
     "semver": "^4.3.0",
-    "path-to-regexp": "^1.0.3"
+    "path-to-regexp": "^1.0.3",
+    "debug": "^2.1.1"
   },
   "machinepack": {
     "machineDir": "machines/",

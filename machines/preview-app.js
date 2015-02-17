@@ -48,6 +48,7 @@ module.exports = {
 
     var util = require('util');
     var async = require('async');
+    var debug = require('debug')('treeline');
     var Urls = require('machinepack-urls');
     var thisPack = require('../');
 
@@ -119,7 +120,7 @@ module.exports = {
           (function buildConf (){
             var conf = {
               targetProject: {
-                id: asyncData.link.identity,
+                id: asyncData.link.id,
                 fullName: asyncData.link.displayName
               },
               credentials: {
@@ -129,7 +130,8 @@ module.exports = {
                 treelineURL: inputs.treelineApiUrl||'https://api.treeline.io'
               }
             };
-            console.log(conf);
+            debug('Will connect using:',conf);
+
             // build `conf` object for the delight of existing preview code
             return conf;
           })(),

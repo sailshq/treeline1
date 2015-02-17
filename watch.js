@@ -116,9 +116,9 @@ module.exports = function(sails) {
 
 		}
 
-		// Handle model updates
-		if (message.verb == 'messaged' && message.data.message == 'route_updated' && !self.options.modelsOnly) {
-			if (!options.modelsOnly) {
+    // Handle model updates
+    if (message.verb == 'messaged' && message.data.message == 'route_updated' && !self.options.modelsOnly) {
+      if (!options.modelsOnly) {
 				async.series({
 					controllers: function(cb) {
 						// Load all models from Treeline, but don't reload ORM (since Sails hasn't started yet)
