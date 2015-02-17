@@ -59,7 +59,10 @@
       "list-apps",
       "login",
       "link-app",
-      "preview-app"
+      "preview-app",
+      "logout",
+      "unlink",
+      "new-app"
     ],
     "testsUrl": "https://travis-ci.org/treeline-io/cli"
   },

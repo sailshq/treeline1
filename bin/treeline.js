@@ -26,6 +26,7 @@ program.usage(chalk.gray('[options]')+' '+chalk.bold('<command>'))
 .command('login', 'log in to Treeline on this computer')
 .command('logout', 'log out of Treeline on this computer')
 .command('whoami', 'show the username of the logged-in Treeline account')
+.command('new', 'create a new Sails app locally')
 .command('link', 'link the current directory to a Treeline app or machinepack')
 .command('unlink', 'remove the Treeline linkfile from the current directory')
 .command('about', 'about this module');
