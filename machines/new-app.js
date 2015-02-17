@@ -38,16 +38,19 @@ module.exports = {
 
 
   fn: function (inputs,exits) {
+
+    var path = require('path');
     var sailsgen = require('sails-generate');
 
     var dir = process.cwd();
 
     sailsgen({
       generatorType: 'new',
-      rootPath: dir
+      rootPath: dir,
+      args: [ inputs.name ],
+      sailsRoot: path.resolve(__dirname, '../node_modules/sails')
     }, function (err){
       if (err) return exits.error(err);
-
       return exits.success();
     });
 
