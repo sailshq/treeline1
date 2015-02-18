@@ -1,47 +1,92 @@
 {
   "name": "treeline",
-  "version": "0.0.24",
-  "description": "Command line interface which integrates with Treeline.io.",
-  "main": "index.js",
-  "bin": {
-    "treeline": "./index.js",
-    "treeline-exec": "./treeline-exec.js"
-  },
-  "scripts": {
-    "test": "mocha"
-  },
+  "version": "1.0.1",
+  "description": "CLI tool for working with your Sails apps and machinepacks in Treeline.",
   "keywords": [
-    "treeline"
+    "treeline",
+    "treeline.io",
+    "cli",
+    "sails.js",
+    "sails",
+    "node-machine",
+    "machines",
+    "machinepack"
   ],
   "author": "Mike McNeil",
-  "license": "All Rights Reserved (proprietary)",
+  "maintainers": [
+    "The Treeline Company",
+    "Mike McNeil",
+    "Scott Gress"
+  ],
+  "main": "pack.js",
+  "license": "MIT",
+  "bin": {
+    "treeline": "./bin/treeline.js",
+    "treeline-browse": "./bin/treeline-browse.js",
+    "treeline-preview": "./bin/treeline-preview.js",
+    "treeline-about": "./bin/treeline-about.js",
+    "treeline-link": "./bin/treeline-link.js",
+    "treeline-unlink": "./bin/treeline-unlink.js",
+    "treeline-whoami": "./bin/treeline-whoami.js",
+    "treeline-login": "./bin/treeline-login.js",
+    "treeline-logout": "./bin/treeline-logout.js",
+    "treeline-status": "./bin/treeline-status.js",
+    "treeline-new": "./bin/treeline-new.js",
+    "tl": "./bin/treeline.js"
+  },
+  "scripts": {
+    "test": "node ./node_modules/test-machinepack-mocha/bin/testmachinepack-mocha.js"
+  },
   "dependencies": {
-    "async": "~0.2.9",
-    "colors": "~0.6.2",
-    "commander": "~2.0.0",
-    "fs-extra": "~0.8.1",
-    "glob": "~3.2.9",
-    "grunt": "~0.4.1",
-    "js-beautify": "~1.5.1",
-    "lodash": "^2.4.1",
-    "optimist": "~0.6.0",
-    "prompt": "~0.2.11",
-    "rc": "~0.3.5",
-    "request": "~2.27.0",
-    "sails": "beta",
-    "sails-build-dictionary": "~0.10.1",
-    "sails-disk": "~0.10.0",
-    "semver": "~2.3.0",
-    "socket.io-client": "^1.2.1",
-    "wrench": "~1.5.8",
-    "yargs": "^1.3.3",
+    "commander": "^2.6.0",
+    "open": "0.0.5",
+    "machine": "^4.0.0",
+    "machinepack-urls": "^3.0.0",
+    "machinepack-fs": "^2.2.0",
+    "machinepack-http": "^2.0.1",
+    "machinepack-util": "^0.8.4",
+    "lodash": "^3.2.0",
+    "machinepack-prompts": "^0.4.0",
     "chalk": "^0.5.1",
-    "machine": "^3.0.0",
-    "machinepack-machines": "^1.1.1",
-    "machinepack-http": "^0.2.3",
-    "inquirer": "^0.8.0",
-    "machinepack-npm": "^0.3.1",
-    "enpeem": "^1.0.0",
-    "path-to-regexp": "^1.0.3"
+    "yargs": "^3.0.4",
+    "async": "^0.9.0",
+    "sails": "^0.11.0",
+    "rc": "^0.6.0",
+    "sails-build-dictionary": "^0.10.1",
+    "colors": "^1.0.3",
+    "glob": "^4.3.5",
+    "socket.io-client": "^1.3.4",
+    "wrench": "^1.5.8",
+    "fs-extra": "^0.16.3",
+    "js-beautify": "^1.5.4",
+    "semver": "^4.3.0",
+    "path-to-regexp": "^1.0.3",
+    "debug": "^2.1.1"
+  },
+  "machinepack": {
+    "machineDir": "machines/",
+    "machines": [
+      "browse-to-url",
+      "read-keychain",
+      "read-linkfile",
+      "write-linkfile",
+      "write-keychain",
+      "authenticate",
+      "list-apps",
+      "login",
+      "link-app",
+      "preview-app",
+      "logout",
+      "unlink",
+      "new-app"
+    ],
+    "testsUrl": "https://travis-ci.org/treeline-io/treeline"
+  },
+  "devDependencies": {
+    "test-machinepack-mocha": "^0.2.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:treeline-io/treeline.git"
   }
 }

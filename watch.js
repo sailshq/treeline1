@@ -2,6 +2,7 @@ var path = require('path');
 var fs = require('fs');
 var glob = require('glob');
 var async = require('async');
+var debug = require('debug')('treeline');
 var log = require('./logger');
 var buildDictionary = require('sails-build-dictionary');
 var _ = require('lodash');
@@ -108,6 +109,8 @@ module.exports = function(sails) {
 
 	function handleProjectMessage(message) {
 
+    debug('Received socket message from Treeline:',message);
+
 		// Handle model updates
 		if (message.verb == 'messaged' && message.data.message == 'model_updated') {
 			self.syncModels.writeModels(message.data.models, self.options, function(err) {
@@ -116,9 +119,9 @@ module.exports = function(sails) {
 
 		}
 
-		// Handle model updates
-		if (message.verb == 'messaged' && message.data.message == 'route_updated' && !self.options.modelsOnly) {
-			if (!options.modelsOnly) {
+    // Handle model updates
+    if (message.verb == 'messaged' && message.data.message == 'route_updated' && !self.options.modelsOnly) {
+      if (!options.modelsOnly) {
 				async.series({
 					controllers: function(cb) {
 						// Load all models from Treeline, but don't reload ORM (since Sails hasn't started yet)

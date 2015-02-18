@@ -1,0 +1,10 @@
+{
+  "machine": "write-linkfile",
+  "expectations": [
+    {
+      "todo": true,
+      "using": {},
+      "outcome": "success"
+    }
+  ]
+}
