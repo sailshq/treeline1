@@ -268,6 +268,12 @@ program
 
   });
 
+program
+  .command('run_offline')
+  .action(function() {
+    actions.run_offline(conf, program.args, _done);
+  });
+
 
 // $ treeline configure
 program
