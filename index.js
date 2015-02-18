@@ -250,6 +250,9 @@ program
       // Make sure there's a package.json
       createPackageJson: ['target', createPackageJson],
 
+      // Make sure sails-disk is installed
+      installSailsDisk: ['createPackageJson', installSailsDisk],
+
       // Make sure node_machine is installed
       installNodeMachine: ['createPackageJson', installNodeMachine],
 
@@ -257,7 +260,7 @@ program
       installSailsHookMachines: ['createPackageJson', installSailsHookMachines],
 
       // Lift app
-      _runApp: ['installNodeMachine', 'installSailsHookMachines', function(cb, results) {
+      _runApp: ['installNodeMachine', 'installSailsHookMachines', 'installSailsDisk', function(cb, results) {
         actions.run(conf, program.args, cb);
       }]
 
@@ -739,6 +742,17 @@ function createPackageJson(cb) {
     name: conf.targetProject.fullName,
     version: "0.0.0"
   }, cb);
+}
+
+function installSailsDisk (cb) {
+  // Check for existing node_machine install
+  if (fs.existsSync(path.resolve(process.cwd(), "node_modules", "sails-disk", "package.json"))) {
+    return cb();
+  }
+  exec("npm install sails-disk --save", {cwd: process.cwd()}, function(err, stdout) {
+    console.log(stdout);
+    cb(err);
+  });
 }
 
 function installNodeMachine (cb) {
