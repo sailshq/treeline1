@@ -96,7 +96,7 @@ module.exports = {
       thisPack.authenticate({
         username: username,
         password: password,
-        baseUrl: inputs.treelineApiUrl
+        treelineApiUrl: inputs.treelineApiUrl
       }).exec({
         error: exits.error,
         fobidden: exits.forbidden,
