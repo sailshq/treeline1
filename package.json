@@ -80,13 +80,13 @@
       "unlink",
       "new-app"
     ],
-    "testsUrl": "https://travis-ci.org/treeline-io/cli"
+    "testsUrl": "https://travis-ci.org/treeline-io/treeline"
   },
   "devDependencies": {
     "test-machinepack-mocha": "^0.2.2"
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:shipyard-io/yarr.git"
+    "url": "git@github.com:treeline-io/treeline.git"
   }
 }
