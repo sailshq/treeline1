@@ -39,7 +39,8 @@ module.exports = {
 
     // Read and parse JSON file located at source path on disk into usable data.
     Filesystem.readJson({
-      source: path.resolve(Filesystem.getHomeDirpath().execSync(), '.treeline.secret.json'),
+      // Allow the source to be overridden by an environment var
+      source: process.env.TREELINE_KEYCHAIN || path.resolve(Filesystem.getHomeDirpath().execSync(), '.treeline.secret.json'),
       schema: {
         username: 'mikermcneil',
         secret: '29f559ae-3bec-4d0a-8458-1f4e32a72407'

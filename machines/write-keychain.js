@@ -43,7 +43,8 @@ module.exports = {
 
     // Read and parse JSON file located at source path on disk into usable data.
     Filesystem.writeJson({
-      destination: path.resolve(Filesystem.getHomeDirpath().execSync(), '.treeline.secret.json'),
+      // Allow the destination to be overridden by an environment var
+      destination: process.env.TREELINE_KEYCHAIN || path.resolve(Filesystem.getHomeDirpath().execSync(), '.treeline.secret.json'),
       force: true,
       json: {
         username: inputs.username,
