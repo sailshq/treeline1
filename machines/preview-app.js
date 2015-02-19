@@ -28,6 +28,13 @@ module.exports = {
       description: 'The current working directory is not linked to an app or machinepack on Treeline.io.'
     },
 
+    noApps: {
+      description: 'No apps belong to the account associated with this computer.',
+      example: {
+        username: 'mikermcneil'
+      }
+    },
+
     forbidden: {
       description: 'Unrecognized username/password combination.',
       extendedDescription: 'Please try again or visit http://treeline.io to reset your password or locate your username.'
@@ -88,6 +95,9 @@ module.exports = {
               treelineApiUrl: inputs.treelineApiUrl
             }).exec({
               error: next,
+              noApps: function (output){
+                return next({exit: 'noApps', output: output});
+              },
               success: function (linkedProject){
                 return next(null, linkedProject);
               }
@@ -141,7 +151,12 @@ module.exports = {
       }]
 
     }, function (err) {
-      if (err) return exits.error(err);
+      if (err) {
+        if (err.exit === 'noApps'){
+          return exits.noApps(err.output);
+        }
+        return exits(err);
+      }
       return exits.success();
     });
 
