@@ -36,6 +36,18 @@ module.exports = function(sails) {
 			self.syncControllers = require('./lib/syncControllers')(sails, socket);
       self.syncScaffold = require('./lib/syncScaffold')(sails, socket);
 
+      // Socket message handler queue
+      var socketMessageHandlerQueue = async.queue(function(task, cb) {
+        debug('Processing task :: ', task.name);
+        switch (task.name) {
+          case 'handleProjectMessage':
+            handleProjectMessage(task.message, cb);
+            break;
+        }
+      });
+      // Only handle one socket message at a time
+      socketMessageHandlerQueue.concurrency = 1;
+
 			cb = cb || function(){};
 			// log.verbose("Treeline WATCH started.");
 
@@ -87,7 +99,10 @@ module.exports = function(sails) {
 
 				async.series(tasks, function(err) {
 					if (err) return cb(err);
-					socket.on('project', handleProjectMessage);
+					socket.on('project', function(message) {
+            debug('Received socket message from Treeline:',message);
+            socketMessageHandlerQueue.push({name: 'handleProjectMessage', message: message});
+          });
 					return cb();
 				});
 
@@ -107,20 +122,18 @@ module.exports = function(sails) {
 	}
 
 
-	function handleProjectMessage(message) {
-
-    debug('Received socket message from Treeline:',message);
+	function handleProjectMessage(message, cb) {
 
 		// Handle model updates
 		if (message.verb == 'messaged' && message.data.message == 'model_updated') {
 			self.syncModels.writeModels(message.data.models, self.options, function(err) {
-				reloadOrm();
+				return reloadOrm(cb);
 			});
 
 		}
 
     // Handle model updates
-    if (message.verb == 'messaged' && message.data.message == 'route_updated' && !self.options.modelsOnly) {
+    else if (message.verb == 'messaged' && message.data.message == 'route_updated' && !self.options.modelsOnly) {
       if (!options.modelsOnly) {
 				async.series({
 					controllers: function(cb) {
@@ -144,12 +157,20 @@ module.exports = function(sails) {
             sails.log.error(err);
             sails.log.error("If this problem persists, try quitting and restarting treeline.");
           } else {
-					 reloadOrm();
+					 return reloadOrm(cb);
           }
 				});
 			}
 
+      else {
+        return cb();
+      }
+
 		}
+
+    else {
+      return cb();
+    }
 
 	}
 
