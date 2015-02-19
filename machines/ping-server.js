@@ -20,7 +20,7 @@ module.exports = {
   },
 
 
-  defaultExit: 'alive',
+  defaultExit: 'success',
 
 
   exits: {
@@ -29,7 +29,8 @@ module.exports = {
       description: 'Unexpected error occurred'
     },
 
-    alive: {
+    success: {
+      friendlyName: 'alive',
       description: 'The server responded.'
     },
 
@@ -53,7 +54,7 @@ module.exports = {
         }
         return exits.error(err);
       }
-      return exits.alive();
+      return exits.success();
     });
 
   }

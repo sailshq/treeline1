@@ -63,7 +63,9 @@ module.exports = {
       // Make sure the treeline API is alive
       pingServer: function(next) {
         thisPack.pingServer({url: inputs.treelineApiUrl || 'http://api.treeline.io'}).exec({
-          alive: next,
+          success: function (){
+            return next();
+          },
           noResponse: exits.requestFailed
         });
       },
