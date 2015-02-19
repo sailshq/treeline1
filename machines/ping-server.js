@@ -43,11 +43,15 @@ module.exports = {
 
   fn: function (inputs, exits){
 
+    var _ = require('lodash');
     var request = require('request');
 
     request.get(inputs.url, function(err, res, body) {
-      if (err && err.code == 'ECONNREFUSED') {
-        return exits.noResponse(inputs.url);
+      if (err){
+        if (_.isObject(err) && err.code === 'ECONNREFUSED') {
+          return exits.noResponse(inputs.url);
+        }
+        return exits.error(err);
       }
       return exits.alive();
     });
