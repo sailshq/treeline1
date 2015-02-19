@@ -62,7 +62,7 @@ module.exports = {
 
       // Make sure the treeline API is alive
       pingServer: function(next) {
-        thisPack.pingServer({url: inputs.treelineApiUrl || 'http://api.treeline.io'}).exec({
+        thisPack.pingServer({url: inputs.treelineApiUrl || 'https://api.treeline.io'}).exec({
           success: function (){
             return next();
           },
@@ -78,7 +78,7 @@ module.exports = {
           },
           doesNotExist: function (){
             thisPack.login({
-              treelineApiUrl: inputs.treelineApiUrl
+              treelineApiUrl: inputs.treelineApiUrl||'https://api.treeline.io'
             }).exec({
               error: next,
               success: function (me){
@@ -100,7 +100,7 @@ module.exports = {
           },
           doesNotExist: function (){
             thisPack.linkApp({
-              treelineApiUrl: inputs.treelineApiUrl
+              treelineApiUrl: inputs.treelineApiUrl||'https://api.treeline.io'
             }).exec({
               error: next,
               noApps: function (output){
