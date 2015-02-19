@@ -58,12 +58,18 @@ module.exports = {
     var debug = require('debug')('treeline');
     var Urls = require('machinepack-urls');
     var thisPack = require('../');
-
-
     async.auto({
 
+      // Make sure the treeline API is alive
+      pingServer: function(next) {
+        thisPack.pingServer({url: inputs.treelineApiUrl || 'http://api.treeline.io'}).exec({
+          alive: next,
+          noResponse: exits.requestFailed
+        });
+      },
+
       // Get login credentials
-      me: function (next){
+      me: ['pingServer', function (next){
         thisPack.readKeychain().exec({
           error: function (err) {
             return next(err);
@@ -82,7 +88,7 @@ module.exports = {
             return next(null, me);
           }
         });
-      },
+      }],
 
       // Figure out which project to lift
       link: ['me', function (next){
@@ -120,6 +126,7 @@ module.exports = {
 
       // Lift app
       _liftedApp: ['_installedMachine', '_installedSailsHookMachines', function(next, asyncData) {
+
         // console.log('!!! would hve previewed app!',asyncData);
         // next();
 
