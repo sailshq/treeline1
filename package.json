@@ -61,7 +61,8 @@
     "js-beautify": "^1.5.4",
     "semver": "^4.3.0",
     "path-to-regexp": "^1.0.3",
-    "debug": "^2.1.1"
+    "debug": "^2.1.1",
+    "request": "^2.53.0"
   },
   "machinepack": {
     "machineDir": "machines/",
