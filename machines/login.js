@@ -61,8 +61,8 @@ module.exports = {
     var thisPack = require('../');
 
 
-    var username = inputs.username;
-    var password = inputs.password;
+    var username = inputs.username || process.env.TREELINE_USERNAME;
+    var password = inputs.password || process.env.TREELINE_PASSWORD;
 
     async.series([
       function (next){

@@ -34,6 +34,16 @@ module.exports = {
 
   fn: function(inputs, exits) {
 
+    // Return values from env vars if they exist
+    if (process.env.TREELINE_USERNAME && process.env.TREELINE_SECRET) {
+      return setImmediate(function() {
+        return exits.success({
+          username: process.env.TREELINE_USERNAME,
+          secret: process.env.TREELINE_SECRET
+        });
+      });
+    }
+
     var path = require('path');
     var Filesystem = require('machinepack-fs');
 
