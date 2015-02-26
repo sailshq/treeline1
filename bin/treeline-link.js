@@ -22,9 +22,9 @@ require('../standalone/build-script')( require('../machines/link-app'), {
 
   forbidden: function (){
     var chalk = require('chalk');
-    console.error(chalk.red('Could not link')+' a Treeline app to the current directory.');
-    console.error('Perhaps your Treeline secret file is corrupted or missing?');
-    console.error('Or maybe you provided an invalid username/password combo?');
+    console.error('Could not authenticate this computer with Treeline.');
+    console.error('Perhaps your Treeline secret file is corrupted or missing, or maybe you provided an invalid username/password combo?');
+    console.error('Please log in again with `treeline login`.');
   }
 
 });
