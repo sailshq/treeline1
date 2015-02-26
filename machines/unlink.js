@@ -38,7 +38,14 @@ module.exports = {
     // Read and parse JSON file located at source path on disk into usable data.
     Filesystem.rmrf({
       dir: path.resolve(dir, 'treeline.json')
-    }).exec(exits);
+    }).exec({
+      error: function (err){
+        return exits.error(err);
+      },
+      success: function (){
+        return exits.success();
+      }
+    });
   }
 
 
