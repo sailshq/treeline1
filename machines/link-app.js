@@ -29,6 +29,10 @@ module.exports = {
       }
     },
 
+    forbidden: {
+      description: 'Username/password combo invalid or not applicable for the selected app.'
+    },
+
     success: {
       example: {
         identity: 'my-cool-app',
@@ -58,106 +62,132 @@ module.exports = {
       // If identity was supplied, we don't need to show a prompt, but we will eventually
       // need to fetch more information about the app.  For now, we proceed.
       if (appToLink.identity) {
-        return _doneGettingApp();
+        return _doneGettingApp.success();
       }
 
       (function getSecret_loginIfNecessary(_doneGettingSecret){
         // Look up the account secret
         thisPack.readKeychain().exec({
-          error: function (err){ return _doneGettingSecret(err); },
+          error: function (err){ return _doneGettingSecret.error(err); },
           doesNotExist: function (){
             thisPack.login({
               treelineApiUrl: inputs.treelineApiUrl
             })
             .exec({
               error: function (err) {
-                return _doneGettingSecret(err);
+                return _doneGettingSecret.error(err);
+              },
+              forbidden: function (){
+                return _doneGettingSecret.forbidden();
               },
               success: function (){
                 thisPack.readKeychain().exec({
-                  error: function (err){ return _doneGettingSecret(err); },
+                  error: function (err){ return _doneGettingSecret.error(err); },
                   success: function (keychain){
-                    return _doneGettingSecret(null, keychain);
+                    return _doneGettingSecret.success(keychain);
                   }
                 });
               }
             });
           },
           success: function (keychain) {
-            return _doneGettingSecret(null, keychain);
+            return _doneGettingSecret.success(keychain);
           }
         });
-      })(function afterwards(err, keychain){
-        if (err) return _doneGettingApp(err);
+      })({
+        error: function (err){
+          return _doneGettingApp.error(err);
+        },
+        forbidden: function (){
+          _doneGettingApp.forbidden();
+        },
+        success: function (keychain) {
 
-        // Fetch list of apps, then prompt user to choose one:
-        thisPack.listApps({
-          secret: keychain.secret,
-          treelineApiUrl: inputs.treelineApiUrl
-        }).exec({
-          error: function (err){ return _doneGettingApp(err); },
-          success: function (apps){
+          // Fetch list of apps, then prompt user to choose one:
+          thisPack.listApps({
+            secret: keychain.secret,
+            treelineApiUrl: inputs.treelineApiUrl
+          }).exec({
+            error: function(err) {
+              return _doneGettingApp.error(err);
+            },
+            forbidden: function (){
+              return _doneGettingApp.forbidden();
+            },
+            success: function(apps) {
 
-            if (apps.length < 1) {
-              return exits.noApps({
-                username: keychain.username
+              if (apps.length < 1) {
+                return _doneGettingApp.noApps({
+                  username: keychain.username
+                });
+              }
+
+              // Prompt the command-line user to make a choice from a list of options.
+              Prompts.select({
+                choices: _.reduce(apps, function(memo, app) {
+                  memo.push({
+                    name: app.displayName,
+                    value: app.identity
+                  });
+                  return memo;
+                }, []),
+                message: 'Which app would you like to link with the current directory?'
+              }).exec({
+                // An unexpected error occurred.
+                error: function(err) {
+                  _doneGettingApp.error(err);
+                },
+                // OK.
+                success: function(choice) {
+                  appToLink.identity = choice;
+
+                  var appDataFromServer = (_.find(apps, {
+                    identity: appToLink.identity
+                  }) || appToLink);
+                  appToLink.displayName = appDataFromServer.displayName || appToLink.identity;
+                  appToLink.id = appDataFromServer.id;
+                  _doneGettingApp.success();
+                },
               });
             }
-
-            // Prompt the command-line user to make a choice from a list of options.
-            Prompts.select({
-              choices: _.reduce(apps, function (memo, app) {
-                memo.push({
-                  name: app.displayName,
-                  value: app.identity
-                });
-                return memo;
-              }, []),
-              message: 'Which app would you like to link with the current directory?'
-            }).exec({
-              // An unexpected error occurred.
-              error: function(err) {
-                _doneGettingApp(err);
-              },
-              // OK.
-              success: function(choice) {
-                appToLink.identity = choice;
-
-                var appDataFromServer = (_.find(apps, {identity: appToLink.identity}) || appToLink);
-                appToLink.displayName = appDataFromServer.displayName || appToLink.identity;
-                appToLink.id = appDataFromServer.id;
-                _doneGettingApp();
-              },
-            });
-
-          }
-        });
-      });
-
-    })(function afterwards(err){
-      if (err) return exits(err);
-
-      // Get more info about the app (i.e. the owner)
-      // TODO
-      var owner = '[APP_OWNER]'; // e.g. 'mikermcneil';
-
-      var linkedProjectData = {
-        id: appToLink.id,
-        identity: appToLink.identity,
-        displayName: appToLink.displayName, // TODO: look this up when identity is provided manually w/o listing apps
-        type: 'app',
-        owner: owner  // TODO: get this
-      };
-
-      thisPack.writeLinkfile(linkedProjectData).exec({
-        error: function (err){
-          return exits.error(err);
-        },
-        success: function (){
-          return exits.success(linkedProjectData);
+          });
         }
       });
 
+    })({
+      error: function (err){
+        return exits(err);
+      },
+      forbidden: function (){
+        return exits.forbidden();
+      },
+      noApps: function (me){
+        return exits.noApps(me);
+      },
+      success: function (){
+
+        // Get more info about the app (i.e. the owner)
+        // TODO
+        var owner = '[APP_OWNER]'; // e.g. 'mikermcneil';
+
+        var linkedProjectData = {
+          id: appToLink.id,
+          identity: appToLink.identity,
+          displayName: appToLink.displayName, // TODO: look this up when identity is provided manually w/o listing apps
+          type: 'app',
+          owner: owner  // TODO: get this
+        };
+
+        thisPack.writeLinkfile(linkedProjectData).exec({
+          error: function (err){
+            return exits.error(err);
+          },
+          success: function (){
+            return exits.success(linkedProjectData);
+          }
+        });
+
+      }
     });
 
 
