@@ -187,13 +187,13 @@ module.exports = {
     var fse = require('fs-extra');
     var exec = require('child_process').exec;
 
-    function ensurePackageJson(cb) {
+    function ensurePackageJson(cb, results) {
       // Check for existing package.json
       if (fs.existsSync(path.resolve(process.cwd(), "package.json"))) {
         return cb();
       }
       fse.outputJSON(path.resolve(process.cwd(), "package.json"), {
-        name: conf.targetProject.fullName,
+        name: results.link.identity,
         version: "0.0.0"
       }, cb);
     }
