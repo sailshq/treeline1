@@ -77,6 +77,10 @@ module.exports = {
       error: function(err) {
         return exits.error(err);
       },
+      // 401 status code returned from server
+      unauthorized: function(result) {
+        return exits.forbidden(result.body);
+      },
       // 403 status code returned from server
       forbidden: function(result) {
         return exits.forbidden(result.body);

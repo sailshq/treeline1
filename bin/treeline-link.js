@@ -18,6 +18,13 @@ require('../standalone/build-script')( require('../machines/link-app'), {
     console.log();
     console.log('Looks like you don\'t have any apps in your account yet, %s.', chalk.cyan(data.username));
     console.log('You should visit http://treeline.io and create one!');
+  },
+
+  forbidden: function (){
+    var chalk = require('chalk');
+    console.error('Could not authenticate this computer with Treeline.');
+    console.error('Perhaps your Treeline secret file is corrupted or missing, or maybe you provided an invalid username/password combo?');
+    console.error('Please log in again with `treeline login`.');
   }
 
 });

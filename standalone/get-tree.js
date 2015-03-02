@@ -6,44 +6,69 @@ var util = require('util');
 var chalk = require('chalk');
 
 
-
-
 var ART =
 '\n'+
-'                   Z,               \n'+
-'                   ZZ               \n'+
-'                  ZZZ               \n'+
-'                  ZZZZ               \n'+
-'                 OZZZZ               \n'+
-'                 ZZZZZZ             \n'+
-'      O         ZZZZZZZ              \n'+
-'     OO         ZZZZZZZZ               \n'+
-'     OOO       $ZZZZZZZZ               \n'+
-'    OOOO       ZZZZZZZZZZ               \n'+
-'    OOOOO      ZZZZZZZZZZ               \n'+
-'   OOOIOO     ZZZZZ||ZZZZI               \n'+
-'   OO||OO?    ZZZZZ||ZZZZZZ               \n'+
-'  O\\O||O/O   ZZZZZZ||ZZZZZZ               \n'+
-'  OO\\||/0O   ZZZ\\\\Z||Z//ZZZ               \n'+
-' +OOO||OOOO ZZZZZ\\\\||//ZZZZZ               \n'+
-' O\\\\0||O//  ZZZ\\\\Z\\||/Z//ZZZ               \n'+
-' OO\\\\||//O ZZZZZ\\\\Z||Z//ZZZZZ               \n'+
-'OOOO\\||/O  ZZZZZZ\\\\||//ZZZZZZ               \n'+
-'OOOO0|/OO ZZZZZZZZZ\\|ZZZZZZZZZ              \n'+
-'     |              \\                           o \n'+
-'     |               \\____       o       o  ___/  __o    \n'+
-'    _|  _o                \\_____/    ___/__/_____/               \n'+
-' o_/ |_/                        \\___/   \\  \\                 \n'+
-'     | \\_o                          \\    \\  \\__o        \n'+
-'     |            %s                  o    \\        \n'+
-'     |_o          %s                        \\___         \n'+
-'     |                                      \\  \\    \n'+
-'     |   o        %s                          \\  o          \n'+
-'     |__/                                     o          \n'+
-'        \\____                                                \n'+
-'         \\   \\                                                \n'+
-'          o   o                                                \n'+
-'\n';
+'                     OOOOO           '+'\n'+
+'                    OOOOOOO          '+'\n'+
+'                    OOOOOO           '+'\n'+
+'                     OOOO            '+'\n'+
+'                    //               '+'\n'+
+'                   //                '+'\n'+
+'    OOOO       §§§§§        %s       '+'\n'+
+'   OOOOOO/////§§§§§§§       %s       '+'\n'+
+'   OOOOOO     §§§§§§§                '+'\n'+
+'    OOOO       §§§§§        %s       '+'\n'+
+'                   \\\\              '+'\n'+
+'                    \\\\             '+'\n'+
+'                     OOOOO           '+'\n'+
+'                    OOOOOOO          '+'\n'+
+'                    OOOOOOO          '+'\n'+
+'                     OOOOO           '+'\n'+
+'                                     '+'\n'+
+'';
+
+
+ART = ART.replace(/O/g, chalk.cyan(chalk.bgCyan('O')));
+ART = ART.replace(/§/g, chalk.green(chalk.bgGreen('§')));
+ART = ART.replace(/\//g, chalk.bgWhite(chalk.white('/')));
+ART = ART.replace(/\\/g, chalk.bgWhite(chalk.white('\\')));
+
+// var ART =
+// '\n'+
+// '                   Z,               \n'+
+// '                   ZZ               \n'+
+// '                  ZZZ               \n'+
+// '                  ZZZZ               \n'+
+// '                 OZZZZ               \n'+
+// '                 ZZZZZZ             \n'+
+// '      O         ZZZZZZZ              \n'+
+// '     OO         ZZZZZZZZ               \n'+
+// '     OOO       $ZZZZZZZZ               \n'+
+// '    OOOO       ZZZZZZZZZZ               \n'+
+// '    OOOOO      ZZZZZZZZZZ               \n'+
+// '   OOOIOO     ZZZZZ||ZZZZI               \n'+
+// '   OO||OO?    ZZZZZ||ZZZZZZ               \n'+
+// '  O\\O||O/O   ZZZZZZ||ZZZZZZ               \n'+
+// '  OO\\||/0O   ZZZ\\\\Z||Z//ZZZ               \n'+
+// ' +OOO||OOOO ZZZZZ\\\\||//ZZZZZ               \n'+
+// ' O\\\\0||O//  ZZZ\\\\Z\\||/Z//ZZZ               \n'+
+// ' OO\\\\||//O ZZZZZ\\\\Z||Z//ZZZZZ               \n'+
+// 'OOOO\\||/O  ZZZZZZ\\\\||//ZZZZZZ               \n'+
+// 'OOOO0|/OO ZZZZZZZZZ\\|ZZZZZZZZZ              \n'+
+// '     |              \\                           o \n'+
+// '     |               \\____       o       o  ___/  __o    \n'+
+// '    _|  _o                \\_____/    ___/__/_____/               \n'+
+// ' o_/ |_/                        \\___/   \\  \\                 \n'+
+// '     | \\_o                          \\    \\  \\__o        \n'+
+// '     |            %s                  o    \\        \n'+
+// '     |_o          %s                        \\___         \n'+
+// '     |                                      \\  \\    \n'+
+// '     |   o        %s                          \\  o          \n'+
+// '     |__/                                     o          \n'+
+// '        \\____                                                \n'+
+// '         \\   \\                                                \n'+
+// '          o   o                                                \n'+
+// '\n';
 
 
 module.exports = function getTree(opts) {
@@ -53,13 +78,13 @@ module.exports = function getTree(opts) {
 
   return formatPretty(ART, [{
     str: 'Treeline',
-    colors: ['green', 'bold']
+    colors: ['white', 'bold']
   }, {
     str: 'CLI v'+opts.version,
     colors: ['gray']
   }, {
     str: 'http://treeline.io',
-    colors: ['cyan', 'underline']
+    colors: ['blue', 'underline']
   }]);
 };
 
