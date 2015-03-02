@@ -34,6 +34,7 @@ module.exports = function(sails) {
 			self.syncModels = require('./lib/syncModels')(sails, socket);
 			self.syncServices = require('./lib/syncServices')(sails, socket);
 			self.syncControllers = require('./lib/syncControllers')(sails, socket);
+      self.syncConfig = require('./lib/syncConfig')(sails, socket);
       self.syncScaffold = require('./lib/syncScaffold')(sails, socket);
 
       // Socket message handler queue
@@ -80,6 +81,11 @@ module.exports = function(sails) {
 								return cb();
 							});
 						},
+            config: function(cb) {
+              self.syncConfig.reloadAllConfig(config, options, function(err) {
+                cb(err);
+              });
+            },
             machines: function(cb) {
               self.syncMachines.reloadAllMachinePacks(config, options, function(err) {
                 cb(err);
@@ -176,7 +182,18 @@ module.exports = function(sails) {
 
 	function reloadOrm(cb) {
 
+    // Default callback to an empty fn
     cb = cb || function(){};
+
+    // Wrap callback in a fn that turns off maintenance mode
+    var origCb = cb;
+    cb = function() {
+      sails.config && (sails.config.maintenance = false);
+      origCb();
+    };
+
+    // Turn on maintenance mode if available
+    sails.config && (sails.config.maintenance = true);
 
     // Clear all node machines out of the require cache
     _.each(_.keys(require.cache), function(key) {
