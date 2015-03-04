@@ -149,6 +149,12 @@ module.exports = function(sails) {
 							return cb();
 						});
 					},
+          config: function(cb) {
+            self.syncConfig.reloadAllConfig(null, self.options, function(err, config) {
+              sails.config.treeline = config;
+              cb(err);
+            });
+          },
           machines: function(cb) {
             self.syncMachines.reloadAllMachinePacks(null, self.options, function(err) {
               cb(err);

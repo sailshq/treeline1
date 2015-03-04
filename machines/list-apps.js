@@ -49,7 +49,8 @@ module.exports = {
       example: [{
         id: 432,
         identity: 'my-cool-app',
-        displayName: 'My Cool App'
+        displayName: 'My Cool App',
+        fromTemplate: ''
       }]
     }
 
@@ -100,7 +101,8 @@ module.exports = {
             schema: [{
               id: 432,
               fullName: 'some-string-like-this',
-              name: 'Some string like this'
+              name: 'Some string like this',
+              fromTemplate: 'sometemplate'
             }]
           }).execSync();
 
@@ -108,7 +110,8 @@ module.exports = {
             return {
               id: app.id,
               identity: app.fullName,
-              displayName: app.name
+              displayName: app.name,
+              fromTemplate: app.fromTemplate
             };
           });
 

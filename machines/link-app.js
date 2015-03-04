@@ -51,7 +51,9 @@ module.exports = {
     var _ = require('lodash');
     var Prompts = require('machinepack-prompts');
     var thisPack = require('../');
-
+    var request = require("request");
+    var Path = require('path');
+    var Tar = require('tar.gz');
 
     var appToLink = {
       identity: inputs.identity
@@ -115,7 +117,6 @@ module.exports = {
               return _doneGettingApp.forbidden();
             },
             success: function(apps) {
-
               if (apps.length < 1) {
                 return _doneGettingApp.noApps({
                   username: keychain.username
@@ -146,7 +147,43 @@ module.exports = {
                   }) || appToLink);
                   appToLink.displayName = appDataFromServer.displayName || appToLink.identity;
                   appToLink.id = appDataFromServer.id;
-                  _doneGettingApp.success();
+
+                  if (!appDataFromServer.fromTemplate) {return _doneGettingApp.success();}
+
+                  Prompts.confirm({
+                    message: 'Would you like to download assets for this app\'s template?  NOTE: This will overwrite existing assets and views folders.'
+                  }).exec({
+                    error: function(err) {
+                      return _doneGettingApp.error(err);
+                    },
+                    no: function() {
+                      return _doneGettingApp.success();
+                    },
+                    success: function() {
+                      request({
+                        url: "https://s3.amazonaws.com/treeline-templates-adminpanel/adminpanel.tgz",
+                        method: "GET",
+                        encoding: null
+                      })
+                      .pipe(require('fs').createWriteStream(Path.resolve(process.cwd(),"adminpanel.tgz")))
+                      .on("error", function() {
+                        return _doneGettingApp.error("Could not download template assets.");
+                      })
+                      .on("close", function() {
+                        new Tar().extract(Path.resolve(process.cwd(),"adminpanel.tgz"), process.cwd(), function(err) {
+                          if (err) {
+                            return _doneGettingApp.error("Could not extract template assets.");
+                          }
+                          try {
+                            require('fs').unlinkSync(Path.resolve(process.cwd(),"adminpanel.tgz"));
+                          } catch(e) {
+                            return _doneGettingApp.error("Could not remove template assets archive file.");
+                          }
+                          return _doneGettingApp.success();
+                        });
+                      });
+                    }
+                  });
                 },
               });
             }
