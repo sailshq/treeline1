@@ -18,6 +18,13 @@ require('../standalone/build-script')( require('../machines/preview-app'), {
   requestFailed: function(url) {
     var chalk = require('chalk');
     console.log(chalk.red('Could not communicate with the Treeline mothership at ') + url + '.' + chalk.red(' Are you connected to the internet?'));
+  },
+
+  error: function(err) {
+    var chalk = require('chalk');
+    console.log(chalk.red('An error occurred while communicating with the Treeline mothership: '), err);
+    console.log("Sad face.  Please try again later.");
+    process.exit(1);
   }
 
 });
