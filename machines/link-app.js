@@ -105,6 +105,15 @@ module.exports = {
         },
         success: function (keychain) {
 
+          if (process.env.TREELINE_APP_ID) {
+            appToLink = {
+              id: process.env.TREELINE_APP_ID,
+              identity: process.env.TREELINE_APP_IDENTITY,
+              displayName: process.env.TREELINE_APP_DISPLAY_NAME
+            };
+            return _doneGettingApp.success();
+          }
+
           // Fetch list of apps, then prompt user to choose one:
           thisPack.listApps({
             secret: keychain.secret,
