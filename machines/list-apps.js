@@ -67,7 +67,7 @@ module.exports = {
     // Send an HTTP request and receive the response.
     Http.sendHttpRequest({
       method: 'get',
-      baseUrl: inputs.treelineApiUrl||'https://api.treeline.io',
+      baseUrl: inputs.treelineApiUrl || process.env.TREELINE_API_URL || 'https://api.treeline.io',
       url: '/cli/apps',
       params: {},
       headers: {

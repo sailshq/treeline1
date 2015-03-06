@@ -73,7 +73,7 @@ module.exports = {
           error: function (err){ return _doneGettingSecret.error(err); },
           doesNotExist: function (){
             thisPack.login({
-              treelineApiUrl: inputs.treelineApiUrl
+              treelineApiUrl: inputs.treelineApiUrl || process.env.TREELINE_API_URL
             })
             .exec({
               error: function (err) {
@@ -117,7 +117,7 @@ module.exports = {
           // Fetch list of apps, then prompt user to choose one:
           thisPack.listApps({
             secret: keychain.secret,
-            treelineApiUrl: inputs.treelineApiUrl
+            treelineApiUrl: inputs.treelineApiUrl || process.env.TREELINE_API_URL
           }).exec({
             error: function(err) {
               return _doneGettingApp.error(err);
