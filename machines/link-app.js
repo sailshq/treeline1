@@ -157,8 +157,15 @@ module.exports = {
                   appToLink.displayName = appDataFromServer.displayName || appToLink.identity;
                   appToLink.id = appDataFromServer.id;
 
+                  // If it's not a template app, don't worry about assets
                   if (!appDataFromServer.fromTemplate) {return _doneGettingApp.success();}
 
+                  // If it's a template app and we have the env override, install the assets
+                  if (process.env.TREELINE_INSTALL_TEMPLATE_ASSETS) {
+                    return installTemplateAssets();
+                  }
+
+                  // Otherwise ask the user if they want to install the assets
                   Prompts.confirm({
                     message: 'Would you like to download assets for this app\'s template?  NOTE: This will overwrite existing assets and views folders.'
                   }).exec({
@@ -168,31 +175,34 @@ module.exports = {
                     no: function() {
                       return _doneGettingApp.success();
                     },
-                    success: function() {
-                      request({
-                        url: "https://s3.amazonaws.com/treeline-templates-adminpanel/adminpanel.tgz",
-                        method: "GET",
-                        encoding: null
-                      })
-                      .pipe(require('fs').createWriteStream(Path.resolve(process.cwd(),"adminpanel.tgz")))
-                      .on("error", function() {
-                        return _doneGettingApp.error("Could not download template assets.");
-                      })
-                      .on("close", function() {
-                        new Tar().extract(Path.resolve(process.cwd(),"adminpanel.tgz"), process.cwd(), function(err) {
-                          if (err) {
-                            return _doneGettingApp.error("Could not extract template assets.");
-                          }
-                          try {
-                            require('fs').unlinkSync(Path.resolve(process.cwd(),"adminpanel.tgz"));
-                          } catch(e) {
-                            return _doneGettingApp.error("Could not remove template assets archive file.");
-                          }
-                          return _doneGettingApp.success();
-                        });
-                      });
-                    }
+                    success: installTemplateAssets
                   });
+
+                  // Download and install template assets (currently hardcoded to admin panel)
+                  function installTemplateAssets() {
+                    request({
+                      url: "https://s3.amazonaws.com/treeline-templates-adminpanel/adminpanel.tgz",
+                      method: "GET",
+                      encoding: null
+                    })
+                    .pipe(require('fs').createWriteStream(Path.resolve(process.cwd(),"adminpanel.tgz")))
+                    .on("error", function() {
+                      return _doneGettingApp.error("Could not download template assets.");
+                    })
+                    .on("close", function() {
+                      new Tar().extract(Path.resolve(process.cwd(),"adminpanel.tgz"), process.cwd(), function(err) {
+                        if (err) {
+                          return _doneGettingApp.error("Could not extract template assets.");
+                        }
+                        try {
+                          require('fs').unlinkSync(Path.resolve(process.cwd(),"adminpanel.tgz"));
+                        } catch(e) {
+                          return _doneGettingApp.error("Could not remove template assets archive file.");
+                        }
+                        return _doneGettingApp.success();
+                      });
+                    });
+                  }
                 },
               });
             }
