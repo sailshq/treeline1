@@ -58,6 +58,9 @@ module.exports = {
     var debug = require('debug')('treeline');
     var Urls = require('machinepack-urls');
     var thisPack = require('../');
+    var npm = require('machinepack-npm');
+    var path = require('path');
+    var chalk = require('chalk');
     async.auto({
 
       // Make sure the treeline API is alive
@@ -70,8 +73,43 @@ module.exports = {
         });
       },
 
+      checkForUpdates: function(next) {
+        npm.getPackageJson({
+          packageName: 'treeline',
+        }).exec({
+          // An unexpected error occurred.  We'll ignore it.
+          error: function (err){
+           return next();
+          },
+          // Oh my.  This would be bad.  But it's probably just a problem with NPM, so we'll ignore it.
+          packageNotFound: function (){
+           return next();
+          },
+          // OK. Let's parse this sucker.
+          success: function (packageJsonString){
+            try {
+              // Parse metadata for the latest version of the NPM package given a package.json string.
+              var latestPackageJson = npm.parsePackageJson({
+                json: packageJsonString,
+              }).execSync();
+              // Get our own package.json
+              var ourPackageJson = require(path.resolve(__dirname, "..", "package.json"));
+              // If ours doesn't match the latest, show a helpful reminder
+              if (ourPackageJson.version !== latestPackageJson.version) {
+                console.log(chalk.bgYellow("A new version of Treeline (v " + latestPackageJson.version + ") is available!  Run", chalk.red("npm install -g treeline") + " to update."));
+              }
+            }
+            catch (e) {
+              // Don't worry about errors in the above; we'll just
+              // try again next time.
+            }
+            next();
+          },
+        });
+      },
+
       // Get login credentials
-      me: ['pingServer', function (next){
+      me: ['checkForUpdates', function (next){
         thisPack.readKeychain().exec({
           error: function (err) {
             return next(err);
@@ -182,7 +220,7 @@ module.exports = {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    var path = require('path');
+
     var fs = require('fs');
     var fse = require('fs-extra');
     var exec = require('child_process').exec;
