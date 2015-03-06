@@ -5,6 +5,7 @@ var async = require('async');
 var debug = require('debug')('treeline');
 var log = require('./logger');
 var buildDictionary = require('sails-build-dictionary');
+var chalk = require('chalk');
 var _ = require('lodash');
 
 module.exports = function(sails) {
@@ -59,7 +60,12 @@ module.exports = function(sails) {
 			options.noOrmReload = true;
 
 			// Handle initial socket connection to Sails
-			socket.on('connect', function() {
+      socket.on('connect', initialConnect);
+
+      // Initial connection flag
+      var alreadyConnected = false;
+
+			function initialConnect() {
 
 				// Subscribe to updates
 				socket.get(config.src.baseURL + '/project/subscribe/'+config.src.projectId+'?secret='+config.src.secret);
@@ -109,14 +115,18 @@ module.exports = function(sails) {
             debug('Received socket message from Treeline:',message);
             socketMessageHandlerQueue.push({name: 'handleProjectMessage', message: message});
           });
-					return cb();
+          if (!alreadyConnected) {
+            alreadyConnected = true;
+            return cb();
+          } else {
+            log(chalk.green("Treeline mothership has returned; praise the sun!"));
+          }
 				});
 
-			});
+			}
 
 			socket.on('disconnect', function() {
-				sails.log.error("Treeline mothership went offline; exiting preview...");
-				sails.lower(function(){process.exit();});
+				sails.log.error("Treeline mothership went offline; attempting to reconnect...");
 			});
 		}
 
