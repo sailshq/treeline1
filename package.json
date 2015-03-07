@@ -8,9 +8,7 @@
     "cli",
     "sails.js",
     "sails",
-    "node-machine",
-    "machines",
-    "machinepack"
+    "node-machine"
   ],
   "author": "Mike McNeil",
   "maintainers": [
