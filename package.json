@@ -64,7 +64,9 @@
     "socket.io-client": "^1.3.4",
     "tar.gz": "^0.1.1",
     "wrench": "^1.5.8",
-    "yargs": "^3.0.4"
+    "yargs": "^3.0.4",
+    "sails-generate-views": "git://github.com/treeline-io/sails-generate-views.git",
+    "sails-generate-backend": "git://github.com/treeline-io/sails-generate-backend.git"
   },
   "machinepack": {
     "private": true,
