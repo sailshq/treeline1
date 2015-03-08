@@ -1,18 +1,20 @@
 #!/usr/bin/env node
 
-// Quick hack to enable usage of sails new directly from treeline CLI for convenience.
+var chalk = require('chalk');
 var yargs = require('yargs');
-require('../node_modules/sails/bin/sails-new')((function (){
-  var newAppArg;
-  try {
-    return yargs.argv._[0];
+// Build CLI options
+var cliOpts = (function (){
+  var _cliOpts = yargs.argv;
+  delete _cliOpts._;
+  delete _cliOpts.$0;
+  return _cliOpts;
+})();
+// Run the machine, which runs the generators
+require('../').newApp({name: process.argv[2]}).exec({
+  success: function (){
+    console.log('New Treeline app generated.');
+  },
+  error: function(err) {
+    console.log(chalk.red(err));
   }
-  catch (e){ return ''; }
-})(), 'unused');
-
-// require('../standalone/build-script')(require('../machines/new-app'), {
-//   success: function (){
-//     var chalk = require('chalk');
-//     console.log('New app generated.');
-//   }
-// });
+});

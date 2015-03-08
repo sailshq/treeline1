@@ -36,7 +36,7 @@ module.exports = function(sails) {
 			self.syncServices = require('./lib/syncServices')(sails, socket);
 			self.syncControllers = require('./lib/syncControllers')(sails, socket);
       self.syncConfig = require('./lib/syncConfig')(sails, socket);
-      self.syncScaffold = require('./lib/syncScaffold')(sails, socket);
+      // self.syncScaffold = require('./lib/syncScaffold')(sails, socket);
 
       // Socket message handler queue
       var socketMessageHandlerQueue = async.queue(function(task, cb) {
@@ -73,9 +73,9 @@ module.exports = function(sails) {
 				// Tasks to run
 				var tasks = {};
 
-        tasks.scaffolds = function(cb) {
-          self.syncScaffold.createResponse(config, options, cb);
-        };
+        // tasks.scaffolds = function(cb) {
+        //   self.syncScaffold.createResponse(config, options, cb);
+        // };
 
 				if (!options.modelsOnly) {
 					_.extend(tasks, {
