@@ -63,7 +63,7 @@
     "tar.gz": "^0.1.1",
     "wrench": "^1.5.8",
     "yargs": "^3.0.4",
-    "treeline-generate-views": "~0.10.4",
+    "treeline-generate-views": "~0.10.6",
     "treeline-generate-backend": "~0.12.1"
   },
   "machinepack": {
