@@ -150,6 +150,8 @@ module.exports = {
             });
           },
           success: function (linkedProject){
+            // Spit out a message before doing the "npm install" steps
+            console.log(chalk.grey("Ensuring dependencies are up to date..."));
             return next(null, linkedProject);
           }
         });
@@ -237,23 +239,19 @@ module.exports = {
     }
 
     function ensureMachineRunner (cb) {
-      // Check for existing node_machine install
-      if (fs.existsSync(path.resolve(process.cwd(), "node_modules", "machine", "package.json"))) {
-        return cb();
-      }
+      debug("Installing node-machine...");
+      // Always "npm install machine", in case it got interrupted
       exec("npm install machine --save", {cwd: process.cwd()}, function(err, stdout) {
-        console.log(stdout);
+        debug(stdout);
         cb(err);
       });
     }
 
     function ensureSailsHookMachines (cb) {
-      // Check for existing sails-hook-machines install
-      if (fs.existsSync(path.resolve(process.cwd(), "node_modules", "sails-hook-machines", "package.json"))) {
-        return cb();
-      }
+      debug("Installing sails-hook-machines...");
+      // Always "npm install sails-hook-machines", in case it got interrupted
       exec("npm install sails-hook-machines --save", {cwd: process.cwd()}, function(err, stdout) {
-        console.log(stdout);
+        debug(stdout);
         cb(err);
       });
     }
