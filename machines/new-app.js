@@ -52,8 +52,8 @@ module.exports = {
       generatorType: 'new',
       // Override the views and backend modules with our copies
       modules: {
-        "views": path.resolve(__dirname,"../node_modules/sails-generate-views"),
-        "backend": path.resolve(__dirname,"../node_modules/sails-generate-backend")
+        "views": path.resolve(__dirname,"../node_modules/treeline-generate-views"),
+        "backend": path.resolve(__dirname,"../node_modules/treeline-generate-backend")
       },
       // Use the package.json from Sails as a reference for which versions of dependencies to
       // add to the new project's package.json

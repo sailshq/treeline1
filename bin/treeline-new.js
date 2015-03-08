@@ -12,7 +12,7 @@ var cliOpts = (function (){
 // Run the machine, which runs the generators
 require('../').newApp({name: process.argv[2]}).exec({
   success: function (){
-    console.log('New app generated.');
+    console.log('New Treeline app generated.');
   },
   error: function(err) {
     console.log(chalk.red(err));
