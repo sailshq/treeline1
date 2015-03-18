@@ -19,7 +19,7 @@ This will allow you to use `treeline` on the command-line, as well as `tl`, its 
 
 ## Usage [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/node-machine/general?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-You should check out [http://treeline.io/docs](http://treeline.io/docs) for an in-depth tutorial, but here are a few highlights:
+You should check out [https://treeline.io/documentation](https://treeline.io/documentation) for an in-depth tutorial, but here are a few highlights:
 
 ```bash
 # locally preview the app in the current directory
