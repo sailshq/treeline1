@@ -4,7 +4,7 @@
 </h1>
 
 
-### [Website](http://treeline.io) &nbsp;  [Getting Started](http://node-machine.org) &nbsp; [Docs](http://treeline.io/docs)  &nbsp;  [Newsgroup](https://groups.google.com/forum/?hl=en#!forum/node-machine)
+### [Website](http://treeline.io) &nbsp;  [Getting Started](http://node-machine.org) &nbsp; [Docs](https://treeline.io/documentation)  &nbsp;  [Newsgroup](https://groups.google.com/forum/?hl=en#!forum/node-machine)
 
 Command-line utility for working with Sails apps and machines in Treeline.
 
