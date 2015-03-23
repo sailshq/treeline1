@@ -111,11 +111,12 @@ module.exports = function(sails) {
 
 				async.series(tasks, function(err) {
 					if (err) return cb(err);
-					socket.on('project', function(message) {
-            debug('Received socket message from Treeline:',message);
-            socketMessageHandlerQueue.push({name: 'handleProjectMessage', message: message});
-          });
           if (!alreadyConnected) {
+            // Bind a handler for the "project" event
+            socket.on('project', function(message) {
+              debug('Received socket message from Treeline:',message);
+              socketMessageHandlerQueue.push({name: 'handleProjectMessage', message: message});
+            });
             alreadyConnected = true;
             return cb();
           } else {
