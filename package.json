@@ -1,6 +1,6 @@
 {
   "name": "treeline",
-  "version": "1.0.23",
+  "version": "1.0.24",
   "description": "CLI tool for working with your Sails apps and machinepacks in Treeline.",
   "keywords": [
     "treeline",
