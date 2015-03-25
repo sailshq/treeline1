@@ -96,7 +96,7 @@ module.exports = {
               var ourPackageJson = require(path.resolve(__dirname, "..", "package.json"));
               // If ours doesn't match the latest, show a helpful reminder
               if (ourPackageJson.version !== latestPackageJson.version) {
-                console.log(chalk.bgYellow("A new version of Treeline (v " + latestPackageJson.version + ") is available!  Run", chalk.red("npm install -g treeline") + " to update."));
+                console.log(chalk.bgCyan(chalk.black("A new version of Treeline (v " + latestPackageJson.version + ") is available!  Run"), chalk.red(chalk.bold("npm install -g treeline")) + chalk.black(" to update.")));
               }
             }
             catch (e) {
