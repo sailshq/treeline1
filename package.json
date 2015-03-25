@@ -42,7 +42,7 @@
     "commander": "2.6.0",
     "debug": "2.1.2",
     "fs-extra": "0.16.4",
-    "glob": "4.4.1",
+    "glob": "5.0.3",
     "js-beautify": "1.5.4",
     "lodash": "3.3.1",
     "machine": "4.0.1",
@@ -64,7 +64,7 @@
     "wrench": "1.5.8",
     "yargs": "3.4.5",
     "treeline-generate-views": "0.10.6",
-    "treeline-generate-backend": "0.12.2"
+    "treeline-generate-backend": "0.12.3"
   },
   "machinepack": {
     "private": true,
