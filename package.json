@@ -30,6 +30,7 @@
     "treeline-logout": "./bin/treeline-logout.js",
     "treeline-status": "./bin/treeline-status.js",
     "treeline-new": "./bin/treeline-new.js",
+    "treeline-deploy": "./bin/treeline-deploy.js",
     "tl": "./bin/treeline.js"
   },
   "scripts": {
