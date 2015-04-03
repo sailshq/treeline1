@@ -108,6 +108,15 @@ module.exports = {
         });
       },
 
+      checkForTreelineGeneratedFiles: [function(next) {
+        require('fs').open(path.resolve(process.cwd(), "api", "responses", "response.js"), "r", function(err) {
+          if (err && err.code == 'ENOENT') {
+            console.log(chalk.red("Could not find api/responses/response.js: was this app generated with `treeline new`?"));
+          }
+          return next();
+        });
+      }],
+
       // Get login credentials
       me: ['checkForUpdates', function (next){
         thisPack.readKeychain().exec({
