@@ -59,7 +59,12 @@ module.exports = {
       // add to the new project's package.json
       sailsPackageJSON: require(path.resolve(__dirname, '../node_modules/sails', "package.json")),
       // Start from a blank package.json for the new app
-      appPackageJSON: {},
+      appPackageJSON: {
+        "dependencies": {
+          "machine": "~4.0.4",
+          "sails-hook-machines": "~1.0.11"
+        }
+      },
       // Use the current working directory as the root path for generators
       rootPath: dir,
       // Send in the name of the new app to create
