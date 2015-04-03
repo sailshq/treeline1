@@ -46,7 +46,7 @@
     "glob": "5.0.3",
     "js-beautify": "1.5.4",
     "lodash": "3.3.1",
-    "machine": "4.0.1",
+    "machine": "4.0.4",
     "machinepack-fs": "2.2.0",
     "machinepack-http": "2.0.1",
     "machinepack-npm": "3.1.1",
