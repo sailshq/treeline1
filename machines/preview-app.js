@@ -160,14 +160,11 @@ module.exports = {
       // Make sure there's a package.json
       packageJson: ['link', ensurePackageJson],
 
-      // Make sure `machine` is installed
-      _installedMachine: ['packageJson', ensureMachineRunner],
-
-      // Make sure sails-hook-machines is installed
-      _installedSailsHookMachines: ['packageJson', ensureSailsHookMachines],
+      // Make sure dependencies are installed
+      _installedDependencies: ['packageJson', ensureMachineDependencies],
 
       // Lift app
-      _liftedApp: ['_installedMachine', '_installedSailsHookMachines', function(next, asyncData) {
+      _liftedApp: ['_installedDependencies', function(next, asyncData) {
 
         // console.log('!!! would hve previewed app!',asyncData);
         // next();
@@ -238,19 +235,10 @@ module.exports = {
       }, cb);
     }
 
-    function ensureMachineRunner (cb) {
-      debug("Installing node-machine...");
-      // Always "npm install machine", in case it got interrupted
-      exec("npm install machine --save", {cwd: process.cwd()}, function(err, stdout) {
-        debug(stdout);
-        cb(err);
-      });
-    }
-
-    function ensureSailsHookMachines (cb) {
-      debug("Installing sails-hook-machines...");
-      // Always "npm install sails-hook-machines", in case it got interrupted
-      exec("npm install sails-hook-machines --save", {cwd: process.cwd()}, function(err, stdout) {
+    function ensureMachineDependencies (cb) {
+      debug("Running npm install...");
+      // Always "npm install", in case something got interrupted
+      exec("npm install", {cwd: process.cwd()}, function(err, stdout) {
         debug(stdout);
         cb(err);
       });
