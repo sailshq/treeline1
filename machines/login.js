@@ -60,15 +60,29 @@ module.exports = {
     var Prompts = require('machinepack-prompts');
     var thisPack = require('../');
 
-
     var username = inputs.username || process.env.TREELINE_USERNAME;
     var password = inputs.password || process.env.TREELINE_PASSWORD;
+
+    // Check for an Admin Token
+    // this is used for an admin to be able to sync some code down to test the compiler
+    // when an issue arises.
+    var adminToken = process.env.TREELINE_ADMIN_TOKEN;
 
     async.series([
       function (next){
         if (username) return next();
+
+        // Set a different message if an admin is authenticating
+        var message = "";
+
+        if(adminToken) {
+          message = 'Please enter the username of the user to authenticate as';
+        } else {
+          message = 'Please enter your Treeline username or email address';
+        }
+
         Prompts.text({
-          message: 'Please enter your Treeline username or email address'// (if you signed up with GitHub, this is your GitHub username)'
+          message: message
         }).exec({
           error: next,
           success: function (_username){
@@ -78,7 +92,7 @@ module.exports = {
         });
       },
       function (next){
-        if (password) return next();
+        if (password || adminToken) return next();
         Prompts.text({
           message: 'Please enter your Treeline password',
           protect: true
@@ -96,6 +110,7 @@ module.exports = {
       thisPack.authenticate({
         username: username,
         password: password,
+        adminToken: adminToken,
         treelineApiUrl: inputs.treelineApiUrl || process.env.TREELINE_API_URL
       }).exec({
         error: exits.error,

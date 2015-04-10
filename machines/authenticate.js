@@ -21,8 +21,13 @@ module.exports = {
     password: {
       description: 'The password for the Treeline account with this username',
       example: 'sh4rkw33k',
-      protect: true,
-      required: true
+      protect: true
+    },
+
+    adminToken: {
+      description: 'The token to use to verify an admin that can sync code to debug compiler issues',
+      example: 'abc-123',
+      protect: true
     },
 
     treelineApiUrl: {
@@ -65,17 +70,28 @@ module.exports = {
     var Http = require('machinepack-http');
     var Util = require('machinepack-util');
 
+    // If no password or adminToken was given then run the forbidden exit
+    if(!inputs.password && !inputs.adminToken) {
+      return exits.forbidden();
+    }
+
+    // If an admin token was used then we should hit a special endpoint
+    var url = inputs.adminToken ? '/cli/login-admin' : '/cli/login';
+    var headers = {};
+    if(inputs.adminToken) {
+      headers['x-admin'] = inputs.adminToken;
+    }
 
     // Send an HTTP request and receive the response.
     Http.sendHttpRequest({
       method: 'put',
       baseUrl: inputs.treelineApiUrl || process.env.TREELINE_API_URL || 'https://api.treeline.io',
-      url: '/cli/login',
+      url: url,
       params: {
         username: inputs.username,
-        password: inputs.password,
+        password: inputs.password
       },
-      headers: {}
+      headers: headers
     }).exec({
       // An unexpected error occurred.
       error: function(err) {
