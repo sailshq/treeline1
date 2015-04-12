@@ -52,8 +52,10 @@ module.exports = {
   fn: function (inputs,exits) {
 
     var path = require('path');
+    var async = require('async');
     var _ = require('lodash');
     var Filesystem = require('machinepack-fs');
+    var Machines = require('machinepack-machines');
 
 
     // `packData` contains basic metadata about the machinepack as well
@@ -115,19 +117,59 @@ module.exports = {
             return exits.error(err);
           },
           alreadyExists: function (){
-            return exits.alreadyExists(indexJsCode);
+            return exits.alreadyExists(indexJsPath);
           },
           success: function (){
-            // Loop over each machine in the pack
-            // ...
 
-              // Determine the module code that will be written out
-              // TODO
+            // Loop over each machine in the pack
+            async.each(packData.machines, function (thisMachine, next){
+
+              // Determine the path where the new module will be written
+              var machineModulePath = path.resolve(inputs.destination, 'machines', thisMachine.identity+'.js');
+              // and the code that it will consist of:
+              // (build a JavaScript code string which represents the provided machine metadata)
+              var machineModuleCode;
+              try {
+                machineModuleCode = Machines.buildMachineCode({
+                  friendlyName: thisMachine.friendlyName || thisMachine.identity,
+                  description: thisMachine.description,
+                  extendedDescription: thisMachine.extendedDescription,
+                  inputs: thisMachine.inputs,
+                  exits: thisMachine.exits,
+                  fn: thisMachine.fn
+                }).execSync();
+              }
+              catch (e) {
+                return next(e);
+              }
 
               // Write the machine file
-              // TODO
-
-            return exits.success();
+              Filesystem.write({
+                destination: machineModulePath,
+                string: machineModuleCode
+              }).exec({
+                error: function (err) {
+                  return next(err);
+                },
+                alreadyExists: function (){
+                  var err = new Error('Something already exists at '+machineModulePath);
+                  err.code = err.exit = 'alreadyExists';
+                  err.output = machineModulePath;
+                  return next(err);
+                },
+                success: function (){
+                  next();
+                }
+              });//</Filesystem.write>
+            }, function afterwards(err) {
+              if (err) {
+                if (_.isObject(err) && err.code === 'alreadyExists') {
+                  return exits.alreadyExists(err.output);
+                }
+                return exits.error(err);
+              }
+              return exits.success();
+            });//</async.each>
           }
         });//</Filesystem.writeJson>
       }

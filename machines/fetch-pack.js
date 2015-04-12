@@ -77,7 +77,7 @@ module.exports = {
           environment: ['req'],
           inputs: {},
           exits: {},
-          fn: 'some stringified function',
+          fn: 'function (inputs, exits){ /*the stringified machine fn here*/ }',
         }]
       }
     }
@@ -105,7 +105,7 @@ module.exports = {
         environment: ['req'],
         inputs: {},
         exits: {},
-        fn: 'some stringified function',
+        fn: 'function (inputs, exits){ /*the stringified machine fn here*/ }',
       }]
     });
 
@@ -170,7 +170,7 @@ module.exports = {
                 environment: ['req'],
                 inputs: {},
                 exits: {},
-                fn: 'some stringified function',
+                fn: 'function (inputs, exits){ /*the stringified machine fn here*/ }',
               }]
             }
           }).execSync();
