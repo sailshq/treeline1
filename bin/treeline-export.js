@@ -31,7 +31,8 @@ require('../standalone/build-script')({
     },
 
     alreadyExists: {
-      description: 'A file or folder with the same name as this machinepack already exists in the current working directory.'
+      description: 'A file or folder with the same name as this machinepack already exists at the destination path.',
+      example: '/Users/mikermcneil/code/foo'
     },
 
     success: {
@@ -43,33 +44,98 @@ require('../standalone/build-script')({
 
   fn: function (inputs, exits){
 
+    var path = require('path');
+    var _ = require('lodash');
+
+    var Http = require('machinepack-http');
+    var Prompts = require('machinepack-prompts');
+    var Filesystem = require('machinepack-fs');
     var thisPack = require('../');
 
     thisPack.readKeychain().exec({
       error: exits.error,
       doesNotExist: exits.notLoggedIn,
-      success: function (user){
+      success: function (keychain){
 
-        // Fetch list of machinepacks
-        // TODO
+        // Fetch list of machinepacks.
+        Http.sendHttpRequest({
+          method: 'get',
+          baseUrl: inputs.treelineApiUrl || process.env.TREELINE_API_URL || 'https://api.treeline.io',
+          url: '/api/v1/machine-packs/'+keychain.username,
+          headers: {
+           'x-auth': keychain.secret
+          }
+        }).exec({
 
-        // Prompt user to choose the machinepack to export
-        // TODO
+          // An unexpected error occurred.
+          error: function(err) {
+            return exits.error(err);
+          },
 
-        var packName = 'Foo';
+          success: function (httpResponse){
 
-        // Check to see whether a file/folder already exists in cwd
-        // with the same name as the machinepack (all lowercased).
-        // If so, let the user know what happened.
-        // TODO
+            // Parse JSON response
+            var packs;
+            try {
+              packs = JSON.parse(httpResponse.body);
+            }
+            catch (e){
+              return exits.error(e);
+            }
 
-        // Fetch metadata and machine code for the pack
-        // TODO
 
-        // Generate the pack folder and machines (as well as package.json and other files)
-        // TODO
+            // Prompt user to choose the machinepack to export
+            Prompts.select({
+              choices: _.reduce(packs, function prepareChoicesForPrompt (memo, pack) {
+                memo.push({
+                  name: pack.friendlyName,
+                  value: pack.id
+                });
+                return memo;
+              }, []),
+              message: 'Which machinepack would you like to export?'
+            }).exec({
+              // An unexpected error occurred.
+              error: function(err) {
+                return exits.error(err);
+              },
+              // OK.
+              success: function(chosenPackId) {
 
-        return exits.success(packName);
+                // Locate the pack that was chosen from the list of choices
+                var chosenPack = _.find(packs, {id: chosenPackId});
+
+                // Determine destination path
+                var destinationPath = inputs.destination || path.resolve(chosenPack.friendlyName.toLowerCase());
+
+                // Check to see whether a file/folder already exists in cwd
+                // at the destination output path. If so, let the user know what happened.
+                Filesystem.exists({
+                  path: destinationPath
+                }).exec({
+                  error: function (err){
+                    return exits.error(err);
+                  },
+                  exists: function (){
+                    return exits.alreadyExists(destinationPath);
+                  },
+                  doesNotExist: function (){
+
+                    // Fetch metadata and machine code for the pack
+                    // TODO
+                    // thisPack.fetchPack()
+
+                    // Generate the pack folder and machines (as well as package.json and other files)
+                    // TODO
+                    // thisPack.generatePack()
+
+                    return exits.success(chosenPack.friendlyName);
+                  }
+                });// </Filesystem.exists>
+              }
+            });// </Prompts.select>
+          }
+        });// </Http.sendHttpRequest>
       }
     });
   }
@@ -79,12 +145,16 @@ require('../standalone/build-script')({
 
   success: function (packName) {
     var chalk = require('chalk');
-    console.log('Exported '+chalk.cyan(packName)+ ' successfully.');
+    console.log('Exported '+chalk.cyan(packName)+ ' machinepack from Treeline to a local folder.');
   },
 
   notLoggedIn: function () {
     var chalk = require('chalk');
     console.log('This computer is '+chalk.yellow('not logged in')+' to Treeline.');
   },
+
+  alreadyExists: function (destinationPath){
+    console.log('A file or folder with the same name as this machinepack already exists at the destination path (%s).', destinationPath);
+  }
 
 });
