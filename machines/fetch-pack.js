@@ -21,7 +21,7 @@ module.exports = {
 
     packId: {
       description: 'The unique id of the machinepack.',
-      example: '29f559ae-3bec-4d0a-8458-1f4e32a72407',
+      example: 'b467be95-c69f-43c3-afdd-2b12c5a51360',
       required: true
     },
 
@@ -69,7 +69,7 @@ module.exports = {
           identity: 'do-stuff',
           friendlyName: 'Do stuff and things',
           description: 'Do stuff given other stuff.',
-          extendedDescription: 'Do stuff to the stuff given the other stuff.  If the stuff doesn\'t get the first time, try it again up to 50 times using an exponential backoff strategy.',
+          extendedDescription: 'Do stuff to the stuff given the other stuff.  If the stuff doesn\'t get done the first time, try it again up to 50 times using an exponential backoff strategy.',
           cacheable: false,
           environment: ['req'],
           inputs: {},

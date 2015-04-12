@@ -121,15 +121,22 @@ require('../standalone/build-script')({
                   },
                   doesNotExist: function (){
 
-                    // Fetch metadata and machine code for the pack
-                    // TODO
-                    // thisPack.fetchPack()
+                    // Fetch metadata and machine code for the remote pack
+                    thisPack.fetchPack({
+                      secret: keychain.secret,
+                      packId: chosenPackId
+                    }).exec({
+                      error: function (err){
+                        return exits.error(err);
+                      },
+                      success: function (pack){
 
-                    // Generate the pack folder and machines (as well as package.json and other files)
-                    // TODO
-                    // thisPack.generatePack()
+                        // Generate the pack folder and machines (as well as package.json and other files)
+                        // thisPack.generatePack()
+                        return exits.success(chosenPack.friendlyName);
 
-                    return exits.success(chosenPack.friendlyName);
+                      }
+                    });// </thisPack.fetchPack>
                   }
                 });// </Filesystem.exists>
               }
