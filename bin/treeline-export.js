@@ -83,7 +83,6 @@ require('../standalone/build-script')({
               return exits.error(e);
             }
 
-
             // Prompt user to choose the machinepack to export
             Prompts.select({
               choices: _.reduce(packs, function prepareChoicesForPrompt (memo, pack) {
@@ -129,12 +128,20 @@ require('../standalone/build-script')({
                       error: function (err){
                         return exits.error(err);
                       },
-                      success: function (pack){
+                      success: function (packData){
 
                         // Generate the pack folder and machines (as well as package.json and other files)
-                        // thisPack.generatePack()
-                        return exits.success(chosenPack.friendlyName);
-
+                        thisPack.generateLocalPack({
+                          destination: destinationPath,
+                          packData: packData
+                        }).exec({
+                          error: function (err){
+                            return exits.error(err);
+                          },
+                          success: function (){
+                            return exits.success(chosenPack.friendlyName);
+                          }
+                        });// </thisPack.generateLocalPack>
                       }
                     });// </thisPack.fetchPack>
                   }

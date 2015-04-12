@@ -86,7 +86,8 @@
       "unlink",
       "new-app",
       "ping-server",
-      "fetch-pack"
+      "fetch-pack",
+      "generate-local-pack"
     ],
     "testsUrl": "https://travis-ci.org/treeline-io/treeline"
   },

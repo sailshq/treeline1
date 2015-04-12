@@ -10,6 +10,9 @@ module.exports = {
   extendedDescription: '',
 
 
+  cacheable: true,
+
+
   inputs: {
 
     secret: {
