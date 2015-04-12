@@ -63,8 +63,8 @@ module.exports = {
     // Determine the dictionary that will become the package.json file.
     var pkgMetadata = {
       private: true,
-      name: packData._id, //packData.friendlyName.toLowerCase().replace(/[^a-z]/),
-      version: '0.1.0',
+      name: packData._id,
+      version: packData.version || '0.1.0',
       description: packData.description || '',
       keywords: [
         packData.friendlyName,
