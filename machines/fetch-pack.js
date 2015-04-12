@@ -103,8 +103,28 @@ module.exports = {
         extendedDescription: 'Do stuff to the stuff given the other stuff.  If the stuff doesn\'t get done the first time, try it again up to 50 times using an exponential backoff strategy.',
         cacheable: false,
         environment: ['req'],
-        inputs: {},
-        exits: {},
+        inputs: {
+          stuff: {
+            description: 'The stuff.',
+            extendedDescription: 'The stuff that will be used to perform stuff on the other stuff.',
+            example: { whee: 'some string' },
+            protect: true,
+            required: true
+          },
+          moreStuff: {
+            description: 'The other stuff.',
+            typeclass: '*'
+          }
+        },
+        exits: {
+          error: {
+            description: 'An unexpected error occurred.'
+          },
+          success: {
+            description: 'Done.',
+            example: {}
+          }
+        },
         fn: 'function (inputs, exits){ /*the stringified machine fn here*/ }',
       }]
     });
