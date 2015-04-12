@@ -67,7 +67,7 @@
     "yargs": "3.4.5",
     "treeline-generate-views": "0.10.7",
     "treeline-generate-backend": "0.12.3",
-    "machinepack-machines": "^3.0.13"
+    "machinepack-machines": "^3.1.0"
   },
   "machinepack": {
     "private": true,
