@@ -22,7 +22,6 @@ module.exports = {
     packId: {
       description: 'The unique id of the machinepack.',
       example: '29f559ae-3bec-4d0a-8458-1f4e32a72407',
-      protect: true,
       required: true
     },
 
