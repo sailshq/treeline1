@@ -14,8 +14,8 @@ require('../standalone/build-script')({
 
     destination: {
       description: 'Absolute path where the machinepack will be exported.',
-      extendedDescription: 'Defaults to the machinepack\'s identity resolved from the current working directory.  For example, if you\'ve cd\'d into your Desktop and you\'re exporting a machinepack with identity "machinepack-foo", then this might default to "/Users/mikermcneil/Desktop/machinepack-foo.',
-      example: '/Users/mikermcneil/Desktop/machinepack-foo'
+      extendedDescription: 'Defaults to the machinepack\'s name (lowercased) resolved from the current working directory.  For example, if you\'ve cd\'d into your Desktop and you\'re exporting a machinepack with name "Foo", then this might default to "/Users/mikermcneil/Desktop/foo.',
+      example: '/Users/mikermcneil/Desktop/foo'
     }
   },
 
@@ -56,18 +56,20 @@ require('../standalone/build-script')({
         // Prompt user to choose the machinepack to export
         // TODO
 
+        var packName = 'Foo';
+
         // Fetch metadata and machine code for the pack
         // TODO
 
         // Check to see whether a file/folder already exists in cwd
-        // with the same name as the machinepack's identtity.
+        // with the same name as the machinepack (all lowercased).
         // If so, let the user know what happened.
         // TODO
 
         // Generate the pack folder and machines (as well as package.json and other files)
         // TODO
 
-        return exits.success();
+        return exits.success(packName);
       }
     });
   }
@@ -75,9 +77,9 @@ require('../standalone/build-script')({
 
 }, {
 
-  success: function (machinepackIdentity) {
+  success: function (packName) {
     var chalk = require('chalk');
-    console.log('Exported '+chalk.cyan(machinepackIdentity)+ ' successfully.');
+    console.log('Exported '+chalk.cyan(packName)+ ' successfully.');
   },
 
   notLoggedIn: function () {

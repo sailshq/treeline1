@@ -29,6 +29,7 @@ program.usage(chalk.gray('[options]')+' '+chalk.bold('<command>'))
 .command('new', 'create a new Sails app locally')
 .command('link', 'link the current directory to a Treeline app or machinepack')
 .command('unlink', 'remove the Treeline linkfile from the current directory')
+.command('export', 'export a machinepack (e.g. to run as a script)')
 .command('about', 'about this module');
 
 
