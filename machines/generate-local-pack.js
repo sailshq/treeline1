@@ -103,16 +103,33 @@ module.exports = {
         return exits.alreadyExists(packageJsonPath);
       },
       success: function (){
-        // Loop over each machine in the pack
-        // ...
 
-          // Determine the module code that will be written out
-          // TODO
+        // Write the generic `index.js` file
+        var indexJsPath = path.resolve(inputs.destination,'index.js');
+        var indexJsCode = '// This is a boilerplate file which should not need to be changed.\nmodule.exports = require(\'machine\').pack({\n  pkg: require(\'./package.json\'),\n  dir: __dirname\n});\n';
+        Filesystem.write({
+          destination: indexJsPath,
+          string: indexJsCode
+        }).exec({
+          error: function (err) {
+            return exits.error(err);
+          },
+          alreadyExists: function (){
+            return exits.alreadyExists(indexJsCode);
+          },
+          success: function (){
+            // Loop over each machine in the pack
+            // ...
 
-          // Write the machine file
-          // TODO
+              // Determine the module code that will be written out
+              // TODO
 
-        return exits.success();
+              // Write the machine file
+              // TODO
+
+            return exits.success();
+          }
+        });//</Filesystem.writeJson>
       }
     });//</Filesystem.writeJson>
   },
