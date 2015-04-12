@@ -58,12 +58,12 @@ require('../standalone/build-script')({
 
         var packName = 'Foo';
 
-        // Fetch metadata and machine code for the pack
-        // TODO
-
         // Check to see whether a file/folder already exists in cwd
         // with the same name as the machinepack (all lowercased).
         // If so, let the user know what happened.
+        // TODO
+
+        // Fetch metadata and machine code for the pack
         // TODO
 
         // Generate the pack folder and machines (as well as package.json and other files)
