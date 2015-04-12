@@ -87,6 +87,28 @@ module.exports = {
 
   fn: function (inputs, exits){
 
+    // Stub for now:
+    return exits.success({
+      friendlyName: 'Foo',
+      description: 'Node.js utilities for working with foos.',
+      author: 'Marty McFly <marty@mcfly.com>',
+      license: 'MIT',
+      version: '0.5.17',
+      identity: 'bc231894d-194ab1-49284e9af-28401fbc1d',
+      dependencies: [ { name: 'lodash', semverRange: '^2.4.1' } ],
+      machines: [{
+        identity: 'do-stuff',
+        friendlyName: 'Do stuff and things',
+        description: 'Do stuff given other stuff.',
+        extendedDescription: 'Do stuff to the stuff given the other stuff.  If the stuff doesn\'t get done the first time, try it again up to 50 times using an exponential backoff strategy.',
+        cacheable: false,
+        environment: ['req'],
+        inputs: {},
+        exits: {},
+        fn: 'some stringified function',
+      }]
+    });
+
     var _ = require('lodash');
     var Http = require('machinepack-http');
     var Util = require('machinepack-util');
