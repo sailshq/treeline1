@@ -62,7 +62,8 @@ module.exports = {
 
     // Determine the dictionary that will become the package.json file.
     var pkgMetadata = {
-      name: packData.identity,
+      private: true,
+      name: packData._id, //packData.friendlyName.toLowerCase().replace(/[^a-z]/),
       version: '0.1.0',
       description: packData.description || '',
       keywords: [
@@ -82,6 +83,7 @@ module.exports = {
       //   test-machinepack-mocha: ^0.2.2
       // },
       machinepack: {
+        _id: packData._id,
         friendlyName: packData.friendlyName,
         machineDir: 'machines/',
         machines: _.pluck(packData.machines, 'identity')

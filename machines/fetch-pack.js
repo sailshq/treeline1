@@ -61,12 +61,12 @@ module.exports = {
     success: {
       description: 'Done.',
       example: {
+        _id: 'bc231894d-194ab1-49284e9af-28401fbc1d',
         friendlyName: 'Foo',
         description: 'Node.js utilities for working with foos.',
         author: 'Marty McFly <marty@mcfly.com>',
         license: 'MIT',
         version: '0.5.17',
-        identity: 'bc231894d-194ab1-49284e9af-28401fbc1d',
         dependencies: [ { name: 'lodash', semverRange: '^2.4.1' } ],
         machines: [{
           identity: 'do-stuff',
@@ -89,12 +89,12 @@ module.exports = {
 
     // Stub for now:
     return exits.success({
+      _id: 'bc231894d-194ab1-49284e9af-28401fbc1d',
       friendlyName: 'Foo',
       description: 'Node.js utilities for working with foos.',
       author: 'Marty McFly <marty@mcfly.com>',
       license: 'MIT',
       version: '0.5.17',
-      identity: 'bc231894d-194ab1-49284e9af-28401fbc1d',
       dependencies: [ { name: 'lodash', semverRange: '^2.4.1' } ],
       machines: [{
         identity: 'do-stuff',
@@ -154,12 +154,12 @@ module.exports = {
           pack = Util.parseJson({
             json: result.body,
             schema: {
+              _id: 'bc231894d-194ab1-49284e9af-28401fbc1d',
               friendlyName: 'Foo',
               description: 'Node.js utilities for working with foos.',
               author: 'Marty McFly <marty@mcfly.com>',
               license: 'MIT',
               version: '0.5.17',
-              identity: 'bc231894d-194ab1-49284e9af-28401fbc1d',
               dependencies: [ { name: 'lodash', semverRange: '^2.4.1' } ],
               machines: [{
                 identity: 'do-stuff',
