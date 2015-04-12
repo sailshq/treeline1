@@ -51,8 +51,14 @@ module.exports = {
 
   fn: function (inputs,exits) {
 
+    var path = require('path');
     var _ = require('lodash');
     var Filesystem = require('machinepack-fs');
+
+
+    // `packData` contains basic metadata about the machinepack as well
+    // as complete metadata about each machine-- including the `fn` (implementation code)
+    var packData = inputs.packData;
 
     // Determine the dictionary that will become the package.json file.
     var pkgMetadata = {
