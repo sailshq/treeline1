@@ -23,6 +23,11 @@ module.exports = {
       description: 'The machinepack and machine metadata/code to generate from.',
       typeclass: 'dictionary',
       required: true
+    },
+
+    dependencyIdentifiers: {
+      description: "Identifiers of machinepacks that this pack is dependent on",
+      example: ['abc123']
     }
 
   },
@@ -89,6 +94,9 @@ module.exports = {
         friendlyName: packData.friendlyName,
         machineDir: 'machines/',
         machines: _.pluck(packData.machines, 'identity')
+      },
+      scripts: {
+        postinstall: 'node postinstall.js'
       }
     };
 
@@ -106,78 +114,116 @@ module.exports = {
       },
       success: function (){
 
-        // Write the generic `index.js` file
-        var indexJsPath = path.resolve(inputs.destination,'index.js');
-        var indexJsCode = '// This is a boilerplate file which should not need to be changed.\nmodule.exports = require(\'machine\').pack({\n  pkg: require(\'./package.json\'),\n  dir: __dirname\n});\n';
-        Filesystem.write({
-          destination: indexJsPath,
-          string: indexJsCode
-        }).exec({
-          error: function (err) {
-            return exits.error(err);
-          },
-          alreadyExists: function (){
-            return exits.alreadyExists(indexJsPath);
-          },
-          success: function (){
-
-            // Loop over each machine in the pack
-            async.each(packData.machines, function (thisMachine, next){
-
-              // Determine the path where the new module will be written
-              var machineModulePath = path.resolve(inputs.destination, 'machines', thisMachine.identity+'.js');
-              // and the code that it will consist of:
-              // (build a JavaScript code string which represents the provided machine metadata)
-              var machineModuleCode;
-              try {
-                machineModuleCode = Machines.buildMachineCode({
-                  friendlyName: thisMachine.friendlyName || thisMachine.identity,
-                  description: thisMachine.description,
-                  extendedDescription: thisMachine.extendedDescription,
-                  inputs: thisMachine.inputs,
-                  exits: thisMachine.exits,
-                  fn: thisMachine.fn
-                }).execSync();
-              }
-              catch (e) {
-                return next(e);
-              }
-
-              // Write the machine file
-              Filesystem.write({
-                destination: machineModulePath,
-                string: machineModuleCode
-              }).exec({
-                error: function (err) {
-                  return next(err);
-                },
-                alreadyExists: function (){
-                  var err = new Error('Something already exists at '+machineModulePath);
-                  err.code = err.exit = 'alreadyExists';
-                  err.output = machineModulePath;
-                  return next(err);
-                },
-                success: function (){
-                  next();
-                }
-              });//</Filesystem.write>
-            }, function afterwards(err) {
-              if (err) {
-                if (_.isObject(err) && err.code === 'alreadyExists') {
-                  return exits.alreadyExists(err.output);
-                }
+        async.auto({
+          writeIndex: function(cb) {
+            var indexJsPath = path.resolve(inputs.destination,'index.js');
+            var indexJsCode = '// This is a boilerplate file which should not need to be changed.\nmodule.exports = require(\'machine\').pack({\n  pkg: require(\'./package.json\'),\n  dir: __dirname\n});\n';
+            Filesystem.write({
+              destination: indexJsPath,
+              string: indexJsCode
+            }).exec({
+              error: function (err) {
                 return exits.error(err);
+              },
+              alreadyExists: function (){
+                return exits.alreadyExists(indexJsPath);
+              },
+              success: function() {
+                return cb();
               }
-              return exits.success();
-            });//</async.each>
+            });
+          },
+          writePostinstall: function(cb) {
+            if (!inputs.dependencyIdentifiers || !inputs.dependencyIdentifiers.length) {
+              return cb();
+            }
+            Filesystem.read({
+              source: path.resolve(__dirname, "..", "lib", "mpPostInstallScript.js")
+            }).exec({
+              error: function (err) {
+                return exits.error(err);
+              },
+              doesNotEist: function () {
+                return exits.error();
+              },
+              success: function(js) {
+                var postInstallPath = path.resolve(inputs.destination,'postinstall.js');
+                var identifierStrings = _.map(inputs.dependencyIdentifiers, JSON.stringify);
+                var postInstallCode = js.replace("<<DEPIDS>>", identifierStrings.join(","));
+                Filesystem.write({
+                  destination: postInstallPath,
+                  string: postInstallCode
+                }).exec({
+                  error: function (err) {
+                    return exits.error(err);
+                  },
+                  alreadyExists: function (){
+                    return exits.alreadyExists(postInstallPath);
+                  },
+                  success: function() {
+                    return cb();
+                  }
+                });
+              }
+            })
           }
-        });//</Filesystem.writeJson>
+        }, function doneWritingFiles() {
+          // Loop over each machine in the pack
+          async.each(packData.machines, function (thisMachine, next){
+
+            // Determine the path where the new module will be written
+            var machineModulePath = path.resolve(inputs.destination, 'machines', thisMachine.identity+'.js');
+            // and the code that it will consist of:
+            // (build a JavaScript code string which represents the provided machine metadata)
+            var machineModuleCode;
+            try {
+              machineModuleCode = Machines.buildMachineCode({
+                friendlyName: thisMachine.friendlyName || thisMachine.identity,
+                description: thisMachine.description,
+                extendedDescription: thisMachine.extendedDescription,
+                inputs: thisMachine.inputs,
+                exits: thisMachine.exits,
+                fn: thisMachine.fn
+              }).execSync();
+            }
+            catch (e) {
+              return next(e);
+            }
+
+            // Write the machine file
+            Filesystem.write({
+              destination: machineModulePath,
+              string: machineModuleCode
+            }).exec({
+              error: function (err) {
+                return next(err);
+              },
+              alreadyExists: function (){
+                var err = new Error('Something already exists at '+machineModulePath);
+                err.code = err.exit = 'alreadyExists';
+                err.output = machineModulePath;
+                return next(err);
+              },
+              success: function (){
+                next();
+              }
+            });//</Filesystem.write>
+          }, function afterwards(err) {
+            if (err) {
+              if (_.isObject(err) && err.code === 'alreadyExists') {
+                return exits.alreadyExists(err.output);
+              }
+              return exits.error(err);
+            }
+            return exits.success();
+          });//</async.each>
+
+        });
+
       }
     });//</Filesystem.writeJson>
-  },
+  }
 
 
 
 };
-
-
