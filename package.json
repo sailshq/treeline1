@@ -88,7 +88,8 @@
       "new-app",
       "ping-server",
       "fetch-pack",
-      "generate-local-pack"
+      "generate-local-pack",
+      "generate-local-dependency"
     ],
     "testsUrl": "https://travis-ci.org/treeline-io/treeline"
   },
