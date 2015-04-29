@@ -51,6 +51,7 @@ require('../standalone/build-script')({
     var Prompts = require('machinepack-prompts');
     var Filesystem = require('machinepack-fs');
     var thisPack = require('../');
+    var async = require('async');
 
     thisPack.readKeychain().exec({
       error: exits.error,
@@ -66,6 +67,10 @@ require('../standalone/build-script')({
            'x-auth': keychain.secret
           }
         }).exec({
+
+          notFound: function(err) {
+            return exits.error(err);
+          },
 
           // An unexpected error occurred.
           error: function(err) {
@@ -129,17 +134,25 @@ require('../standalone/build-script')({
                         return exits.error(err);
                       },
                       success: function (packData){
-
                         // Generate the pack folder and machines (as well as package.json and other files)
                         thisPack.generateLocalPack({
                           destination: destinationPath,
-                          packData: packData
+                          packData: _.find(packData, {isMain: true}),
+                          dependencyIdentifiers: _.pluck(_.where(packData, {isMain: false}), '_id')
                         }).exec({
                           error: function (err){
                             return exits.error(err);
                           },
                           success: function (){
-                            return exits.success(chosenPack.friendlyName);
+                            async.each(_.where(packData, {isMain: false}), function(pack, cb) {
+                              thisPack.generateLocalDependency({
+                                destination: destinationPath,
+                                packData: pack
+                              }).exec(cb);
+                            }, function(err) {
+                              if (err) {return exits.error(err);}
+                              return exits.success(chosenPack.friendlyName);
+                            });
                           }
                         });// </thisPack.generateLocalPack>
                       }
