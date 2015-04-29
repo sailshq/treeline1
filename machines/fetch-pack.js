@@ -60,13 +60,15 @@ module.exports = {
 
     success: {
       description: 'Done.',
-      example: {
+      example: [{
         _id: 'bc231894d-194ab1-49284e9af-28401fbc1d',
         friendlyName: 'Foo',
         description: 'Node.js utilities for working with foos.',
         author: 'Marty McFly <marty@mcfly.com>',
         license: 'MIT',
         version: '0.5.17',
+        isMain: true,
+        npmPackageName: 'machinepack-do-stuff',
         dependencies: [ { name: 'lodash', semverRange: '^2.4.1' } ],
         machines: [{
           identity: 'do-stuff',
@@ -79,7 +81,7 @@ module.exports = {
           exits: {},
           fn: '/*the stringified machine fn here*/',
         }]
-      }
+      }]
     }
 
   },
@@ -87,60 +89,58 @@ module.exports = {
 
   fn: function (inputs, exits){
 
-    // Stub for now:
-    return exits.success({
-      _id: 'bc231894d-194ab1-49284e9af-28401fbc1d',
-      friendlyName: 'Foo',
-      description: 'Node.js utilities for working with foos.',
-      author: 'Marty McFly <marty@mcfly.com>',
-      license: 'MIT',
-      version: '0.5.17',
-      dependencies: [ { name: 'lodash', semverRange: '^2.4.1' } ],
-      machines: [{
-        identity: 'do-stuff',
-        friendlyName: 'Do stuff and things',
-        description: 'Do stuff given other stuff.',
-        extendedDescription: 'Do stuff to the stuff given the other stuff.  If the stuff doesn\'t get done the first time, try it again up to 50 times using an exponential backoff strategy.',
-        cacheable: false,
-        environment: ['req'],
-        inputs: {
-          stuff: {
-            description: 'The stuff.',
-            extendedDescription: 'The stuff that will be used to perform stuff on the other stuff.',
-            example: { whee: 'some string' },
-            protect: true,
-            required: true
-          },
-          moreStuff: {
-            description: 'The other stuff.',
-            typeclass: '*'
-          }
-        },
-        exits: {
-          error: {
-            description: 'An unexpected error occurred.'
-          },
-          success: {
-            description: 'Done.',
-            example: {}
-          }
-        },
-        fn: '/*the stringified machine fn here*/',
-      }]
-    });
+    // // Stub for now:
+    // return exits.success({
+    //   _id: 'bc231894d-194ab1-49284e9af-28401fbc1d',
+    //   friendlyName: 'Foo',
+    //   description: 'Node.js utilities for working with foos.',
+    //   author: 'Marty McFly <marty@mcfly.com>',
+    //   license: 'MIT',
+    //   version: '0.5.17',
+    //   dependencies: [ { name: 'lodash', semverRange: '^2.4.1' } ],
+    //   machines: [{
+    //     identity: 'do-stuff',
+    //     friendlyName: 'Do stuff and things',
+    //     description: 'Do stuff given other stuff.',
+    //     extendedDescription: 'Do stuff to the stuff given the other stuff.  If the stuff doesn\'t get done the first time, try it again up to 50 times using an exponential backoff strategy.',
+    //     cacheable: false,
+    //     environment: ['req'],
+    //     inputs: {
+    //       stuff: {
+    //         description: 'The stuff.',
+    //         extendedDescription: 'The stuff that will be used to perform stuff on the other stuff.',
+    //         example: { whee: 'some string' },
+    //         protect: true,
+    //         required: true
+    //       },
+    //       moreStuff: {
+    //         description: 'The other stuff.',
+    //         typeclass: '*'
+    //       }
+    //     },
+    //     exits: {
+    //       error: {
+    //         description: 'An unexpected error occurred.'
+    //       },
+    //       success: {
+    //         description: 'Done.',
+    //         example: {}
+    //       }
+    //     },
+    //     fn: '/*the stringified machine fn here*/',
+    //   }]
+    // });
 
     var _ = require('lodash');
     var Http = require('machinepack-http');
     var Util = require('machinepack-util');
 
     // Send an HTTP request and receive the response.
+    var url = '/api/v1/machine-packs/'+inputs.packId+'/export';
     Http.sendHttpRequest({
       method: 'get',
       baseUrl: inputs.treelineApiUrl || process.env.TREELINE_API_URL || 'https://api.treeline.io',
-      url: '/machinepacks/export',
-      params: {
-        id: inputs.packId
-      },
+      url: url,
       headers: {
        'x-auth': inputs.secret
       },
@@ -159,6 +159,7 @@ module.exports = {
       },
       // 404 status code returned from server
       notFound: function(result) {
+        console.log(url);
         return exits.notFound(result.body);
       },
       // Unexpected connection error: could not send or receive HTTP request.
@@ -173,13 +174,15 @@ module.exports = {
         try {
           pack = Util.parseJson({
             json: result.body,
-            schema: {
+            schema: [{
               _id: 'bc231894d-194ab1-49284e9af-28401fbc1d',
               friendlyName: 'Foo',
               description: 'Node.js utilities for working with foos.',
               author: 'Marty McFly <marty@mcfly.com>',
               license: 'MIT',
               version: '0.5.17',
+              isMain: true,
+              npmPackageName: 'machinepack-do-stuff',
               dependencies: [ { name: 'lodash', semverRange: '^2.4.1' } ],
               machines: [{
                 identity: 'do-stuff',
@@ -192,7 +195,7 @@ module.exports = {
                 exits: {},
                 fn: '/*the stringified machine fn here*/',
               }]
-            }
+            }]
           }).execSync();
         }
         catch (e) {
