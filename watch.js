@@ -7,11 +7,76 @@ var log = require('./logger');
 var buildDictionary = require('sails-build-dictionary');
 var chalk = require('chalk');
 var _ = require('lodash');
+var unbounce = require('unbounce');
 
 module.exports = function(sails) {
 
 	var socket;
 	var self = this;
+
+  var handleProjectMessage = unbounce(function (message, cb) {
+    // Set maintenance mode in advance of getting a route update
+    if (message.verb == 'messaged' && message.data.message == 'route_updating') {
+      sails.config && (sails.config.maintenance = true);
+      return;
+    }
+
+    // Handle model updates
+    if (message.verb == 'messaged' && message.data.message == 'model_updated') {
+      self.syncModels.writeModels(message.data.models, self.options, function(err) {
+        return reloadOrm(cb);
+      });
+
+    }
+
+    // Handle route updates
+    else if (message.verb == 'messaged' && message.data.message == 'route_updated' && !self.options.modelsOnly) {
+
+      if (!options.modelsOnly) {
+        async.series({
+          controllers: function(cb) {
+            // Load all models from Treeline, but don't reload ORM (since Sails hasn't started yet)
+            self.syncControllers.reloadAllControllers(null, self.options, function(err) {
+              if (err) {return cb(err);}
+              return cb();
+            });
+          },
+          config: function(cb) {
+            self.syncConfig.reloadAllConfig(null, self.options, function(err, config) {
+              sails.config.treeline = config;
+              cb(err);
+            });
+          },
+          machines: function(cb) {
+            self.syncMachines.reloadAllMachinePacks(null, self.options, function(err) {
+              cb(err);
+            });
+          },
+          models: function(cb) {
+            self.syncModels.reloadAllModels(null, self.options, cb);
+          }
+        }, function(err, done) {
+          if (err) {
+            sails.log.error("Treeline encountered an error trying to update your app:");
+            sails.log.error(err);
+            sails.log.error("If this problem persists, try quitting and restarting treeline.");
+          } else {
+           return reloadOrm(cb);
+          }
+        });
+      }
+
+      else {
+        return cb();
+      }
+
+    }
+
+    else {
+      return cb();
+    }
+
+  });
 
 	return {
 		start: function(config, options, cb) {
@@ -37,18 +102,6 @@ module.exports = function(sails) {
 			self.syncControllers = require('./lib/syncControllers')(sails, socket);
       self.syncConfig = require('./lib/syncConfig')(sails, socket);
       // self.syncScaffold = require('./lib/syncScaffold')(sails, socket);
-
-      // Socket message handler queue
-      var socketMessageHandlerQueue = async.queue(function(task, cb) {
-        debug('Processing task :: ', task.name);
-        switch (task.name) {
-          case 'handleProjectMessage':
-            handleProjectMessage(task.message, cb);
-            break;
-        }
-      });
-      // Only handle one socket message at a time
-      socketMessageHandlerQueue.concurrency = 1;
 
 			cb = cb || function(){};
 			// log.verbose("Treeline WATCH started.");
@@ -115,7 +168,7 @@ module.exports = function(sails) {
             // Bind a handler for the "project" event
             socket.on('project', function(message) {
               debug('Received socket message from Treeline:',message);
-              socketMessageHandlerQueue.push({name: 'handleProjectMessage', message: message});
+              handleProjectMessage(message);
             });
             alreadyConnected = true;
             return cb();
@@ -139,78 +192,10 @@ module.exports = function(sails) {
 	}
 
 
-	function handleProjectMessage(message, cb) {
-
-		// Handle model updates
-		if (message.verb == 'messaged' && message.data.message == 'model_updated') {
-			self.syncModels.writeModels(message.data.models, self.options, function(err) {
-				return reloadOrm(cb);
-			});
-
-		}
-
-    // Handle model updates
-    else if (message.verb == 'messaged' && message.data.message == 'route_updated' && !self.options.modelsOnly) {
-      if (!options.modelsOnly) {
-				async.series({
-					controllers: function(cb) {
-						// Load all models from Treeline, but don't reload ORM (since Sails hasn't started yet)
-						self.syncControllers.reloadAllControllers(null, self.options, function(err) {
-							if (err) {return cb(err);}
-							return cb();
-						});
-					},
-          config: function(cb) {
-            self.syncConfig.reloadAllConfig(null, self.options, function(err, config) {
-              sails.config.treeline = config;
-              cb(err);
-            });
-          },
-          machines: function(cb) {
-            self.syncMachines.reloadAllMachinePacks(null, self.options, function(err) {
-              cb(err);
-            });
-          },
-          models: function(cb) {
-            self.syncModels.reloadAllModels(null, self.options, cb);
-          }
-				}, function(err, done) {
-					if (err) {
-            sails.log.error("Treeline encountered an error trying to update your app:");
-            sails.log.error(err);
-            sails.log.error("If this problem persists, try quitting and restarting treeline.");
-          } else {
-					 return reloadOrm(cb);
-          }
-				});
-			}
-
-      else {
-        return cb();
-      }
-
-		}
-
-    else {
-      return cb();
-    }
-
-	}
-
 	function reloadOrm(cb) {
 
     // Default callback to an empty fn
     cb = cb || function(){};
-
-    // Wrap callback in a fn that turns off maintenance mode
-    var origCb = cb;
-    cb = function() {
-      sails.config && (sails.config.maintenance = false);
-      origCb();
-    };
-
-    // Turn on maintenance mode if available
-    sails.config && (sails.config.maintenance = true);
 
     // Clear all node machines out of the require cache
     _.each(_.keys(require.cache), function(key) {
