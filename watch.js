@@ -14,12 +14,9 @@ module.exports = function(sails) {
 	var socket;
 	var self = this;
 
+  // Create an "unbounced" message handler--repeated calls to the handler will cause a single
+  // additional run to be queued, using the arguments from the most recent call.
   var handleProjectMessage = unbounce(function (message, cb) {
-    // Set maintenance mode in advance of getting a route update
-    if (message.verb == 'messaged' && message.data.message == 'route_updating') {
-      sails.config && (sails.config.maintenance = true);
-      return;
-    }
 
     // Handle model updates
     if (message.verb == 'messaged' && message.data.message == 'model_updated') {
@@ -61,7 +58,11 @@ module.exports = function(sails) {
             sails.log.error(err);
             sails.log.error("If this problem persists, try quitting and restarting treeline.");
           } else {
-           return reloadOrm(cb);
+           return reloadOrm(function(err) {
+              // Turn off maintenance mode
+              sails.config && (sails.config.maintenance = false);
+              return cb(err);
+           });
           }
         });
       }
@@ -167,8 +168,10 @@ module.exports = function(sails) {
           if (!alreadyConnected) {
             // Bind a handler for the "project" event
             socket.on('project', function(message) {
-              debug('Received socket message from Treeline:',message);
-              handleProjectMessage(message);
+              // Set maintenance mode on
+              sails.config && (sails.config.maintenance = true);
+              // Handle the message (this function is unbounced)
+              setTimeout(function(){handleProjectMessage(message);}, 3000);
             });
             alreadyConnected = true;
             return cb();
