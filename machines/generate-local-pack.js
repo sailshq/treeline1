@@ -94,11 +94,14 @@ module.exports = {
         friendlyName: packData.friendlyName,
         machineDir: 'machines/',
         machines: _.pluck(packData.machines, 'identity')
-      },
-      scripts: {
-        postinstall: 'node postinstall.js'
       }
     };
+
+    if (inputs.dependencyIdentifiers && inputs.dependencyIdentifiers.length) {
+      pkgMetadata.scripts = {
+        postinstall: 'node postinstall.js'
+      };
+    }
 
     // Write the package.json file (and the empty folder)
     var packageJsonPath = path.resolve(inputs.destination,'package.json');
