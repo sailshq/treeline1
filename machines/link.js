@@ -50,6 +50,7 @@ module.exports = {
 
     var Machine = require('machine');
     var linkApp = Machine.build(require('./link-app'));
+
     return linkApp(inputs).exec(exits);
 
   }
