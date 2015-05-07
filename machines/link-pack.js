@@ -158,7 +158,7 @@ module.exports = {
                   machinepackToLink.displayName = machinepackDataFromServer.displayName || machinepackToLink.id;
                   machinepackToLink.id = machinepackDataFromServer.id;
 
-                  _doneGettingMachinepack.success();
+                  return _doneGettingMachinepack.success();
 
                 },
               });
