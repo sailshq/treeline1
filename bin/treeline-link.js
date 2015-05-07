@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 
 
-require('../standalone/build-script')( require('../machines/link'), {
+require('../standalone/build-script')( {
+  machine: require('../machines/link'),
+  args: ['type']
+}, {
 
   success: function (linkedProject){
     var chalk = require('chalk');

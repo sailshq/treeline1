@@ -8,7 +8,7 @@ module.exports = {
 
   inputs: {
 
-    $0: {
+    type: {
       friendlyName: 'Type',
       description: 'First CLI argument is the type of Treeline project to link (app or machinepack)',
       example: 'machinepack',
@@ -62,7 +62,7 @@ module.exports = {
     var Machine = require('machine');
 
     // Link either an app or a machinepack
-    switch (inputs.$0) {
+    switch (inputs.type) {
       case 'machinepack':
       case 'pack':
       case 'p':

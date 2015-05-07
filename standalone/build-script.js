@@ -10,8 +10,17 @@ var Machine = require('machine');
 var yargs = require('yargs');
 
 
-module.exports = function buildScript(machineDef, exitOverrides){
+module.exports = function buildScript(opts, exitOverrides){
 
+  // Use either `opts` or `opts.machine` as the machine definition
+  var machineDef;
+  if (!opts.machine) {
+    machineDef = opts;
+    opts = { machine: machineDef };
+  }
+  else {
+    machineDef = opts.machine;
+  }
 
   // Build machine, applying defaults
   var wetMachine = Machine.build(_.extend({
@@ -79,29 +88,29 @@ module.exports = function buildScript(machineDef, exitOverrides){
 
 
   // Build inputs from CLI options and args
-  var cliInputs = {};
+  var inputConfiguration = {};
 
   // Supply CLI options
-  _.extend(cliInputs, yargs.argv);
-  delete cliInputs._;
-  delete cliInputs.$0;
+  _.extend(inputConfiguration, yargs.argv);
+  delete inputConfiguration._;
+  delete inputConfiguration.$0;
 
-  // Supply argv CLI arguments as a special input (`_`)
+  // Include a special `args` input for convenience--
+  // but note that this is an experimental feature that could change.
   if (_.isArray(yargs.argv._)) {
-    cliInputs._ = yargs.argv._;
+    inputConfiguration.args = yargs.argv._;
+  }
 
-    // And supply the first two CLI args as special inputs (`$0` and `$1`)
-    if (yargs.argv._.length > 0) {
-      cliInputs.$0 = yargs.argv._[0];
-    }
-    if (yargs.argv._.length > 1) {
-      cliInputs.$1 = yargs.argv._[1];
-    }
+  // Supply argv CLI arguments using special `args` notation
+  if (_.isArray(opts.args)) {
+    _.each(opts.args, function (inputName, i){
+      inputConfiguration[inputName] = yargs.argv._[i];
+    });
   }
 
 
   // Run the machine
-  wetMachine(cliInputs).exec(_.extend({
+  wetMachine(inputConfiguration).exec(_.extend({
 
     error: function(err) {
       // console.error(chalk.red('Unexpected error occurred:\n'), err);
