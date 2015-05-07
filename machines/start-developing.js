@@ -25,6 +25,10 @@ module.exports = {
       description: 'Unexpected error occurred.'
     },
 
+    unknownType: {
+      description: 'Unknown project type.  You can link an "app" or a "machinepack".'
+    },
+
     notLinked: {
       description: 'The current working directory is not linked to an app or machinepack on Treeline.io.'
     },
