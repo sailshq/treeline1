@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 
 
-require('../standalone/build-script')( require('../machines/start-developing'), {
+require('../standalone/build-script')( {
+  machine: require('../machines/start-developing'),
+  args: ['type']
+}, {
 
   notLinked: function (){
     var chalk = require('chalk');

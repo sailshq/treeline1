@@ -10,7 +10,7 @@ module.exports = {
 
     type: {
       friendlyName: 'Type',
-      description: 'First CLI argument is the type of Treeline project to link (app or machinepack)',
+      description: 'The type of Treeline project to link (app or machinepack)',
       example: 'machinepack',
       defaultsTo: 'app'
     },
@@ -66,9 +66,7 @@ module.exports = {
       case 'machinepack':
       case 'pack':
       case 'p':
-        console.log('TODO: support for linking packs');
-        // return Machine.build(require('./link-machinepack'))(inputs).exec(exits);
-        return exits.success();
+        return Machine.build(require('./link-pack'))(inputs).exec(exits);
 
       case 'a':
       case 'ap':

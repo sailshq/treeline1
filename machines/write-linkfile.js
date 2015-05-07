@@ -11,7 +11,7 @@ module.exports = {
 
     id: {
       description: 'The id of the app',
-      example: 432,
+      example: '432',
       required: true
     },
 

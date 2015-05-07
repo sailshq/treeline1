@@ -11,9 +11,10 @@ require('../standalone/build-script')( {
 
     // var slug = linkedProject.owner + '/' + linkedProject.identity;
     var slug = linkedProject.identity;
+    var displayName = linkedProject.displayName;
     console.log();
     console.log(chalk.gray('(created '+chalk.bold('treeline.json')+')'));
-    console.log('Current directory now linked to %s on Treeline.', chalk.cyan(slug));
+    console.log('Current directory now linked to %s on Treeline.', chalk.cyan(displayName));
   },
 
   noApps: function (data){

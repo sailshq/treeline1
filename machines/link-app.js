@@ -39,7 +39,7 @@ module.exports = {
         displayName: 'My Cool App',
         type: 'app',
         owner: 'mikermcneil',
-        id: 123
+        id: '123'
       }
     }
 

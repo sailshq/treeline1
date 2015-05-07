@@ -93,7 +93,8 @@
       "generate-local-dependency",
       "start-developing",
       "link",
-      "list-packs"
+      "list-packs",
+      "link-pack"
     ],
     "testsUrl": "https://travis-ci.org/treeline-io/treeline"
   },

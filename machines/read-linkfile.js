@@ -24,7 +24,7 @@ module.exports = {
     success: {
       description: 'Done.',
       example: {
-        id: 432,
+        id: '432',
         identity: 'my-cool-app',
         displayName: 'My Cool App',
         type: 'app',
@@ -44,7 +44,7 @@ module.exports = {
     Filesystem.readJson({
       source: path.resolve(dir, 'treeline.json'),
       schema: {
-        id: 123,
+        id: '123',
         identity: 'my-cool-app',
         displayName: 'My Cool App',
         type: 'app',

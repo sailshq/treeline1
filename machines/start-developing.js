@@ -9,6 +9,13 @@ module.exports = {
 
   inputs: {
 
+    type: {
+      friendlyName: 'Type',
+      description: 'The type of Treeline project this is (app or machinepack)',
+      example: 'machinepack',
+      defaultsTo: 'app'
+    }
+
   },
 
 
@@ -49,13 +56,27 @@ module.exports = {
   fn: function (inputs,exits) {
 
     var Machine = require('machine');
-    var previewApp = Machine.build(require('./preview-app'));
 
-    // TODO:
-    // Ability to start a synced development session for
-    // either an app OR a machinepack
+    // Link either an app or a machinepack
+    switch (inputs.type) {
+      case 'machinepack':
+      case 'pack':
+      case 'p':
+        // TODO:
+        // Ability to start a synced development session for
+        // either an app OR a machinepack
+        console.log('Interactive pack preview not implemented yet.');
+        return exits.success();
 
-    previewApp().exec(exits);
+      case 'a':
+      case 'ap':
+      case 'app':
+        return Machine.build(require('./preview-app'))(inputs).exec(exits);
+
+      default:
+        return exits.unknownType();
+    }
+
   },
 
 
