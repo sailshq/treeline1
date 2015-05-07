@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 
-require('../standalone/build-script')( require('../machines/preview-app'), {
+require('../standalone/build-script')( require('../machines/start-developing'), {
 
   notLinked: function (){
     var chalk = require('chalk');
