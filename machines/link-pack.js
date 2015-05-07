@@ -8,10 +8,16 @@ module.exports = {
 
   inputs: {
 
-    identity: {
-      description: 'The identity (i.e. slug) of the machinepack to link',
-      example: 'my-cool-machinepack',
+    id: {
+      description: 'The id of the machinepack to link',
+      example: 'f83193a9-199a3ba910-eaf1-081059b31',
       extendedDescription: 'If omitted, the command-line user will be prompted to make a choice.'
+    },
+
+    username: {
+      description: 'The username of the account which owns the desired machinepack.',
+      example: 'rachaelshaw',
+      extendedDescription: 'If omitted, the command-line user will be the assumed owner.'
     },
 
     treelineApiUrl: {
@@ -36,11 +42,11 @@ module.exports = {
 
     success: {
       example: {
-        identity: 'my-cool-machinepack',
+        identity: '123',
         displayName: 'My Cool Machinepack',
         type: 'machinepack',
         owner: 'mikermcneil',
-        id: 123
+        id: '123'
       }
     }
 
@@ -49,22 +55,20 @@ module.exports = {
 
   fn: function (inputs, exits){
 
+    var Path = require('path');
     var _ = require('lodash');
     var Prompts = require('machinepack-prompts');
     var thisPack = require('../');
-    var request = require("request");
-    var Path = require('path');
-    var Tar = require('tar.gz');
 
     var machinepackToLink = {
-      identity: inputs.identity
+      id: inputs.id
     };
 
     (function getMachinepackToLink(_doneGettingMachinepack){
 
       // If identity was supplied, we don't need to show a prompt, but we will eventually
       // need to fetch more information about the machinepack.  For now, we proceed.
-      if (machinepackToLink.identity) {
+      if (machinepackToLink.id) {
         return _doneGettingMachinepack.success();
       }
 
@@ -113,7 +117,7 @@ module.exports = {
           // Fetch list of machinepacks, then prompt user to choose one:
           thisPack.listPacks({
             secret: keychain.secret,
-            username: keychain.username,
+            username: inputs.username||keychain.username,
             treelineApiUrl: inputs.treelineApiUrl
           }).exec({
             error: function(err) {
@@ -125,7 +129,7 @@ module.exports = {
             success: function(machinepacks) {
               if (machinepacks.length < 1) {
                 return _doneGettingMachinepack.noMachinepacks({
-                  username: keychain.username
+                  username: inputs.username || keychain.username
                 });
               }
 
