@@ -3,7 +3,7 @@
 
 require('../standalone/build-script')({
 
-  args: ['identity'],
+  args: ['id'],
 
   machine: {
 
