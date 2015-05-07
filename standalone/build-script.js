@@ -114,12 +114,8 @@ module.exports = function buildScript(opts, exitOverrides){
 
     error: function(err) {
       // console.error(chalk.red('Unexpected error occurred:\n'), err);
-      console.log(chalk.red(err));
-      if (err.stack) {
-        console.error(chalk.gray(err.stack));
-        return;
-      }
-      return;
+      console.log(chalk.red('Something went wrong:'));
+      console.error(err.stack ? chalk.gray(err.stack) : err);
     },
 
     success: function() {
