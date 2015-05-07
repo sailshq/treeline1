@@ -74,9 +74,26 @@ module.exports = {
       success: function (keychain){
 
         (function obtainPack(_xits){
-          // If id was explicitly specified, skip the prompting
+          // If id was explicitly supplied, we don't need to list packs or
+          // show a prompt, but we do also still need to fetch more
+          // information about the machinepack.
           if (inputs.id) {
-            return _xits.error(new Error('TODO: implement support for prompt-less machinepack export'));
+            thisPack.getMachinepack({
+              packId: inputs.id,
+              authToken: keychain.secret
+            }).exec({
+              error: exits.error,
+              success: function (pack){
+                return _xits.success({
+                  type: 'machinepack',
+                  id: pack.id,
+                  identity: pack.id,
+                  displayName: pack.friendlyName,
+                  owner: pack.owner
+                });
+              }
+            });
+            return;
           }
 
           // Fetch list of machinepacks.

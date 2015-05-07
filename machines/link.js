@@ -15,14 +15,30 @@ module.exports = {
       defaultsTo: 'app'
     },
 
-    identity: {
-      description: 'The identity (i.e. slug) of the machinepack or app to link',
-      example: 'my-cool-app'
-    },
-
     treelineApiUrl: {
       description: 'The base URL for the Treeline API (useful if you\'re in a country that can\'t use SSL, etc.)',
       example: 'http://api.treeline.io'
+    },
+
+    // CURRENTLY FOR PACKS ONLY (todo: refactor)
+    // ======================================
+    id: {
+      description: 'The id of the machinepack to link',
+      example: 'f83193a9-199a3ba910-eaf1-081059b31',
+      extendedDescription: 'If omitted, the command-line user will be prompted to make a choice.'
+    },
+
+    username: {
+      description: 'The username of the account which owns the desired machinepack.',
+      example: 'rachaelshaw',
+      extendedDescription: 'If omitted, the command-line user will be the assumed owner.'
+    },
+
+    // FOR APPS ONLY (todo: refactor)
+    // ======================================
+    identity: {
+      description: 'The identity (i.e. slug) of the app to link',
+      example: 'my-cool-app'
     }
 
   },
