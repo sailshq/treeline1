@@ -51,7 +51,11 @@ module.exports = {
     var Machine = require('machine');
     var previewApp = Machine.build(require('./preview-app'));
 
-    return previewApp().exec(exits);
+    // TODO:
+    // Ability to start a synced development session for
+    // either an app OR a machinepack
+
+    previewApp().exec(exits);
   },
 
 

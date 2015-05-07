@@ -51,6 +51,8 @@ module.exports = {
     var Machine = require('machine');
     var linkApp = Machine.build(require('./link-app'));
 
+    // TODO: Ability to link either an app or a machinepack
+
     return linkApp(inputs).exec(exits);
 
   }
