@@ -95,8 +95,7 @@
       "link",
       "list-packs",
       "link-pack",
-      "export-pack",
-      "get-machinepack"
+      "export-pack"
     ],
     "testsUrl": "https://travis-ci.org/treeline-io/treeline"
   },

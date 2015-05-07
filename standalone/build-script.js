@@ -119,12 +119,15 @@ module.exports = function buildScript(opts, exitOverrides){
         console.error();
       }
       if (err.message) {
+        console.log(err);
+        console.log();
         console.error(chalk.red(err.message));
       }
       if (err.stack) {
         console.error(chalk.gray(err.stack));
         return;
       }
+      console.log('----------');
       console.error(chalk.red(err));
       return;
     },

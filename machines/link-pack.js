@@ -109,9 +109,10 @@ module.exports = {
           // show a prompt, but we do also still need to fetch more
           // information about the machinepack.
           if (inputs.id) {
-            thisPack.getMachinepack({
+            thisPack.fetchPack({
               packId: inputs.id,
-              authToken: keychain.secret
+              secret: keychain.secret,
+              treelineApiUrl: inputs.treelineApiUrl
             }).exec({
               error: exits.error,
               success: function (pack){
