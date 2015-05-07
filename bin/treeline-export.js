@@ -15,10 +15,10 @@ require('../standalone/build-script')({
 
     inputs: {
 
-      identity: {
-        description: 'The identity of the machinepack to export (i.e. slug)',
+      slug: {
+        description: 'The slug of the machinepack to export (including username and machinepack identity)',
         extendedDescription: 'If omitted, the command-line user will be prompted.',
-        example: 'foo-bar'
+        example: 'mikermcneil/export-test'
       },
 
       destination: {
@@ -73,6 +73,11 @@ require('../standalone/build-script')({
         doesNotExist: exits.notLoggedIn,
         success: function (keychain){
 
+          // If slug was explicitly specified, skip the prompting
+          if (inputs.slug) {
+            return exits.error(new Error('TODO: implement support for prompt-less machinepack export'));
+          }
+
           // Fetch list of machinepacks.
           thisPack.listPacks({
             username: keychain.username,
@@ -86,11 +91,6 @@ require('../standalone/build-script')({
             },
 
             success: function (packs){
-
-              // If identity was explicitly specified, skip the prompting
-              if (inputs.identity) {
-                return exits.error(new Error('TODO: implement support for prompt-less machinepack export'));
-              }
 
               // Prompt user to choose the machinepack to export
               Prompts.select({
