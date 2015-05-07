@@ -8,6 +8,13 @@ module.exports = {
 
   inputs: {
 
+    $0: {
+      friendlyName: 'Type',
+      description: 'First CLI argument is the type of Treeline project to link (app or machinepack)',
+      example: 'machinepack',
+      defaultsTo: 'app'
+    },
+
     identity: {
       description: 'The identity (i.e. slug) of the machinepack or app to link',
       example: 'my-cool-app'
@@ -27,6 +34,10 @@ module.exports = {
       example: {
         username: 'mikermcneil'
       }
+    },
+
+    unknownType: {
+      description: 'Unknown project type.  You can link an "app" or a "machinepack".'
     },
 
     forbidden: {
@@ -49,11 +60,24 @@ module.exports = {
   fn: function (inputs, exits){
 
     var Machine = require('machine');
-    var linkApp = Machine.build(require('./link-app'));
 
-    // TODO: Ability to link either an app or a machinepack
+    // Link either an app or a machinepack
+    switch (inputs.$0) {
+      case 'machinepack':
+      case 'pack':
+      case 'p':
+        console.log('TODO: support for linking packs');
+        // return Machine.build(require('./link-machinepack'))(inputs).exec(exits);
+        return exits.success();
 
-    return linkApp(inputs).exec(exits);
+      case 'a':
+      case 'ap':
+      case 'app':
+        return Machine.build(require('./link-app'))(inputs).exec(exits);
+
+      default:
+        return exits.unknownType();
+    }
 
   }
 
