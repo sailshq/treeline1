@@ -28,6 +28,12 @@ module.exports = {
     dependencyIdentifiers: {
       description: "Identifiers of machinepacks that this pack is dependent on",
       example: ['abc123']
+    },
+
+    force: {
+      description: 'Whether to force/overwrite files that already exist at the destination',
+      example: true,
+      defaultsTo: false
     }
 
   },
@@ -107,7 +113,8 @@ module.exports = {
     var packageJsonPath = path.resolve(inputs.destination,'package.json');
     Filesystem.writeJson({
       destination: packageJsonPath,
-      json: pkgMetadata
+      json: pkgMetadata,
+      force: inputs.force
     }).exec({
       error: function (err){
         return exits.error(err);
@@ -123,7 +130,8 @@ module.exports = {
             var indexJsCode = '// This is a boilerplate file which should not need to be changed.\nmodule.exports = require(\'machine\').pack({\n  pkg: require(\'./package.json\'),\n  dir: __dirname\n});\n';
             Filesystem.write({
               destination: indexJsPath,
-              string: indexJsCode
+              string: indexJsCode,
+              force: inputs.force
             }).exec({
               error: function (err) {
                 return exits.error(err);
@@ -155,7 +163,8 @@ module.exports = {
                 var postInstallCode = js.replace("<<DEPIDS>>", identifierStrings.join(","));
                 Filesystem.write({
                   destination: postInstallPath,
-                  string: postInstallCode
+                  string: postInstallCode,
+                  force: inputs.force
                 }).exec({
                   error: function (err) {
                     return exits.error(err);
@@ -168,7 +177,7 @@ module.exports = {
                   }
                 });
               }
-            })
+            });// </Filesystem.read>
           }
         }, function doneWritingFiles() {
           // Loop over each machine in the pack
@@ -196,7 +205,8 @@ module.exports = {
             // Write the machine file
             Filesystem.write({
               destination: machineModulePath,
-              string: machineModuleCode
+              string: machineModuleCode,
+              force: inputs.force
             }).exec({
               error: function (err) {
                 return next(err);

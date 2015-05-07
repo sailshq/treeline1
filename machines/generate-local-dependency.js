@@ -23,12 +23,15 @@ module.exports = {
       description: 'The machinepack and machine metadata/code to generate from.',
       typeclass: 'dictionary',
       required: true
+    },
+
+    force: {
+      description: 'Whether to force/overwrite files that already exist at the destination',
+      example: true,
+      defaultsTo: false
     }
 
   },
-
-
-  defaultExit: 'success',
 
 
   exits: {
@@ -105,7 +108,8 @@ module.exports = {
     var packageJsonPath = path.resolve(dependencyDir,'package.json');
     Filesystem.writeJson({
       destination: packageJsonPath,
-      json: pkgMetadata
+      json: pkgMetadata,
+      force: inputs.force
     }).exec({
       error: function (err){
         return exits.error(err);
@@ -125,7 +129,8 @@ module.exports = {
         }
         Filesystem.write({
           destination: indexJsPath,
-          string: indexJsCode
+          string: indexJsCode,
+          force: inputs.force
         }).exec({
           error: function (err) {
             return exits.error(err);
@@ -160,7 +165,8 @@ module.exports = {
               // Write the machine file
               Filesystem.write({
                 destination: machineModulePath,
-                string: machineModuleCode
+                string: machineModuleCode,
+                force: inputs.force
               }).exec({
                 error: function (err) {
                   return next(err);
