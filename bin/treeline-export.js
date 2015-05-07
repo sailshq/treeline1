@@ -15,9 +15,15 @@ require('../standalone/build-script')({
 
     inputs: {
 
-      slug: {
-        description: 'The slug of the machinepack to export (including username and machinepack identity)',
-        extendedDescription: 'If omitted, the command-line user will be prompted.',
+      username: {
+        description: 'The username of the account that owns the machinepack to export',
+        extendedDescription: 'If omitted, the command-line user\'s account will be used.',
+        example: 'mikermcneil/export-test'
+      },
+
+      id: {
+        description: 'The id of the machinepack to export',
+        extendedDescription: 'If omitted, the command-line user will be prompted to pick from the available options.',
         example: 'mikermcneil/export-test'
       },
 
@@ -73,118 +79,124 @@ require('../standalone/build-script')({
         doesNotExist: exits.notLoggedIn,
         success: function (keychain){
 
-          // If slug was explicitly specified, skip the prompting
-          if (inputs.slug) {
-            return exits.error(new Error('TODO: implement support for prompt-less machinepack export'));
-          }
+          (function obtainPack(_xits){
+            // If id was explicitly specified, skip the prompting
+            if (inputs.id) {
+              return _xits.error(new Error('TODO: implement support for prompt-less machinepack export'));
+            }
 
-          // Fetch list of machinepacks.
-          thisPack.listPacks({
-            username: keychain.username,
-            secret: keychain.secret,
-            treelineApiUrl: inputs.treelineApiUrl
-          }).exec({
+            // Fetch list of machinepacks.
+            thisPack.listPacks({
+              username: inputs.username || keychain.username,
+              secret: keychain.secret,
+              treelineApiUrl: inputs.treelineApiUrl
+            }).exec({
 
-            // An unexpected error occurred.
-            error: function(err) {
+              // An unexpected error occurred.
+              error: function(err) {
+                return _xits.error(err);
+              },
+
+              success: function (packs){
+                // Prompt user to choose the machinepack to export
+                Prompts.select({
+                  choices: _.reduce(packs, function prepareChoicesForPrompt (memo, pack) {
+                    memo.push({
+                      name: pack.displayName,
+                      value: pack.id
+                    });
+                    return memo;
+                  }, []),
+                  message: 'Which machinepack would you like to export?'
+                }).exec({
+                  // An unexpected error occurred.
+                  error: function(err) {
+                    return _xits.error(err);
+                  },
+                  // OK.
+                  success: function(chosenPackId) {
+                    // Locate the pack that was chosen from the list of choices
+                    var chosenPack = _.find(packs, {id: chosenPackId});
+                    return _xits.success(chosenPack);
+                  }
+                });// </Prompts.select>
+              }
+            });// </thisPack.listPacks>
+          })({
+            error: function (err){
               return exits.error(err);
             },
+            success: function (chosenPack){
+              // Determine destination path
+              var destinationPath = inputs.destination || path.resolve(chosenPack.displayName.toLowerCase());
 
-            success: function (packs){
-
-              // Prompt user to choose the machinepack to export
-              Prompts.select({
-                choices: _.reduce(packs, function prepareChoicesForPrompt (memo, pack) {
-                  memo.push({
-                    name: pack.displayName,
-                    value: pack.id
-                  });
-                  return memo;
-                }, []),
-                message: 'Which machinepack would you like to export?'
-              }).exec({
-                // An unexpected error occurred.
-                error: function(err) {
+              (function checkForExisting(_xits){
+                // Check to see whether a file/folder already exists in cwd
+                // at the destination output path. If so, let the user know what happened.
+                Filesystem.exists({
+                  path: destinationPath
+                }).exec({
+                  error: function (err){
+                    return _xits.error(err);
+                  },
+                  exists: function (){
+                    if (!inputs.force) {
+                      return _xits.alreadyExists(destinationPath);
+                    }
+                    return _xits.success();
+                  },
+                  doesNotExist: function (){
+                    return _xits.success();
+                  }
+                });// </Filesystem.exists>
+              })({
+                error: function (err){
                   return exits.error(err);
                 },
-                // OK.
-                success: function(chosenPackId) {
-
-                  // Locate the pack that was chosen from the list of choices
-                  var chosenPack = _.find(packs, {id: chosenPackId});
-
-                  // Determine destination path
-                  var destinationPath = inputs.destination || path.resolve(chosenPack.displayName.toLowerCase());
-
-                  (function checkForExisting(onwards){
-                    // Check to see whether a file/folder already exists in cwd
-                    // at the destination output path. If so, let the user know what happened.
-                    Filesystem.exists({
-                      path: destinationPath
-                    }).exec({
-                      error: function (err){
-                        return onwards.error(err);
-                      },
-                      exists: function (){
-                        if (!inputs.force) {
-                          return onwards.alreadyExists(destinationPath);
-                        }
-                        return onwards.success();
-                      },
-                      doesNotExist: function (){
-                        return onwards.success();
-                      }
-                    });// </Filesystem.exists>
-                  })({
+                alreadyExists: function (){
+                  return exits.alreadyExists(destinationPath);
+                },
+                success: function (){
+                  // Fetch metadata and machine code for the remote pack
+                  thisPack.fetchPack({
+                    secret: keychain.secret,
+                    packId: chosenPack.id
+                  }).exec({
                     error: function (err){
                       return exits.error(err);
                     },
-                    alreadyExists: function (){
-                      return exits.alreadyExists(destinationPath);
-                    },
-                    success: function (){
-                      // Fetch metadata and machine code for the remote pack
-                      thisPack.fetchPack({
-                        secret: keychain.secret,
-                        packId: chosenPackId
+                    success: function (packData){
+                      // Generate the pack folder and machines (as well as package.json and other files)
+                      thisPack.generateLocalPack({
+                        destination: destinationPath,
+                        packData: _.find(packData, {isMain: true}),
+                        dependencyIdentifiers: _.pluck(_.where(packData, {isMain: false}), '_id'),
+                        force: inputs.force
                       }).exec({
                         error: function (err){
                           return exits.error(err);
                         },
-                        success: function (packData){
-                          // Generate the pack folder and machines (as well as package.json and other files)
-                          thisPack.generateLocalPack({
-                            destination: destinationPath,
-                            packData: _.find(packData, {isMain: true}),
-                            dependencyIdentifiers: _.pluck(_.where(packData, {isMain: false}), '_id'),
-                            force: inputs.force
-                          }).exec({
-                            error: function (err){
-                              return exits.error(err);
-                            },
-                            success: function (){
-                              async.each(_.where(packData, {isMain: false}), function(pack, cb) {
-                                thisPack.generateLocalDependency({
-                                  destination: destinationPath,
-                                  packData: pack,
-                                  force: inputs.force
-                                }).exec(cb);
-                              }, function(err) {
-                                if (err) {return exits.error(err);}
-                                return exits.success(chosenPack.displayName);
-                              });
-                            }
-                          });// </thisPack.generateLocalPack>
+                        success: function (){
+                          async.each(_.where(packData, {isMain: false}), function(pack, cb) {
+                            thisPack.generateLocalDependency({
+                              destination: destinationPath,
+                              packData: pack,
+                              force: inputs.force
+                            }).exec(cb);
+                          }, function(err) {
+                            if (err) {return exits.error(err);}
+                            return exits.success(chosenPack.displayName);
+                          });
                         }
-                      });// </thisPack.fetchPack>
+                      });// </thisPack.generateLocalPack>
                     }
-                  }); //</inline fn>
+                  });// </thisPack.fetchPack>
                 }
-              });// </Prompts.select>
+              }); //</checkForExisting>
             }
-          });// </thisPack.listPacks>
+          }); // </obtainPack>
         }
-      });
+      }); //</thisPack.readKeychain>
     }
   }
 
