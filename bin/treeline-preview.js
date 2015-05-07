@@ -26,7 +26,7 @@ require('../standalone/build-script')( {
   error: function(err) {
     var chalk = require('chalk');
     console.log(chalk.red('An error occurred while communicating with the Treeline mothership: '), err);
-    console.log("Sad face.  Please try again later.");
+    console.log('Sad face.  Please try again later.');
     process.exit(1);
   }
 
