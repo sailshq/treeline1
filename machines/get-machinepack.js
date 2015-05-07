@@ -14,14 +14,14 @@ module.exports = {
 
     packId: {
       friendlyName: 'packId',
-      example: '/pets/18',
+      example: 'mikermcneil/export-test',
       description: '',
       required: true
     },
 
     authToken: {
       friendlyName: 'authToken',
-      example: 'abc123',
+      example: 'adh919ad9139348adfj19',
       description: ''
     },
 
@@ -103,7 +103,7 @@ module.exports = {
     success: {
       friendlyName: 'then',
       example: {
-        id: '12h3jkh2jk31m',
+        id: 'mikermcneil/export-test',
         friendlyName: 'Cool Pack',
         description: 'Do cool things',
         imageUrl: 'http://icon.com',

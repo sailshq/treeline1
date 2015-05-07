@@ -24,7 +24,7 @@ module.exports = {
     // ======================================
     id: {
       description: 'The id of the machinepack to link',
-      example: 'f83193a9-199a3ba910-eaf1-081059b31',
+      example: 'mikermcneil/export-test',
       extendedDescription: 'If omitted, the command-line user will be prompted to make a choice.'
     },
 

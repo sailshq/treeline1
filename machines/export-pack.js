@@ -12,7 +12,7 @@ module.exports = {
     username: {
       description: 'The username of the account that owns the machinepack to export',
       extendedDescription: 'If omitted, the command-line user\'s account will be used.',
-      example: 'mikermcneil/export-test'
+      example: 'mikermcneil'
     },
 
     id: {
