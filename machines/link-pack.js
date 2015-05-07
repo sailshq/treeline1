@@ -22,7 +22,7 @@ module.exports = {
 
     treelineApiUrl: {
       description: 'The base URL for the Treeline API (useful if you\'re in a country that can\'t use SSL, etc.)',
-      example: 'http://api.treeline.io'
+      example: 'https://api.treeline.io'
     }
 
   },
@@ -30,14 +30,14 @@ module.exports = {
   exits: {
 
     noMachinepacks: {
-      description: 'No machinepacks belong to the account associated with this computer.',
+      description: 'That user account doesn\'t have any accessible machinepacks.',
       example: {
         username: 'mikermcneil'
       }
     },
 
     forbidden: {
-      description: 'Username/password combo invalid or not machinepacklicable for the selected machinepack.'
+      description: 'Username/password combo invalid or not applicable for the selected machinepack.'
     },
 
     success: {
@@ -60,17 +60,8 @@ module.exports = {
     var Prompts = require('machinepack-prompts');
     var thisPack = require('../');
 
-    var machinepackToLink = {
-      id: inputs.id
-    };
 
     (function getMachinepackToLink(_doneGettingMachinepack){
-
-      // If identity was supplied, we don't need to show a prompt, but we will eventually
-      // need to fetch more information about the machinepack.  For now, we proceed.
-      if (machinepackToLink.id) {
-        return _doneGettingMachinepack.success();
-      }
 
       (function getSecret_loginIfNecessary(_doneGettingSecret){
         // Look up the account secret
@@ -114,6 +105,28 @@ module.exports = {
         },
         success: function (keychain) {
 
+          // If id was supplied, we don't need to list packs or
+          // show a prompt, but we do also still need to fetch more
+          // information about the machinepack.
+          if (inputs.id) {
+            thisPack.getMachinepack({
+              packId: inputs.id,
+              authToken: keychain.secret
+            }).exec({
+              error: exits.error,
+              success: function (pack){
+                return _doneGettingMachinepack.success({
+                  type: 'machinepack',
+                  id: pack.id,
+                  identity: pack.id,
+                  displayName: pack.friendlyName,
+                  owner: pack.owner
+                });
+              }
+            });
+            return;
+          }
+
           // Fetch list of machinepacks, then prompt user to choose one:
           thisPack.listPacks({
             secret: keychain.secret,
@@ -150,15 +163,18 @@ module.exports = {
                 },
                 // OK.
                 success: function(choice) {
-                  machinepackToLink.id = choice;
 
-                  var machinepackDataFromServer = (_.find(machinepacks, {
-                    id: machinepackToLink.id
-                  }) || machinepackToLink);
-                  machinepackToLink.displayName = machinepackDataFromServer.displayName || machinepackToLink.id;
-                  machinepackToLink.id = machinepackDataFromServer.id;
+                  var packDataFromServer = (_.find(machinepacks, {
+                    id: choice
+                  }));
 
-                  return _doneGettingMachinepack.success();
+                  return _doneGettingMachinepack.success({
+                    id: choice,
+                    identity: choice,
+                    type: 'machinepack',
+                    displayName: packDataFromServer.displayName || choice,
+                    owner: inputs.username||keychain.username
+                  });
 
                 },
               });
@@ -177,26 +193,14 @@ module.exports = {
       noMachinepacks: function (me){
         return exits.noMachinepacks(me);
       },
-      success: function (){
+      success: function (machinepackToLink){
 
-        // Get more info about the machinepack (i.e. the owner)
-        // TODO
-        var owner = '[PACK_OWNER]'; // e.g. 'mikermcneil';
-
-        var linkedPackData = {
-          id: machinepackToLink.id, // TODO: look this up when identity is provided manually w/o listing machinepacks
-          identity: machinepackToLink.id,
-          displayName: machinepackToLink.displayName, // TODO: look this up when identity is provided manually w/o listing machinepacks
-          type: 'machinepack',
-          owner: owner  // TODO: get this
-        };
-
-        thisPack.writeLinkfile(linkedPackData).exec({
+        thisPack.writeLinkfile(machinepackToLink).exec({
           error: function (err){
             return exits.error(err);
           },
           success: function (){
-            return exits.success(linkedPackData);
+            return exits.success(machinepackToLink);
           }
         });
 
