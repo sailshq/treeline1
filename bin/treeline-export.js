@@ -59,40 +59,24 @@ require('../standalone/build-script')({
       success: function (keychain){
 
         // Fetch list of machinepacks.
-        Http.sendHttpRequest({
-          method: 'get',
-          baseUrl: inputs.treelineApiUrl || process.env.TREELINE_API_URL || 'https://api.treeline.io',
-          url: '/api/v1/machine-packs/'+keychain.username,
-          headers: {
-           'x-auth': keychain.secret
-          }
+        thisPack.listPacks({
+          username: keychain.username,
+          secret: keychain.secret,
+          treelineApiUrl: inputs.treelineApiUrl
         }).exec({
-
-          notFound: function(err) {
-            return exits.error(err);
-          },
 
           // An unexpected error occurred.
           error: function(err) {
             return exits.error(err);
           },
 
-          success: function (httpResponse){
-
-            // Parse JSON response
-            var packs;
-            try {
-              packs = JSON.parse(httpResponse.body);
-            }
-            catch (e){
-              return exits.error(e);
-            }
+          success: function (packs){
 
             // Prompt user to choose the machinepack to export
             Prompts.select({
               choices: _.reduce(packs, function prepareChoicesForPrompt (memo, pack) {
                 memo.push({
-                  name: pack.friendlyName,
+                  name: pack.displayName,
                   value: pack.id
                 });
                 return memo;
@@ -162,7 +146,7 @@ require('../standalone/build-script')({
               }
             });// </Prompts.select>
           }
-        });// </Http.sendHttpRequest>
+        });// </thisPack.listPacks>
       }
     });
   }
