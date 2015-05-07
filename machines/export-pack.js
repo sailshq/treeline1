@@ -191,14 +191,16 @@ module.exports = {
                         return exits.error(err);
                       },
                       success: function (){
-                        async.each(_.where(packData, {isMain: false}), function(pack, cb) {
+                        async.each(_.where(packData, {isMain: false}), function(pack, next) {
                           thisPack.generateLocalDependency({
                             destination: destinationPath,
                             packData: pack,
                             force: inputs.force
-                          }).exec(cb);
+                          }).exec(next);
                         }, function(err) {
-                          if (err) {return exits.error(err);}
+                          if (err) {
+                            return exits.error(err);
+                          }
                           return exits.success(chosenPack.displayName);
                         });
                       }
