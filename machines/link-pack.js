@@ -109,7 +109,7 @@ module.exports = {
           // show a prompt, but we do also still need to fetch more
           // information about the machinepack.
           if (inputs.id) {
-            thisPack.fetchPack({
+            thisPack.fetchPackInfo({
               packId: inputs.id,
               secret: keychain.secret,
               treelineApiUrl: inputs.treelineApiUrl

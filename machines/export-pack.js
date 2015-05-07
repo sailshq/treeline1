@@ -78,7 +78,7 @@ module.exports = {
           // show a prompt, but we do also still need to fetch more
           // information about the machinepack.
           if (inputs.id) {
-            thisPack.fetchPack({
+            thisPack.fetchPackInfo({
               packId: inputs.id,
               secret: keychain.secret,
               treelineApiUrl: inputs.treelineApiUrl
@@ -172,12 +172,14 @@ module.exports = {
                 // Fetch metadata and machine code for the remote pack
                 thisPack.fetchPack({
                   secret: keychain.secret,
-                  packId: chosenPack.id
+                  packId: chosenPack.id,
+                  treelineApiUrl: inputs.treelineApiUrl
                 }).exec({
                   error: function (err){
                     return exits.error(err);
                   },
                   success: function (packData){
+
                     // Generate the pack folder and machines (as well as package.json and other files)
                     thisPack.generateLocalPack({
                       destination: destinationPath,
