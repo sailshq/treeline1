@@ -159,6 +159,11 @@ module.exports = {
             });
           },
           success: function (linkedProject){
+
+            if (linkedProject.type !== 'app') {
+              return next(new Error('The Treeline project in this directory is not an app.  Try `treeline preview machinepack`.'));
+            }
+
             // Spit out a message before doing the "npm install" steps
             console.log(chalk.grey("Ensuring dependencies are up to date..."));
             return next(null, linkedProject);

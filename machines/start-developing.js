@@ -60,6 +60,7 @@ module.exports = {
     // Link either an app or a machinepack
     switch (inputs.type) {
       case 'machinepack':
+      case 'mp':
       case 'pack':
       case 'p':
         // TODO:
