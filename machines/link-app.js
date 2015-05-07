@@ -3,13 +3,13 @@ module.exports = {
   friendlyName: 'Link app',
 
 
-  description: 'Link the current directory to an app or machinepack in Treeline.',
+  description: 'Link the current directory to an app in Treeline.',
 
 
   inputs: {
 
     identity: {
-      description: 'The identity (i.e. slug) of the machinepack or app to link',
+      description: 'The identity (i.e. slug) of the app to link',
       example: 'my-cool-app'
     },
 

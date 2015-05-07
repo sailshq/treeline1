@@ -91,7 +91,8 @@
       "fetch-pack",
       "generate-local-pack",
       "generate-local-dependency",
-      "start-developing"
+      "start-developing",
+      "link"
     ],
     "testsUrl": "https://travis-ci.org/treeline-io/treeline"
   },
