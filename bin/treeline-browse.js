@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 
-require('../standalone/build-script')({
+require('machine-as-script')({
 
 
   friendlyName: 'Browse on Treeline.io',
@@ -51,7 +51,7 @@ require('../standalone/build-script')({
   }
 
 
-}, {
+}).exec({
 
   success: function(url) {
     console.log('Opening %s...',require('chalk').underline(url));

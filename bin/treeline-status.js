@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 
-require('../standalone/build-script')({
+require('machine-as-script')({
 
 
   friendlyName: 'treeline status',
@@ -78,7 +78,7 @@ require('../standalone/build-script')({
   }
 
 
-}, {
+}).exec({
 
   success: function (statusReport){
     var chalk = require('chalk');

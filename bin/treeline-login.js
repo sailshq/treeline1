@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 
-require('../standalone/build-script')( require('../machines/login'), {
+require('machine-as-script')( require('../machines/login')).exec({
 
   success: function (me){
     var chalk = require('chalk');

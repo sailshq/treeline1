@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
 
-require('../standalone/build-script')({
+require('machine-as-script')({
 
   args: ['username'],
 
   machine: require('../machines/export-pack')
 
-}, {
+}).exec({
 
   success: function (packName) {
     var chalk = require('chalk');

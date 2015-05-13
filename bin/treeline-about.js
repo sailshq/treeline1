@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-require('../standalone/build-script')({
+require('machine-as-script')({
   exits: {
     success: {
       example: '1.0.0'
@@ -10,7 +10,7 @@ require('../standalone/build-script')({
     var VERSION = require('../package.json').version;
     return exits.success(VERSION);
   }
-}, {
+}).exec({
   success: function (version){
     var chalk = require('chalk');
     var tree = require('../standalone/get-tree')({ version: version });

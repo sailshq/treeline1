@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 
-require('../standalone/build-script')({
+require('machine-as-script')({
 
 
   friendlyName: 'Who am I?',
@@ -45,7 +45,7 @@ require('../standalone/build-script')({
   }
 
 
-}, {
+}).exec({
 
   success: function (username) {
     var chalk = require('chalk');
