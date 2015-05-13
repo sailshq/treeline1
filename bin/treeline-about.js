@@ -13,9 +13,9 @@ require('machine-as-script')({
 }).exec({
   success: function (version){
     var chalk = require('chalk');
-    var tree = require('../standalone/get-tree')({ version: version });
+    var art = require('../standalone/get-art')({ version: version });
 
-    console.log(tree);
+    console.log(art);
     console.log(chalk.gray('(run `treeline help` for a full list of available commands)'));
     console.log();
 
