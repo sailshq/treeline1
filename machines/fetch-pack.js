@@ -1,10 +1,10 @@
 module.exports = {
 
 
-  friendlyName: 'Fetch machinepack',
+  friendlyName: 'Fetch machinepack (+deps)',
 
 
-  description: 'Fetch the specified machinepack metadata and code from Treeline.',
+  description: 'Fetch the specified machinepack and its dependencies from Treeline (metadata and code).',
 
 
   extendedDescription: '',
