@@ -151,7 +151,7 @@ module.exports = {
                 error: function (err){
                   return _xits.error(err);
                 },
-                exists: function (){
+                success: function (){
                   if (!inputs.force) {
                     return _xits.alreadyExists(destinationPath);
                   }
@@ -196,7 +196,14 @@ module.exports = {
                             destination: destinationPath,
                             packData: pack,
                             force: inputs.force
-                          }).exec(next);
+                          }).exec({
+                            error: function (err){
+                              return next(err);
+                            },
+                            success: function (){
+                              next();
+                            }
+                          });
                         }, function(err) {
                           if (err) {
                             return exits.error(err);
