@@ -55,6 +55,7 @@ module.exports = {
 
     var util = require('util');
     var async = require('async');
+    var _ = require('lodash');
     var debug = require('debug')('treeline');
     var Urls = require('machinepack-urls');
     var thisPack = require('../');
@@ -66,10 +67,15 @@ module.exports = {
       // Make sure the treeline API is alive
       pingServer: function(next) {
         thisPack.pingServer({url: inputs.treelineApiUrl  || process.env.TREELINE_API_URL || 'https://api.treeline.io'}).exec({
+          error: function (err){
+            return next(err);
+          },
           success: function (){
             return next();
           },
-          noResponse: exits.requestFailed
+          noResponse: function (){
+            return next('requestFailed');
+          }
         });
       },
 
@@ -212,7 +218,10 @@ module.exports = {
 
     }, function (err) {
       if (err) {
-        if (err.exit === 'noApps'){
+        if (err === 'requestFailed'){
+          return exits.requestFailed(err);
+        }
+        if (_.isObject(err) && err.exit === 'noApps'){
           return exits.noApps(err.output);
         }
         return exits(err);
