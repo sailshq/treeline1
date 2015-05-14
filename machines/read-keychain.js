@@ -45,12 +45,13 @@ module.exports = {
     }
 
     var path = require('path');
+    var Paths = require('machinepack-paths');
     var Filesystem = require('machinepack-fs');
 
     // Read and parse JSON file located at source path on disk into usable data.
     Filesystem.readJson({
       // Allow the source to be overridden by an environment var
-      source: process.env.TREELINE_KEYCHAIN || path.resolve(Filesystem.getHomeDirpath().execSync(), '.treeline.secret.json'),
+      source: process.env.TREELINE_KEYCHAIN || path.resolve(Paths.home().execSync(), '.treeline.secret.json'),
       schema: {
         username: 'mikermcneil',
         secret: '29f559ae-3bec-4d0a-8458-1f4e32a72407'
