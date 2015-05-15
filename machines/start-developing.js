@@ -14,6 +14,12 @@ module.exports = {
       description: 'The type of Treeline project this is (app or machinepack)',
       example: 'machinepack',
       defaultsTo: 'app'
+    },
+
+    treelineApiUrl: {
+      description: 'The base URL for the Treeline API (useful if you\'re in a country that can\'t use SSL, etc.)',
+      example: 'http://api.treeline.io',
+      defaultsTo: 'https://api.treeline.io'
     }
 
   },
