@@ -31,7 +31,14 @@ module.exports = {
       description: 'Whether to force/overwrite files that already exist at the destination',
       example: true,
       defaultsTo: false
+    },
+
+    treelineApiUrl: {
+      description: 'The base URL for the Treeline API (useful if you\'re in a country that can\'t use SSL, etc.)',
+      example: 'http://api.treeline.io',
+      defaultsTo: 'https://api.treeline.io'
     }
+
   },
 
 

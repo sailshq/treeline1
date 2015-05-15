@@ -27,7 +27,8 @@ module.exports = {
 
     treelineApiUrl: {
       description: 'The base URL for the Treeline API (useful if you\'re in a country that can\'t use SSL, etc.)',
-      example: 'https://api.treeline.io'
+      example: 'http://api.treeline.io',
+      defaultsTo: 'https://api.treeline.io'
     }
 
   },
