@@ -29,10 +29,11 @@ module.exports = {
   fn: function (inputs, exits){
     var path = require('path');
     var Filesystem = require('machinepack-fs');
+    var Paths = require('machinepack-paths');
 
     // Read and parse JSON file located at source path on disk into usable data.
     Filesystem.rmrf({
-      dir: path.resolve(Filesystem.getHomeDirpath().execSync(), '.treeline.secret.json'),
+      dir: path.resolve(Paths.home().execSync(), '.treeline.secret.json'),
     }).exec(exits);
   }
 
