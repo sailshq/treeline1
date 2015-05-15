@@ -55,7 +55,7 @@
     "machinepack-npm": "3.1.1",
     "machinepack-paths": "^1.1.0",
     "machinepack-prompts": "0.4.0",
-    "machinepack-urls": "3.1.1",
+    "machinepack-urls": "^4.0.0",
     "machinepack-util": "0.8.5",
     "open": "0.0.5",
     "path-to-regexp": "1.0.3",
