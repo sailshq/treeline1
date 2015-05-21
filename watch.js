@@ -57,13 +57,16 @@ module.exports = function(sails) {
             sails.log.error("Treeline encountered an error trying to update your app:");
             sails.log.error(err);
             sails.log.error("If this problem persists, try quitting and restarting treeline.");
-          } else {
-           return reloadOrm(function(err) {
-              // Turn off maintenance mode
-              sails.config && (sails.config.maintenance = false);
-              return cb(err);
-           });
+            console.error('Error occurred updating app:',err);
+            return cb(err);
           }
+          return reloadOrm(function(err) {
+            // Turn off maintenance mode
+            if (sails.config) {
+              sails.config.maintenance = false;
+            }
+            return cb(err);
+          });
         });
       }
 
