@@ -146,8 +146,8 @@ module.exports = {
             return exits.error(err);
           },
           success: function (chosenPack){
-            // Determine destination path
-            var destinationPath = inputs.destination || path.resolve(chosenPack.displayName.toLowerCase());
+            // Determine destination path using the machinepack identity (if available) or its friendly name
+            var destinationPath = inputs.destination || path.resolve(chosenPack.identity.split('/').pop() || chosenPack.displayName.toLowerCase());
 
             (function checkForExisting(_xits){
               // Check to see whether a file/folder already exists in cwd
@@ -215,7 +215,7 @@ module.exports = {
                           if (err) {
                             return exits.error(err);
                           }
-                          return exits.success(chosenPack.displayName);
+                          return exits.success({name: chosenPack.displayName, path: destinationPath});
                         });
                       }
                     });// </thisPack.generateLocalPack>

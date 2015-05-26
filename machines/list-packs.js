@@ -55,6 +55,7 @@ module.exports = {
       description: 'Done.',
       example: [{
         id: 'my-cool-pack',
+        identity: 'sgress454/my-cool-pack',
         displayName: 'My Cool Machinepack'
       }]
     }
@@ -106,6 +107,7 @@ module.exports = {
             schema: [{
               id: 'somestring323g32',
               friendlyName: 'Some string',
+              identity: 'sgress454/some-great-pack',
               description: 'Some string like this'
             }]
           }).execSync();
@@ -114,7 +116,8 @@ module.exports = {
           machinepacks = _.map(machinepacks, function (pack){
             return {
               id: pack.id,
-              displayName: pack.friendlyName
+              displayName: pack.friendlyName,
+              identity: pack.identity
             };
           });
 

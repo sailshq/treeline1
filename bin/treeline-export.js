@@ -9,9 +9,9 @@ require('machine-as-script')({
 
 }).exec({
 
-  success: function (packName) {
+  success: function (result) {
     var chalk = require('chalk');
-    console.log('Exported '+chalk.cyan(packName)+ ' machinepack from Treeline to a local folder.');
+    console.log('Exported '+chalk.cyan(result.name)+ ' machinepack from Treeline to '+chalk.cyan(result.path));
   },
 
   notLoggedIn: function () {
