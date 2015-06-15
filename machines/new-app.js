@@ -40,6 +40,7 @@ module.exports = {
   fn: function (inputs,exits) {
 
     var path = require('path');
+    var Filesystem = require('machinepack-fs');
 
     // Get a reference to the Sails generator
     var sailsgen = require('../node_modules/sails/node_modules/sails-generate');
@@ -63,6 +64,9 @@ module.exports = {
         "dependencies": {
           "machine": "~4.0.4",
           "sails-hook-machines": "~1.0.11"
+        },
+        "scripts": {
+          "postinstall": "node postinstall.js"
         }
       },
       // Use the current working directory as the root path for generators
@@ -73,7 +77,40 @@ module.exports = {
       sailsRoot: path.resolve(__dirname, '../node_modules/sails')
     }, function (err){
       if (err) return exits.error(err);
-      return exits.success();
+
+      // Copy the postinstall script into the new project's files
+      Filesystem.read({
+        source: path.resolve(__dirname, '..', 'lib', 'apiPostInstallScript.js')
+      }).exec({
+        error: function (err) {
+          return exits.error(err);
+        },
+        doesNotEist: function () {
+          return exits.error();
+        },
+        success: function(js) {
+
+          var destination = path.resolve(dir, inputs.name);
+          var postInstallPath = path.resolve(destination, 'postinstall.js');
+
+          Filesystem.write({
+            destination: postInstallPath,
+            string: js,
+            force: inputs.force
+          }).exec({
+            error: function (err) {
+              return exits.error(err);
+            },
+            alreadyExists: function (){
+              return exits.alreadyExists(postInstallPath);
+            },
+            success: function() {
+              return exits.success();
+            }
+          });
+        }
+      });// </Filesystem.read>
+
     });
 
   },
