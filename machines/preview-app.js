@@ -180,6 +180,9 @@ module.exports = {
       // Make sure there's a package.json
       packageJson: ['link', ensurePackageJson],
 
+      // Make sure there is a postinstall script (this converts old projects to new projects)
+      ensurePostInstall: ['packageJson', ensurePostInstall],
+
       // Make sure dependencies are installed
       _installedDependencies: ['packageJson', ensureMachineDependencies],
 
@@ -256,6 +259,22 @@ module.exports = {
         name: results.link.identity,
         version: "0.0.0"
       }, cb);
+    }
+
+    function ensurePostInstall(cb, results) {
+      // Check for existing postinstall script
+      var dir = process.cwd();
+
+      thisPack.addPostinstallScript({
+        destination: dir
+      }).exec({
+        error: function(e) {
+          return cb(e);
+        },
+        success: function() {
+          return cb();
+        }
+      });
     }
 
     function ensureMachineDependencies (cb) {
