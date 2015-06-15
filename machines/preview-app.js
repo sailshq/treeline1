@@ -261,9 +261,12 @@ module.exports = {
     function ensureMachineDependencies (cb) {
       debug("Running npm install...");
       // Always "npm install", in case something got interrupted
-      exec("npm install", {cwd: process.cwd()}, function(err, stdout) {
-        debug(stdout);
-        cb(err);
+      exec("npm install machine", {cwd: process.cwd()}, function(err, stdout) {
+        if (err) {return cb(err);}
+        exec("npm install sails-hook-machines", {cwd: process.cwd()}, function(err, stdout) {
+          debug(stdout);
+          cb(err);
+        });
       });
     }
 
