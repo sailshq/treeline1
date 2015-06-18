@@ -23,7 +23,7 @@
 
 
 (function() {
-
+  var window;
   // Save the URL that this script was fetched from for use below.
   // (skip this if this SDK is being used outside of the DOM, i.e. in a Node process)
   var urlThisScriptWasFetchedFrom = (function() {
