@@ -45,7 +45,8 @@ module.exports = {
     },
 
     success: {
-      description: 'Done.'
+      description: 'Done.',
+      example: '==='
     },
 
   },
@@ -219,7 +220,7 @@ module.exports = {
         );
       }]
 
-    }, function (err) {
+    }, function (err, results) {
       if (err) {
         if (err === 'requestFailed'){
           return exits.requestFailed(err);
@@ -229,7 +230,7 @@ module.exports = {
         }
         return exits(err);
       }
-      return exits.success();
+      return exits.success(results._liftedApp);
     });
 
 
