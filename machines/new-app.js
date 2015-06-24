@@ -60,7 +60,7 @@ module.exports = {
       // add to the new project's package.json
       sailsPackageJSON: require(path.resolve(__dirname, '../node_modules/sails', "package.json")),
       // Start from a blank package.json for the new app
-      appPackageJSON: {
+      packageJson: {
         "dependencies": {
           "machine": "~4.0.4",
           "sails-hook-machines": "~1.0.11"
