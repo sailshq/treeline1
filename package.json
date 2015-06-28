@@ -100,7 +100,9 @@
       "export-pack",
       "fetch-pack-info",
       "add-postinstall-script",
-      "preview-pack"
+      "preview-pack",
+      "login-if-necessary",
+      "link-if-necessary"
     ],
     "testsUrl": "https://travis-ci.org/treeline-io/treeline"
   },

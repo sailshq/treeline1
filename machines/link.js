@@ -52,6 +52,13 @@ module.exports = {
       }
     },
 
+    noMachinepacks: {
+      description: 'That user account doesn\'t have any accessible machinepacks.',
+      example: {
+        username: 'mikermcneil'
+      }
+    },
+
     unknownType: {
       description: 'Unknown project type.  You can link an "app" or a "machinepack".'
     },
