@@ -71,7 +71,7 @@ if (matchedCommand){
 // $ treeline <alias>
 //
 // (i.e. check aliases, since wasn't matched by any overtly exposed commands)
-if (program.args[0] === 'start' || program.args[0] === 'lift') {
+if (program.args[0] === 'start' || program.args[0] === 'lift' || program.args[0] === 'develop') {
   return _alias('preview');
 }
 // ...
