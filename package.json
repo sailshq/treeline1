@@ -99,7 +99,8 @@
       "link-pack",
       "export-pack",
       "fetch-pack-info",
-      "add-postinstall-script"
+      "add-postinstall-script",
+      "preview-pack"
     ],
     "testsUrl": "https://travis-ci.org/treeline-io/treeline"
   },

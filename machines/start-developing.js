@@ -74,11 +74,7 @@ module.exports = {
       case 'mp':
       case 'pack':
       case 'p':
-        // TODO:
-        // Ability to start a synced development session for
-        // either an app OR a machinepack
-        console.log('Interactive pack preview not implemented yet.');
-        return exits.success();
+        return Machine.build(require('./preview-pack'))(inputs).exec(exits);
 
       case 'a':
       case 'ap':
