@@ -66,7 +66,7 @@ module.exports = {
 
   fn: function (inputs,exits) {
 
-    var Machine = require('machine');
+    var thisPack = require('../');
 
     // Link either an app or a machinepack
     switch (inputs.type) {
@@ -74,12 +74,12 @@ module.exports = {
       case 'mp':
       case 'pack':
       case 'p':
-        return Machine.build(require('./preview-pack'))(inputs).exec(exits);
+        return thisPack.previewPack(inputs).exec(exits);
 
       case 'a':
       case 'ap':
       case 'app':
-        return Machine.build(require('./preview-app'))(inputs).exec(exits);
+        return thisPack.previewApp(inputs).exec(exits);
 
       default:
         return exits.unknownType();

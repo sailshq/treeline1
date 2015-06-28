@@ -58,6 +58,7 @@ module.exports = {
   fn: function (inputs, exits){
 
     var thisPack = require('../');
+    var getSocketAndConnect = require('../standalone/sails-client');
 
     thisPack.loginIfNecessary({
       treelineApiUrl: inputs.treelineApiUrl
@@ -74,34 +75,55 @@ module.exports = {
               return exits.error('The Treeline project in this directory is not a machinepack.  Maybe try `treeline preview app` instead?');
             }
 
-            // Read local pack
-            // TODO
-
-            // Compute hash.
-            // TODO
-
-            // Send hash of local pack to treeline.io, requesting an update
-            // if anything has changed.
-            // TODO
-
-            // If treeline.io says something changed, apply the changelog
-            // it provides to our local pack on disk.
-            // TODO
-
             // Lift the `scribe` utility as a sails server running on a local port.
             // (this port should be configurable)
             // TODO
 
-            // Now we'll start up a synchronized development session by
-            // listening for changes from Treeline.
+            // Read local pack and compute hash.
             // TODO
-            var alarm = setInterval(function onChange(){
-              // If treeline.io says something changed, apply the changelog
-              // it provides to our local pack on disk.
+
+            // Now we'll start up a synchronized development session by
+            // listening for changes from Treeline by first connecting a socket,
+            // then sending a GET request to subscribe to this particular pack.
+            // With that request, send hash of local pack to treeline.io, requesting
+            // an update if anything has changed (note that this will also subscribe
+            // our socket to future changes)
+            // TODO
+            var socket = getSocketAndConnect('https://api.treeline.io');
+            socket.request({
+              method: 'get',
+              url: '/api/v1/machine-packs/rachaelshaw',
+              headers: { 'x-profile': 'rachaelshaw' },
+              params: {}
+            }, function serverResponded (body, JWR) {
+              // console.log('Sails responded with: ', body); console.log('with headers: ', JWR.headers); console.log('and with status code: ', JWR.statusCode);
+              // console.log('JWR.error???',JWR.error);
+              if (JWR.error) {
+                return exits.error(JWR.error);
+              }
+
+              // If treeline.io says something changed, immediately apply the changelog
+              // it provides to our local pack on disk
               // TODO
 
               // Send a request to `scribe` telling it to flush its require cache
               // and pick up the new machinepack files.
+              // TODO
+
+              var errMsg = '';
+              errMsg += '\n';
+              errMsg += 'Sorry-- interactive pack preview is not implemented yet.';
+              errMsg += '\n';
+              errMsg +=  'But we\'re working on it!  If you\'re curious, keep an eye on the repo for updates:';
+              errMsg += '\n';
+              errMsg += 'http://github.com/treelinehq/treeline';
+              return exits.error(errMsg);
+              // return exits.success();
+            });
+
+            // If treeline.io says something changed, apply the changelog
+            // it provides to our local pack on disk.
+            socket.on('pack:changed', function (msg){
               // TODO
             });
 
@@ -110,16 +132,9 @@ module.exports = {
             //  • stop listening for changes
             //  • kill the local server running `scribe`
             // TODO
-            clearInterval(alarm);
+            // (the socket part of this is handled automatically, but just for posterity,
+            // here's how we WOULD handle it: `socket.disconnect()`)
 
-            var errMsg = '';
-            errMsg += '\n';
-            errMsg += 'Sorry-- interactive pack preview is not implemented yet.';
-            errMsg += '\n';
-            errMsg +=  'But we\'re working on it!  If you\'re curious, keep an eye on the repo for updates:';
-            errMsg += '\n';
-            errMsg += 'http://github.com/treelinehq/treeline';
-            return exits.error(errMsg);
           }
         });
       }
