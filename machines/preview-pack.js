@@ -57,13 +57,7 @@ module.exports = {
 
   fn: function (inputs, exits){
 
-    var util = require('util');
-    var _ = require('lodash');
-    var debug = require('debug')('treeline');
-    var Urls = require('machinepack-urls');
     var thisPack = require('../');
-    var npm = require('machinepack-npm');
-
 
     thisPack.loginIfNecessary({
       treelineApiUrl: inputs.treelineApiUrl
