@@ -74,9 +74,42 @@ module.exports = {
               return exits.error('The Treeline project in this directory is not a machinepack.  Maybe try `treeline preview app` instead?');
             }
 
-            // TODO:
-            // Ability to start a synced development session for
-            // either an app OR a machinepack
+            // Read local pack
+            // TODO
+
+            // Compute hash.
+            // TODO
+
+            // Send hash of local pack to treeline.io, requesting an update
+            // if anything has changed.
+            // TODO
+
+            // If treeline.io says something changed, apply the changelog
+            // it provides to our local pack on disk.
+            // TODO
+
+            // Lift the `scribe` utility as a sails server running on a local port.
+            // (this port should be configurable)
+            // TODO
+
+            // Now we'll start up a synchronized development session by
+            // listening for changes from Treeline.
+            // TODO
+            var alarm = setInterval(function onChange(){
+              // If treeline.io says something changed, apply the changelog
+              // it provides to our local pack on disk.
+              // TODO
+
+              // Send a request to `scribe` telling it to flush its require cache
+              // and pick up the new machinepack files.
+              // TODO
+            });
+
+            // If anything goes wrong, or the process halts, then stop
+            // listening for changes.
+            // TODO
+            clearInterval(alarm);
+
             var errMsg = '';
             errMsg += '\n';
             errMsg += 'Sorry-- interactive pack preview is not implemented yet.';
