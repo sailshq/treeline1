@@ -105,8 +105,9 @@ module.exports = {
               // TODO
             });
 
-            // If anything goes wrong, or the process halts, then stop
-            // listening for changes.
+            // If anything goes wrong, or the process halts, then:
+            //  • stop listening for changes
+            //  • kill the local server running `scribe`
             // TODO
             clearInterval(alarm);
 
