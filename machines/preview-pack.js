@@ -105,7 +105,8 @@ module.exports = {
               // TODO
             });
 
-            // If anything goes wrong, or the process halts, then:
+            // If anything goes wrong (e.g. the connection to treeline.io is broken)
+            // or the process is stopped manually w/ <CTRL+C>, then:
             //  • stop listening for changes
             //  • kill the local server running `scribe`
             // TODO
