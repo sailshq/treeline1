@@ -4,6 +4,15 @@
 require('machine-as-script')( {
   machine: require('../machines/start-developing'),
   args: ['type']
+}).configure({
+  onAuthenticated: function (){
+    var chalk = require('chalk');
+    console.log(chalk.gray('Authenticated successfully.'));
+  },
+  onConnected: function (){
+    var chalk = require('chalk');
+    console.log(chalk.gray('Now connected to Treeline mothership.'));
+  }
 }).exec({
 
   notLinked: function (){

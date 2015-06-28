@@ -16,6 +16,16 @@ module.exports = {
       defaultsTo: 'app'
     },
 
+    onAuthenticated: {
+      description: 'An optional notifier function that will be called when authentication is complete.',
+      example: '->'
+    },
+
+    onConnected: {
+      description: 'An optional notifier function that will be called when a connection is established with Treeline.io and this pack is being initially synchronized with the server.',
+      example: '->'
+    },
+
     treelineApiUrl: {
       description: 'The base URL for the Treeline API (useful if you\'re in a country that can\'t use SSL, etc.)',
       example: 'http://api.treeline.io',
