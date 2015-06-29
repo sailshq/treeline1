@@ -70,6 +70,8 @@ module.exports = {
     var thisPack = require('../');
     var getSocketAndConnect = require('../standalone/sails-client');
 
+
+
     thisPack.loginIfNecessary({
       treelineApiUrl: inputs.treelineApiUrl
     }).exec({
@@ -94,75 +96,85 @@ module.exports = {
             // (this port should be configurable)
             // TODO
 
-            // Read local pack and compute hash.
-            // TODO
+            // Read local pack and compute hash of the meaningful information.
+            LocalMachinepacks.getSignature({
+              dir: process.cwd()
+            }).exec({
+              error: exits.error,
+              success: function (packSignature) {
 
-            // Now we'll start up a synchronized development session by
-            // listening for changes from Treeline by first connecting a socket,
-            // then sending a GET request to subscribe to this particular pack.
-            // With that request, send hash of local pack to treeline.io, requesting
-            // an update if anything has changed (note that this will also subscribe
-            // our socket to future changes)
-            // TODO
-            getSocketAndConnect({
-              baseUrl: inputs.treelineApiUrl
-            }, function (err, socket) {
-              if (err) {
-                return exits.error(err);
+                // The hash string is:
+                // packSignature.hash
+
+                // Now we'll start up a synchronized development session by
+                // listening for changes from Treeline by first connecting a socket,
+                // then sending a GET request to subscribe to this particular pack.
+                // With that request, send hash of local pack to treeline.io, requesting
+                // an update if anything has changed (note that this will also subscribe
+                // our socket to future changes)
+                // TODO
+                getSocketAndConnect({
+                  baseUrl: inputs.treelineApiUrl
+                }, function (err, socket) {
+                  if (err) {
+                    return exits.error(err);
+                  }
+
+                  // Trigger optional notifier function.
+                  if (inputs.onConnected) {
+                    inputs.onConnected();
+                  }
+
+                  socket.request({
+                    method: 'get',
+                    url: '/api/v1/machine-packs/rachaelshaw',
+                    headers: { 'x-profile': 'rachaelshaw' },
+                    params: {}
+                  }, function serverResponded (body, JWR) {
+                    // console.log('Sails responded with: ', body); console.log('with headers: ', JWR.headers); console.log('and with status code: ', JWR.statusCode);
+                    // console.log('JWR.error???',JWR.error);
+                    if (JWR.error) {
+                      return exits.error(JWR.error);
+                    }
+
+                    // If treeline.io says something changed, immediately apply the changelog
+                    // it provides to our local pack on disk
+                    // TODO
+
+                    // Send a request to `scribe` telling it to flush its require cache
+                    // and pick up the new machinepack files.
+                    // TODO
+
+                    var errMsg = '';
+                    errMsg += '\n';
+                    errMsg += 'Sorry-- interactive pack preview is not implemented yet.';
+                    errMsg += '\n';
+                    errMsg +=  'But we\'re working on it!  If you\'re curious, keep an eye on the repo for updates:';
+                    errMsg += '\n';
+                    errMsg += 'http://github.com/treelinehq/treeline';
+                    return exits.error(errMsg);
+                  });
+
+                  // If treeline.io says something changed, apply the changelog
+                  // it provides to our local pack on disk.
+                  socket.on('pack:changed', function (msg){
+                    // TODO
+                  });
+
+                  // If anything goes wrong (e.g. the connection to treeline.io is broken)
+                  // or the process is stopped manually w/ <CTRL+C>, then:
+                  //  • stop listening for changes
+                  //  • kill the local server running `scribe`
+                  // TODO
+                  socket.on('disconnect', function() {
+                    console.error();
+                    console.error('Whoops, looks like you\'ve lost connection to the internet.  Would you check your connection and try again?  While unlikely, it is also possible that the Treeline mothership went offline (i.e. our servers are down.)  If you\'re having trouble reconnecting and think that might be the case, please send us a note at support@treeline.io.  Thanks!');
+                    console.error('Attempting to reconnect...   (press <CTRL+C> to quit)');
+                  });
+                });
               }
-
-              // Trigger optional notifier function.
-              if (inputs.onConnected) {
-                inputs.onConnected();
-              }
-
-              socket.request({
-                method: 'get',
-                url: '/api/v1/machine-packs/rachaelshaw',
-                headers: { 'x-profile': 'rachaelshaw' },
-                params: {}
-              }, function serverResponded (body, JWR) {
-                // console.log('Sails responded with: ', body); console.log('with headers: ', JWR.headers); console.log('and with status code: ', JWR.statusCode);
-                // console.log('JWR.error???',JWR.error);
-                if (JWR.error) {
-                  return exits.error(JWR.error);
-                }
-
-                // If treeline.io says something changed, immediately apply the changelog
-                // it provides to our local pack on disk
-                // TODO
-
-                // Send a request to `scribe` telling it to flush its require cache
-                // and pick up the new machinepack files.
-                // TODO
-
-                var errMsg = '';
-                errMsg += '\n';
-                errMsg += 'Sorry-- interactive pack preview is not implemented yet.';
-                errMsg += '\n';
-                errMsg +=  'But we\'re working on it!  If you\'re curious, keep an eye on the repo for updates:';
-                errMsg += '\n';
-                errMsg += 'http://github.com/treelinehq/treeline';
-                return exits.error(errMsg);
-              });
-
-              // If treeline.io says something changed, apply the changelog
-              // it provides to our local pack on disk.
-              socket.on('pack:changed', function (msg){
-                // TODO
-              });
-
-              // If anything goes wrong (e.g. the connection to treeline.io is broken)
-              // or the process is stopped manually w/ <CTRL+C>, then:
-              //  • stop listening for changes
-              //  • kill the local server running `scribe`
-              // TODO
-              socket.on('disconnect', function() {
-                console.error();
-                console.error('Whoops, looks like you\'ve lost connection to the internet.  Would you check your connection and try again?  While unlikely, it is also possible that the Treeline mothership went offline (i.e. our servers are down.)  If you\'re having trouble reconnecting and think that might be the case, please send us a note at support@treeline.io.  Thanks!');
-                console.error('Attempting to reconnect...   (press <CTRL+C> to quit)');
-              });
             });
+
 
           }
         });
