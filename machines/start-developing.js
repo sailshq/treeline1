@@ -26,6 +26,32 @@ module.exports = {
       example: '->'
     },
 
+    onSyncError: {
+      description: 'An optional notifier function that will be called when Treeline attempts to sync remote changes to the local pack, but it fails.',
+      example: '->'
+    },
+
+    onSyncSuccess: {
+      description: 'An optional notifier function that will be called when Treeline attempts to sync remote changes to the local pack and it works.',
+      example: '->'
+    },
+
+    onSocketDisconnect: {
+      description: 'An optional notifier function that will be called if/when the remote connection with http://treeline.io is lost (and as the local Treeline client attempts to reconnect).',
+      example: '->'
+    },
+
+    onFlushError: {
+      description: 'An optional notifier function that will be called if/when the router of the locally-running app cannot be flushed.',
+      example: '->'
+    },
+
+    localPort: {
+      description: 'The local port to run the preview server on (either a sails app or the `scribe` utility, depending on what is being previewed).  Defaults to 1492.',
+      example: 1492,
+      defaultsTo: 1492
+    },
+
     treelineApiUrl: {
       description: 'The base URL for the Treeline API (useful if you\'re in a country that can\'t use SSL, etc.)',
       example: 'http://api.treeline.io',

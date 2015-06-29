@@ -106,7 +106,9 @@
       "link-if-necessary",
       "start-developing-pack",
       "start-developing-app",
-      "normalize-type"
+      "normalize-type",
+      "sync-remote-changes",
+      "apply-pack-changelog"
     ],
     "testsUrl": "https://travis-ci.org/treeline-io/treeline"
   },

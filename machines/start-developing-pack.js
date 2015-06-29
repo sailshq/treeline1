@@ -14,12 +14,44 @@ module.exports = {
 
     onAuthenticated: {
       description: 'An optional notifier function that will be called when authentication is complete.',
-      example: '->'
+      example: '->',
+      defaultsTo: function (){}
     },
 
     onConnected: {
       description: 'An optional notifier function that will be called when a connection is established with Treeline.io and this pack is being initially synchronized with the server.',
-      example: '->'
+      example: '->',
+      defaultsTo: function (){}
+    },
+
+    onSyncError: {
+      description: 'An optional notifier function that will be called when Treeline attempts to sync remote changes to the local pack, but it fails.',
+      example: '->',
+      defaultsTo: function (){}
+    },
+
+    onSyncSuccess: {
+      description: 'An optional notifier function that will be called when Treeline attempts to sync remote changes to the local pack and it works.',
+      example: '->',
+      defaultsTo: function (){}
+    },
+
+    onSocketDisconnect: {
+      description: 'An optional notifier function that will be called if/when the remote connection with http://treeline.io is lost (and as the local Treeline client attempts to reconnect).',
+      example: '->',
+      defaultsTo: function (){}
+    },
+
+    onFlushError: {
+      description: 'An optional notifier function that will be called if/when the router of the locally-running app cannot be flushed.',
+      example: '->',
+      defaultsTo: function (){}
+    },
+
+    localPort: {
+      description: 'The local port to run the `scribe` utility on.  Defaults to 1492.',
+      example: 1492,
+      defaultsTo: 1492
     },
 
     treelineApiUrl: {
@@ -58,8 +90,7 @@ module.exports = {
     },
 
     success: {
-      description: 'Done.',
-      example: '==='
+      description: 'The success exit should never be triggered.'
     },
 
   },
@@ -67,10 +98,20 @@ module.exports = {
 
   fn: function (inputs, exits){
 
+    var _ = require('lodash');
+    var Http = require('machinepack-http');
     var thisPack = require('../');
     var getSocketAndConnect = require('../standalone/sails-client');
 
 
+    // var errMsg = '';
+    // errMsg += '\n';
+    // errMsg += 'Sorry-- interactive pack preview is not implemented yet.';
+    // errMsg += '\n';
+    // errMsg +=  'But we\'re working on it!  If you\'re curious, keep an eye on the repo for updates:';
+    // errMsg += '\n';
+    // errMsg += 'http://github.com/treelinehq/treeline';
+    // return exits.error(errMsg);
 
     thisPack.loginIfNecessary({
       treelineApiUrl: inputs.treelineApiUrl
@@ -88,9 +129,7 @@ module.exports = {
             }
 
             // Trigger optional notifier function.
-            if (inputs.onAuthenticated) {
-              inputs.onAuthenticated();
-            }
+            inputs.onAuthenticated();
 
             // Lift the `scribe` utility as a sails server running on a local port.
             // (this port should be configurable)
@@ -117,9 +156,7 @@ module.exports = {
                   }
 
                   // Trigger optional notifier function.
-                  if (inputs.onConnected) {
-                    inputs.onConnected();
-                  }
+                  inputs.onConnected();
 
                   socket.request({
                     method: 'get',
@@ -135,38 +172,65 @@ module.exports = {
                     // console.log('Sails responded with: ', body); console.log('with headers: ', JWR.headers); console.log('and with status code: ', JWR.statusCode);
                     // console.log('JWR.error???',JWR.error);
                     if (JWR.error) {
+                      // If initial pack subscription fails, kill the scribe server
+                      // and stop listening to changes
                       return exits.error(JWR.error);
                     }
 
+                    // Now subscribed.
+
                     // If treeline.io responded with a changelog, that means something
                     // changed, so immediately apply it to our local pack on disk.
-                    // TODO
+                    if (_.isArray(body)) {
+                      thisPack.syncRemoteChanges({
+                        type: 'machinepack',
+                        changelog: body,
+                        onSyncSuccess: inputs.onSyncSuccess,
+                        localPort: inputs.localPort
+                      }).exec({
+                        // If applying a pack changelog to the local machinepack
+                        // fails, then trigger the `onSyncError` notifier function.
+                        error: function (err){
+                          inputs.onSyncError(err);
+                        },
+                        // If reloading the pack in scribe fails, then trigger the
+                        // `onFlushError` notifier function.
+                        couldNotFlush: function (err){
+                          inputs.onFlushError(err);
+                        },
+                        success: function (){ /* everything is hunky dory */ },
+                      });
+                    }
 
-                    // Send a request to `scribe` telling it to flush its require cache
-                    // and pick up the new machinepack files.
-                    // TODO
-
-                    var errMsg = '';
-                    errMsg += '\n';
-                    errMsg += 'Sorry-- interactive pack preview is not implemented yet.';
-                    errMsg += '\n';
-                    errMsg +=  'But we\'re working on it!  If you\'re curious, keep an eye on the repo for updates:';
-                    errMsg += '\n';
-                    errMsg += 'http://github.com/treelinehq/treeline';
-                    return exits.error(errMsg);
                   });
 
                   // If treeline.io says something changed, apply the changelog
                   // it provides to our local pack on disk.
                   socket.on('pack:changed', function (msg){
-                    // TODO
+
+                    thisPack.syncRemoteChanges({
+                      type: 'machinepack',
+                      changelog: msg.changelog,
+                      onSyncSuccess: inputs.onSyncSuccess,
+                      localPort: inputs.localPort
+                    }).exec({
+                      // If applying a pack changelog to the local machinepack
+                      // fails, then trigger the `onSyncError` notifier function.
+                      error: function (err){
+                        inputs.onSyncError(err);
+                      },
+                      // If reloading the pack in scribe fails, then trigger the
+                      // `onFlushError` notifier function.
+                      couldNotFlush: function (err){
+                        inputs.onFlushError(err);
+                      },
+                      success: function (){ /* everything is hunky dory */ },
+                    });
                   });
 
-                  // Log a message if the connection to treeline.io is broken
+                  // Trigger `onSocketDisconnect` if the connection to treeline.io is broken
                   socket.on('disconnect', function() {
-                    console.error();
-                    console.error('Whoops, looks like you\'ve lost connection to the internet.  Would you check your connection and try again?  While unlikely, it is also possible that the Treeline mothership went offline (i.e. our servers are down.)  If you\'re having trouble reconnecting and think that might be the case, please send us a note at support@treeline.io.  Thanks!');
-                    console.error('Attempting to reconnect...   (press <CTRL+C> to quit)');
+                    inputs.onSocketDisconnect();
                   });
 
                   // If anything goes horribly wrong or the process is stopped manually w/ <CTRL+C>,
