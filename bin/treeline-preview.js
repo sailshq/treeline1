@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-
 require('machine-as-script')( {
   machine: require('../machines/start-developing'),
   args: ['type']
@@ -55,9 +54,11 @@ require('machine-as-script')( {
   },
 
   error: function(err) {
+    var _ = require('lodash');
     var chalk = require('chalk');
-    console.log(chalk.red('An error occurred while communicating with the Treeline mothership: '), err);
-    console.log('Sad face.  Please try again later.');
+    console.error(chalk.red('An error occurred while communicating with the Treeline mothership: '));
+    console.error(_.isError(err)?err.stack:err);
+    console.error('Sad face.  Please try again later.');
     process.exit(1);
   }
 

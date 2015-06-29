@@ -99,7 +99,7 @@ module.exports = {
   fn: function (inputs, exits){
 
     var _ = require('lodash');
-    // var Scribe = require('scribe');
+    var Scribe = require('test-scribe');
     var Http = require('machinepack-http');
     var LocalMachinepacks = require('machinepack-localmachinepacks');
     var thisPack = require('../');
@@ -143,18 +143,17 @@ module.exports = {
 
             // Lift the `scribe` utility as a sails server running on
             // a configurable local port.
-            // TODO
-            // Scribe({
-            //   pathToPack: pathToPack,
-            //   port: inputs.localPort
-            // }, function (err, localScribeApp) {
-            //   if (err) {
-            //     // Failed to start scribe.
-            //     return exits(err);
-            //   }
-            //   // TODO: use async.auto() or something to run this in parallel
-            //   // while hashes are being computed.
-            // });
+            Scribe({
+              pathToPack: pathToPack,
+              port: inputs.localPort
+            }, function (err, localScribeApp) {
+              if (err) {
+                // Failed to start scribe.
+                return exits(err);
+              }
+              // TODO: use async.auto() or something to run this in parallel
+              // while hashes are being computed.
+            });
 
             // Read local pack and compute hash of the meaningful information.
             LocalMachinepacks.getSignature({
