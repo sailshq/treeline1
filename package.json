@@ -55,6 +55,7 @@
     "machinepack-machines": "^3.1.0",
     "machinepack-npm": "3.1.1",
     "machinepack-paths": "^1.1.0",
+    "machinepack-process": "^1.3.0",
     "machinepack-prompts": "0.4.0",
     "machinepack-urls": "^4.0.0",
     "machinepack-util": "0.8.5",
