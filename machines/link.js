@@ -81,25 +81,26 @@ module.exports = {
   },
 
 
-  fn: function (inputs, exits){
+  fn: function (inputs, exits) {
+    var thisPack = require('../');
 
-    var Machine = require('machine');
-
-    // Link either an app or a machinepack
-    switch (inputs.type) {
-      case 'machinepack':
-      case 'pack':
-      case 'p':
-        return Machine.build(require('./link-pack'))(inputs).exec(exits);
-
-      case 'a':
-      case 'ap':
-      case 'app':
-        return Machine.build(require('./link-app'))(inputs).exec(exits);
-
-      default:
-        return exits.unknownType();
-    }
+    // If `inputs.type` was provided, use it.
+    // Otherwise, sniff around for the package.json file and figure out
+    // what kind of project this is.
+    thisPack.normalizeType({
+      type: inputs.type
+    }).exec({
+      error: exits.error,
+      success: function (type) {
+        // Link either an app or a machinepack
+        if (type === 'app') {
+          return thisPack.linkApp(inputs).exec(exits);
+        }
+        else {
+          return thisPack.linkPack(inputs).exec(exits);
+        }
+      }
+    });
 
   }
 

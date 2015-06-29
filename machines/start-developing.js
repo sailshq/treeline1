@@ -83,72 +83,27 @@ module.exports = {
 
   fn: function (inputs,exits) {
 
-    var path = require('path');
-    var Filesystem = require('machinepack-fs');
-    var IfThen = require('machinepack-ifthen');
     var thisPack = require('../');
-
 
     // If `inputs.type` was provided, use it.
     // Otherwise, sniff around for the package.json file and figure out
     // what kind of project this is.
-    IfThen.ifThenFinally({
-
-      bool: !inputs.type,
-
-      then: function (_i, _exits){
-        // Read and parse the package.json file.
-        Filesystem.readJson({
-          source: path.resolve(process.cwd(), 'package.json'),
-          schema: {
-            machinepack: {}
-          }
-        }).exec({
-          // An unexpected error occurred.  Could be no file exists at the
-          // provided `source` path.
-          error: _exits.error,
-          // OK.
-          success: function (packageJson){
-            // If we see a `machinepack.machines` array, we'll assume this must be
-            // a machinepack.
-            if (packageJson.machinepack.machines) {
-              inputs.type = 'machinepack';
-            }
-            // Otherwise... welp I guess it's an app.
-            else {
-              inputs.type = 'app';
-            }
-
-            return _exits.success();
-          },
-        });
-      }
-
+    thisPack.normalizeType({
+      type: inputs.type
     }).exec({
       error: exits.error,
-      success: function() {
-
-        // Link either an app or a machinepack
-        switch (inputs.type) {
-          case 'machinepack':
-          case 'mp':
-          case 'pack':
-          case 'p':
-            return thisPack.startDevelopingPack(inputs).exec(exits);
-
-          case 'a':
-          case 'ap':
-          case 'app':
-            return thisPack.startDevelopingApp(inputs).exec(exits);
-
-          default:
-            return exits.unknownType();
+      success: function (type) {
+        // Start interactive development session for either an app or a machinepack
+        if (type === 'app') {
+          return thisPack.startDevelopingApp(inputs).exec(exits);
         }
-      },
+        else {
+          return thisPack.startDevelopingPack(inputs).exec(exits);
+        }
+      }
     });
 
   },
-
 
 
 };

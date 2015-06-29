@@ -103,7 +103,8 @@
       "login-if-necessary",
       "link-if-necessary",
       "start-developing-pack",
-      "start-developing-app"
+      "start-developing-app",
+      "normalize-type"
     ],
     "testsUrl": "https://travis-ci.org/treeline-io/treeline"
   },
