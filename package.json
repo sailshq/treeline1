@@ -51,6 +51,7 @@
     "machine-as-script": "^1.0.1",
     "machinepack-fs": "^4.0.0",
     "machinepack-http": "^2.1.1",
+    "machinepack-ifthen": "^1.0.1",
     "machinepack-machines": "^3.1.0",
     "machinepack-npm": "3.1.1",
     "machinepack-paths": "^1.1.0",
@@ -85,7 +86,6 @@
       "list-apps",
       "login",
       "link-app",
-      "preview-app",
       "logout",
       "unlink",
       "new-app",
@@ -100,9 +100,10 @@
       "export-pack",
       "fetch-pack-info",
       "add-postinstall-script",
-      "preview-pack",
       "login-if-necessary",
-      "link-if-necessary"
+      "link-if-necessary",
+      "start-developing-pack",
+      "start-developing-app"
     ],
     "testsUrl": "https://travis-ci.org/treeline-io/treeline"
   },

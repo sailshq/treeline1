@@ -1,7 +1,7 @@
 module.exports = {
 
 
-  friendlyName: 'Preview pack',
+  friendlyName: 'Start interactive development session (machinepack)',
 
 
   description: 'Preview the machinepack in the current directory, streaming down updated code as changes are made on https://treeline.io.',

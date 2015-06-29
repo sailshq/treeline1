@@ -1,7 +1,7 @@
 module.exports = {
 
 
-  friendlyName: 'Preview app',
+  friendlyName: 'Start interactive development session (app)',
 
 
   description: 'Lift the app in the current directory, streaming down updated backend code if necessary.',
