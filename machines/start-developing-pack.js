@@ -221,16 +221,9 @@ module.exports = {
                             onSyncSuccess: inputs.onSyncSuccess,
                             localPort: inputs.localPort
                           }).exec({
-                            // If applying a pack changelog to the local machinepack
-                            // fails, then trigger the `onSyncError` notifier function.
-                            error: function (err){
-                              inputs.onSyncError(err);
-                            },
-                            // If reloading the pack in scribe fails, then trigger the
-                            // `onFlushError` notifier function.
-                            couldNotFlush: function (err){
-                              inputs.onFlushError(err);
-                            },
+                            // If the initial sync or flush in scribe fails, then
+                            // give up with an error msg.
+                            error: next,
                             success: function (){
                               // Initial sync complete
                               return next();
