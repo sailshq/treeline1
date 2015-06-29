@@ -84,7 +84,7 @@ module.exports = {
           error: exits.error,
           success: function (linkedProject) {
             if (linkedProject.type !== 'machinepack') {
-              return exits.error('The Treeline project in this directory is not a machinepack.  Maybe try `treeline preview app` instead?');
+              return exits.error('The project in this directory is not a machinepack.  Maybe try `treeline preview app` instead?');
             }
 
             // Trigger optional notifier function.
