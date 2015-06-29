@@ -103,16 +103,12 @@ module.exports = {
               error: exits.error,
               success: function (packSignature) {
 
-                // The hash string is:
-                // packSignature.hash
-
                 // Now we'll start up a synchronized development session by
                 // listening for changes from Treeline by first connecting a socket,
                 // then sending a GET request to subscribe to this particular pack.
                 // With that request, send hash of local pack to treeline.io, requesting
                 // an update if anything has changed (note that this will also subscribe
                 // our socket to future changes)
-                // TODO
                 getSocketAndConnect({
                   baseUrl: inputs.treelineApiUrl
                 }, function (err, socket) {
@@ -127,9 +123,13 @@ module.exports = {
 
                   socket.request({
                     method: 'get',
+                    // TODO: plug in the real URL and headers here
                     url: '/api/v1/machine-packs/rachaelshaw',
                     headers: { 'x-profile': 'rachaelshaw' },
-                    params: {}
+                    params: {
+                      // Send the hash string
+                      hash: packSignature.hash
+                    }
                   }, function serverResponded (body, JWR) {
                     // console.log('Sails responded with: ', body); console.log('with headers: ', JWR.headers); console.log('and with status code: ', JWR.statusCode);
                     // console.log('JWR.error???',JWR.error);
@@ -137,8 +137,8 @@ module.exports = {
                       return exits.error(JWR.error);
                     }
 
-                    // If treeline.io says something changed, immediately apply the changelog
-                    // it provides to our local pack on disk
+                    // If treeline.io responded with a changelog, that means something
+                    // changed, so immediately apply it to our local pack on disk.
                     // TODO
 
                     // Send a request to `scribe` telling it to flush its require cache
