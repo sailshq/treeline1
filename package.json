@@ -52,7 +52,7 @@
     "machinepack-fs": "^4.0.0",
     "machinepack-http": "^2.1.1",
     "machinepack-ifthen": "^1.0.1",
-    "machinepack-localmachinepacks": "^1.2.0",
+    "machinepack-localmachinepacks": "^1.2.1",
     "machinepack-machines": "^3.1.0",
     "machinepack-npm": "3.1.1",
     "machinepack-paths": "^1.1.0",

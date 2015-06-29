@@ -127,8 +127,9 @@ module.exports = {
                     url: '/api/v1/machine-packs/rachaelshaw',
                     headers: { 'x-profile': 'rachaelshaw' },
                     params: {
-                      // Send the hash string
-                      hash: packSignature.hash
+                      // Send the hash strings
+                      packHash: packSignature.packHash,
+                      machineHashes: packSignature.machineHashes
                     }
                   }, function serverResponded (body, JWR) {
                     // console.log('Sails responded with: ', body); console.log('with headers: ', JWR.headers); console.log('and with status code: ', JWR.statusCode);
