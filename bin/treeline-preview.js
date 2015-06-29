@@ -21,7 +21,13 @@ require('machine-as-script')( {
   },
   onSyncSuccess: function (){
     var chalk = require('chalk');
-    console.log(chalk.cyan('Successfully synchronized local project with updated logic from http://treeline.io.'));
+    console.log(chalk.gray('Successfully synchronized local project with updated logic from http://treeline.io.'));
+  },
+  onPreviewServerLifted: function (url){
+    var chalk = require('chalk');
+    console.log('Preview server is now running at:');
+    console.log(chalk.blue(chalk.underline(url)));
+    console.log(chalk.gray('(press <CTRL+C> to quit at any time)'));
   },
   onSocketDisconnect: function (){
     console.error();

@@ -7,7 +7,7 @@ module.exports = {
   description: 'Preview the machinepack in the current directory, streaming down updated code as changes are made on https://treeline.io.',
 
 
-  extendedDescription: 'Note that this will run the `scribe` tool as a local server (http://localhost:1492).',
+  extendedDescription: 'Note that this will run the `scribe` tool as a local server (http://localhost:1337).',
 
 
   inputs: {
@@ -36,6 +36,12 @@ module.exports = {
       defaultsTo: function (){}
     },
 
+    onPreviewServerLifted: {
+      description: 'An optional notifier function that will be called when the preview server has successfully lifted and can be safely accessed.',
+      example: '->',
+      defaultsTo: function (){}
+    },
+
     onSocketDisconnect: {
       description: 'An optional notifier function that will be called if/when the remote connection with http://treeline.io is lost (and as the local Treeline client attempts to reconnect).',
       example: '->',
@@ -49,9 +55,9 @@ module.exports = {
     },
 
     localPort: {
-      description: 'The local port to run the `scribe` utility on.  Defaults to 1492.',
-      example: 1492,
-      defaultsTo: 1492
+      description: 'The local port to run the `scribe` utility on.  Defaults to 1337.',
+      example: 1337,
+      defaultsTo: 1337
     },
 
     treelineApiUrl: {
@@ -98,6 +104,7 @@ module.exports = {
 
   fn: function (inputs, exits){
 
+    var async = require('async');
     var _ = require('lodash');
     var Scribe = require('test-scribe');
     var Http = require('machinepack-http');
@@ -141,131 +148,149 @@ module.exports = {
             // Trigger optional notifier function.
             inputs.onAuthenticated();
 
-            // Lift the `scribe` utility as a sails server running on
-            // a configurable local port.
-            Scribe({
-              pathToPack: pathToPack,
-              port: inputs.localPort
-            }, function (err, localScribeApp) {
+            // Now simultaneously:
+            //  • lift the preview server
+            //  • synchronize local pack files w/ http://treeline.io
+            async.parallel([
+              function(next){
+                // Lift the `scribe` utility as a sails server running on
+                // a configurable local port.
+                Scribe({
+                  pathToPack: pathToPack,
+                  port: inputs.localPort
+                }, function (err, localScribeApp) {
+                  if (err) {
+                    // Failed to start scribe.
+                    return next(err);
+                  }
+                  return next();
+                });
+              },
+              function(next){
+
+                // Read local pack and compute hash of the meaningful information.
+                LocalMachinepacks.getSignature({
+                  dir: pathToPack
+                }).exec({
+                  error: next,
+                  success: function (packSignature) {
+
+                    // Now we'll start up a synchronized development session by
+                    // listening for changes from Treeline by first connecting a socket,
+                    // then sending a GET request to subscribe to this particular pack.
+                    // With that request, send hash of local pack to treeline.io, requesting
+                    // an update if anything has changed (note that this will also subscribe
+                    // our socket to future changes)
+                    getSocketAndConnect({
+                      baseUrl: inputs.treelineApiUrl
+                    }, function (err, socket) {
+                      if (err) {
+                        return next(err);
+                      }
+
+                      // Trigger optional notifier function.
+                      inputs.onConnected();
+
+                      socket.request({
+                        method: 'get',
+                        // TODO: plug in the real URL and headers here
+                        url: '/api/v1/machine-packs/rachaelshaw',
+                        headers: { 'x-profile': 'rachaelshaw' },
+                        params: {
+                          // Send the hash strings
+                          packHash: packSignature.packHash,
+                          machineHashes: packSignature.machineHashes
+                        }
+                      }, function serverResponded (body, JWR) {
+                        // console.log('Sails responded with: ', body); console.log('with headers: ', JWR.headers); console.log('and with status code: ', JWR.statusCode);
+                        // console.log('JWR.error???',JWR.error);
+                        if (JWR.error) {
+                          // If initial pack subscription fails, kill the scribe server
+                          // and stop listening to changes
+                          return next(JWR.error);
+                        }
+
+                        // Now subscribed.
+
+                        // If treeline.io responded with a changelog, that means something
+                        // changed, so immediately apply it to our local pack on disk.
+                        if (_.isArray(body)) {
+                          thisPack.syncRemoteChanges({
+                            type: 'machinepack',
+                            changelog: body,
+                            onSyncSuccess: inputs.onSyncSuccess,
+                            localPort: inputs.localPort
+                          }).exec({
+                            // If applying a pack changelog to the local machinepack
+                            // fails, then trigger the `onSyncError` notifier function.
+                            error: function (err){
+                              inputs.onSyncError(err);
+                            },
+                            // If reloading the pack in scribe fails, then trigger the
+                            // `onFlushError` notifier function.
+                            couldNotFlush: function (err){
+                              inputs.onFlushError(err);
+                            },
+                            success: function (){
+                              // Initial sync complete
+                              return next();
+                            },
+                          });
+                        }
+
+                      });
+
+                      // If treeline.io says something changed, apply the changelog
+                      // it provides to our local pack on disk.
+                      socket.on('pack:changed', function (msg){
+
+                        thisPack.syncRemoteChanges({
+                          type: 'machinepack',
+                          changelog: msg.changelog,
+                          onSyncSuccess: inputs.onSyncSuccess,
+                          localPort: inputs.localPort
+                        }).exec({
+                          // If applying a pack changelog to the local machinepack
+                          // fails, then trigger the `onSyncError` notifier function.
+                          error: function (err){
+                            inputs.onSyncError(err);
+                          },
+                          // If reloading the pack in scribe fails, then trigger the
+                          // `onFlushError` notifier function.
+                          couldNotFlush: function (err){
+                            inputs.onFlushError(err);
+                          },
+                          success: function (){ /* everything is hunky dory */ },
+                        });
+                      });
+
+                      // Trigger `onSocketDisconnect` if the connection to treeline.io is broken
+                      socket.on('disconnect', function() {
+                        inputs.onSocketDisconnect();
+                      });
+
+                      // If anything goes horribly wrong or the process is stopped manually w/ <CTRL+C>,
+                      // then ensure we:
+                      //  • stop listening for changes
+                      //  • kill the local server running `scribe`
+                      //
+                      // TODO
+                      // (this is happening already in almost every case thanks to the `process.exit(1)`
+                      //  we're calling in `bin/treeline-preview`. But we should make doubly sure.)
+
+                    });
+                  }
+                });
+              },
+            ], function afterwards(err) {
               if (err) {
-                // Failed to start scribe.
                 return exits(err);
               }
-              // TODO: use async.auto() or something to run this in parallel
-              // while hashes are being computed.
+
+              // Trigger optional notifier function.
+              inputs.onPreviewServerLifted('http://localhost:'+inputs.localPort);
+
             });
-
-            // Read local pack and compute hash of the meaningful information.
-            LocalMachinepacks.getSignature({
-              dir: pathToPack
-            }).exec({
-              error: exits.error,
-              success: function (packSignature) {
-
-                // Now we'll start up a synchronized development session by
-                // listening for changes from Treeline by first connecting a socket,
-                // then sending a GET request to subscribe to this particular pack.
-                // With that request, send hash of local pack to treeline.io, requesting
-                // an update if anything has changed (note that this will also subscribe
-                // our socket to future changes)
-                getSocketAndConnect({
-                  baseUrl: inputs.treelineApiUrl
-                }, function (err, socket) {
-                  if (err) {
-                    return exits.error(err);
-                  }
-
-                  // Trigger optional notifier function.
-                  inputs.onConnected();
-
-                  socket.request({
-                    method: 'get',
-                    // TODO: plug in the real URL and headers here
-                    url: '/api/v1/machine-packs/rachaelshaw',
-                    headers: { 'x-profile': 'rachaelshaw' },
-                    params: {
-                      // Send the hash strings
-                      packHash: packSignature.packHash,
-                      machineHashes: packSignature.machineHashes
-                    }
-                  }, function serverResponded (body, JWR) {
-                    // console.log('Sails responded with: ', body); console.log('with headers: ', JWR.headers); console.log('and with status code: ', JWR.statusCode);
-                    // console.log('JWR.error???',JWR.error);
-                    if (JWR.error) {
-                      // If initial pack subscription fails, kill the scribe server
-                      // and stop listening to changes
-                      return exits.error(JWR.error);
-                    }
-
-                    // Now subscribed.
-
-                    // If treeline.io responded with a changelog, that means something
-                    // changed, so immediately apply it to our local pack on disk.
-                    if (_.isArray(body)) {
-                      thisPack.syncRemoteChanges({
-                        type: 'machinepack',
-                        changelog: body,
-                        onSyncSuccess: inputs.onSyncSuccess,
-                        localPort: inputs.localPort
-                      }).exec({
-                        // If applying a pack changelog to the local machinepack
-                        // fails, then trigger the `onSyncError` notifier function.
-                        error: function (err){
-                          inputs.onSyncError(err);
-                        },
-                        // If reloading the pack in scribe fails, then trigger the
-                        // `onFlushError` notifier function.
-                        couldNotFlush: function (err){
-                          inputs.onFlushError(err);
-                        },
-                        success: function (){ /* everything is hunky dory */ },
-                      });
-                    }
-
-                  });
-
-                  // If treeline.io says something changed, apply the changelog
-                  // it provides to our local pack on disk.
-                  socket.on('pack:changed', function (msg){
-
-                    thisPack.syncRemoteChanges({
-                      type: 'machinepack',
-                      changelog: msg.changelog,
-                      onSyncSuccess: inputs.onSyncSuccess,
-                      localPort: inputs.localPort
-                    }).exec({
-                      // If applying a pack changelog to the local machinepack
-                      // fails, then trigger the `onSyncError` notifier function.
-                      error: function (err){
-                        inputs.onSyncError(err);
-                      },
-                      // If reloading the pack in scribe fails, then trigger the
-                      // `onFlushError` notifier function.
-                      couldNotFlush: function (err){
-                        inputs.onFlushError(err);
-                      },
-                      success: function (){ /* everything is hunky dory */ },
-                    });
-                  });
-
-                  // Trigger `onSocketDisconnect` if the connection to treeline.io is broken
-                  socket.on('disconnect', function() {
-                    inputs.onSocketDisconnect();
-                  });
-
-                  // If anything goes horribly wrong or the process is stopped manually w/ <CTRL+C>,
-                  // then ensure we:
-                  //  • stop listening for changes
-                  //  • kill the local server running `scribe`
-                  //
-                  // TODO
-                  // (this is happening already in almost every case thanks to the `process.exit(1)`
-                  //  we're calling in `bin/treeline-preview`. But we should make doubly sure.)
-
-                });
-              }
-            });
-
 
           }
         });

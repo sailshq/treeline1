@@ -29,9 +29,9 @@ module.exports = {
     },
 
     localPort: {
-      description: 'The local port to run the preview server on (either a sails app or the `scribe` utility, depending on what is being previewed).  Defaults to 1492.',
-      example: 1492,
-      defaultsTo: 1492
+      description: 'The local port to run the preview server on (either a sails app or the `scribe` utility, depending on what is being previewed).  Defaults to 1337.',
+      example: 1337,
+      defaultsTo: 1337
     }
 
   },
