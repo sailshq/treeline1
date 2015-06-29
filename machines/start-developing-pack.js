@@ -99,10 +99,16 @@ module.exports = {
   fn: function (inputs, exits){
 
     var _ = require('lodash');
+    // var Scribe = require('scribe');
     var Http = require('machinepack-http');
+    var LocalMachinepacks = require('machinepack-localmachinepacks');
     var thisPack = require('../');
     var getSocketAndConnect = require('../standalone/sails-client');
 
+
+    // The path to pack is always the current working directory
+    // (for the time being, at least)
+    var pathToPack = process.cwd();
 
     // var errMsg = '';
     // errMsg += '\n';
@@ -116,13 +122,17 @@ module.exports = {
     thisPack.loginIfNecessary({
       treelineApiUrl: inputs.treelineApiUrl
     }).exec({
-      error: exits.error,
+      error: function (err) {
+        return exits(err);
+      },
       success: function (me) {
         thisPack.linkIfNecessary({
           type: 'machinepack',
           treelineApiUrl: inputs.treelineApiUrl
         }).exec({
-          error: exits.error,
+          error: function (err) {
+            return exits(err);
+          },
           success: function (linkedProject) {
             if (linkedProject.type !== 'machinepack') {
               return exits.error('The project in this directory is not a machinepack.  Maybe try `treeline preview app` instead?');
@@ -131,13 +141,24 @@ module.exports = {
             // Trigger optional notifier function.
             inputs.onAuthenticated();
 
-            // Lift the `scribe` utility as a sails server running on a local port.
-            // (this port should be configurable)
+            // Lift the `scribe` utility as a sails server running on
+            // a configurable local port.
             // TODO
+            // Scribe({
+            //   pathToPack: pathToPack,
+            //   port: inputs.localPort
+            // }, function (err, localScribeApp) {
+            //   if (err) {
+            //     // Failed to start scribe.
+            //     return exits(err);
+            //   }
+            //   // TODO: use async.auto() or something to run this in parallel
+            //   // while hashes are being computed.
+            // });
 
             // Read local pack and compute hash of the meaningful information.
             LocalMachinepacks.getSignature({
-              dir: process.cwd()
+              dir: pathToPack
             }).exec({
               error: exits.error,
               success: function (packSignature) {
@@ -237,7 +258,10 @@ module.exports = {
                   // then ensure we:
                   //  • stop listening for changes
                   //  • kill the local server running `scribe`
+                  //
                   // TODO
+                  // (this is happening already in almost every case thanks to the `process.exit(1)`
+                  //  we're calling in `bin/treeline-preview`. But we should make doubly sure.)
 
                 });
               }

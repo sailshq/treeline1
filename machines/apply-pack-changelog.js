@@ -29,6 +29,30 @@ module.exports = {
 
     // TODO
 
+    var EXAMPLE = [
+      {
+        identity: 'machinepack-baz',
+        props: {
+          friendlyName: 'Baz'
+        },
+        machinesChangelog: [
+          {
+            identity: 'foo',
+            verb: 'del'
+          },
+          {
+            identity: 'bar',
+            verb: 'set',
+            def: {
+              inputs: [{}],
+              fn: 'function(inputs, exits) {}',
+              // ...
+            }
+          }
+        ]
+      }
+    ];
+
     return exits.success();
 
   },
