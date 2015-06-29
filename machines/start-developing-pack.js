@@ -161,16 +161,19 @@ module.exports = {
                     // TODO
                   });
 
-                  // If anything goes wrong (e.g. the connection to treeline.io is broken)
-                  // or the process is stopped manually w/ <CTRL+C>, then:
-                  //  • stop listening for changes
-                  //  • kill the local server running `scribe`
-                  // TODO
+                  // Log a message if the connection to treeline.io is broken
                   socket.on('disconnect', function() {
                     console.error();
                     console.error('Whoops, looks like you\'ve lost connection to the internet.  Would you check your connection and try again?  While unlikely, it is also possible that the Treeline mothership went offline (i.e. our servers are down.)  If you\'re having trouble reconnecting and think that might be the case, please send us a note at support@treeline.io.  Thanks!');
                     console.error('Attempting to reconnect...   (press <CTRL+C> to quit)');
                   });
+
+                  // If anything goes horribly wrong or the process is stopped manually w/ <CTRL+C>,
+                  // then ensure we:
+                  //  • stop listening for changes
+                  //  • kill the local server running `scribe`
+                  // TODO
+
                 });
               }
             });
