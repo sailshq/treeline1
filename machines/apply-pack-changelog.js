@@ -37,7 +37,8 @@ module.exports = {
     //     // Note that there is NOT a nested `machines` changelog.
     //     // That's because we don't have any way of knowing currently
     //     // what changes need to be applied to make the local version
-    //     // match the remote (i.e. local version could have extra stuff).
+    //     // match the remote (i.e. local version could have all sorts of
+    //     // changes we don't know about).
     //     definition: {
     //       friendlyName: 'Baz',
     //       machines: [{
