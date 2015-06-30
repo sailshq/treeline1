@@ -32,6 +32,12 @@ module.exports = {
       description: 'The local port to run the preview server on (either a sails app or the `scribe` utility, depending on what is being previewed).  Defaults to 1337.',
       example: 1337,
       defaultsTo: 1337
+    },
+
+    dir: {
+      description: 'Path to the local machinepack where the changelog should be applied.',
+      extendedDescription: 'If unspecified, defaults to the current working directory.  If provided as a relative path, this will be resolved from the current working directory.',
+      example: '/Users/mikermcneil/Desktop/foo'
     }
 
   },
@@ -55,6 +61,9 @@ module.exports = {
     var Http = require('machinepack-http');
     var thisPack = require('../');
 
+    // Ensure we have an absolute destination path.
+    inputs.dir = inputs.dir ? path.resolve(inputs.dir) : process.cwd();
+
     // If `inputs.type` was provided, use it.
     // Otherwise, sniff around for the package.json file and figure out
     // what kind of project this is.
@@ -69,10 +78,11 @@ module.exports = {
         }
 
         thisPack.applyPackChangelog({
-          changelog: inputs.changelog
+          changelog: inputs.changelog,
+          dir: inputs.dir
         }).exec({
           error: function (err){
-            console.log('ERROR:',err);
+            console.error('Failed to synchronize:',err.stack);
             return exits.couldNotSync(err);
           },
           success: function (){

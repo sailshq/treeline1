@@ -64,6 +64,15 @@ module.exports = {
     // as complete metadata about each machine-- including the `fn` (implementation code)
     var packData = inputs.packData;
 
+    // Lowercase the machine identities
+    packData.machines = _.map(packData.machines, function (machineDef){
+      machineDef.identity = machineDef.identity.toLowerCase();
+      return machineDef;
+    });
+    // (also ensure none of the machines now have duplicate identities-
+    //  if so, then remove them)
+    packData.machines = _.uniq(packData.machines, 'identity');
+
     var dependencyDir = path.resolve(inputs.destination,'machines',packData._id);
 
     // Determine the dictionary that will become the package.json file.

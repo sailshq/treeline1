@@ -31,7 +31,13 @@ module.exports = {
     },
 
     onSyncSuccess: {
-      description: 'An optional notifier function that will be called when Treeline attempts to sync remote changes to the local pack and it works.',
+      description: 'An optional notifier function that will be called each time Treeline successfully applies synced remote changes to the local project.',
+      example: '->',
+      defaultsTo: function (){}
+    },
+
+    onInitialSyncSuccess: {
+      description: 'An optional notifier function that will be called the first time Treeline successfully synchronizes the local project w/ treeline.io.',
       example: '->',
       defaultsTo: function (){}
     },
@@ -235,6 +241,7 @@ module.exports = {
                           },
                           success: function (){
                             // Initial sync complete
+                            inputs.onInitialSyncSuccess();
                             return next();
                           },
                         });
@@ -261,7 +268,9 @@ module.exports = {
                           couldNotFlush: function (err){
                             inputs.onFlushError(err);
                           },
-                          success: function (){ /* everything is hunky dory */ },
+                          success: function (){
+                            // everything is hunky dory
+                          },
                         });
                       });
 

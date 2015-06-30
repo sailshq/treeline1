@@ -36,6 +36,11 @@ module.exports = {
       example: '->'
     },
 
+    onInitialSyncSuccess: {
+      description: 'An optional notifier function that will be called the first time Treeline successfully synchronizes the local project w/ treeline.io.',
+      example: '->',
+    },
+
     onPreviewServerLifted: {
       description: 'An optional notifier function that will be called when the preview server has successfully lifted and can be safely accessed.',
       example: '->',

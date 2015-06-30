@@ -14,6 +14,12 @@ module.exports = {
       description: 'A set of changes to apply to this local machinepack.',
       example: [{}],
       required: true
+    },
+
+    dir: {
+      description: 'Path to the local machinepack where the changelog should be applied.',
+      extendedDescription: 'If unspecified, defaults to the current working directory.  If provided as a relative path, this will be resolved from the current working directory.',
+      example: '/Users/mikermcneil/Desktop/foo'
     }
 
   },
@@ -27,10 +33,13 @@ module.exports = {
 
   fn: function (inputs,exits) {
     var util = require('util');
+    var path = require('path');
     var async = require('async');
     var _ = require('lodash');
     var thisPack = require('../');
 
+    // Ensure we have an absolute destination path.
+    inputs.dir = inputs.dir ? path.resolve(inputs.dir) : process.cwd();
 
     // Note that there is NOT a nested `machines` (aka "library") changelog.
     // That's because we don't have any way of knowing currently

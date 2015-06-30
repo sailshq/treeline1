@@ -21,7 +21,7 @@ module.exports = {
 
     packData: {
       description: 'The machinepack and machine metadata/code to generate from.',
-      typeclass: 'dictionary',
+      example: {},
       required: true
     },
 
@@ -73,6 +73,15 @@ module.exports = {
     // as complete metadata about each machine-- including the `fn` (implementation code)
     var packData = inputs.packData;
 
+    // Lowercase the machine identities
+    packData.machines = _.map(packData.machines, function (machineDef){
+      machineDef.identity = machineDef.identity.toLowerCase();
+      return machineDef;
+    });
+    // (also ensure none of the machines now have duplicate identities-
+    //  if so, then remove them)
+    packData.machines = _.uniq(packData.machines, 'identity');
+
     // Determine the dictionary that will become the package.json file.
     var pkgMetadata = {
       private: true,
@@ -102,6 +111,7 @@ module.exports = {
         machines: _.pluck(packData.machines, 'identity')
       }
     };
+
 
     if (inputs.dependencyIdentifiers && inputs.dependencyIdentifiers.length) {
       pkgMetadata.scripts = {
@@ -183,13 +193,13 @@ module.exports = {
           // Loop over each machine in the pack
           async.each(packData.machines, function (thisMachine, next){
 
-            // Determine the path where the new module will be written
-            var machineModulePath = path.resolve(inputs.destination, 'machines', thisMachine.identity+'.js');
-            // and the code that it will consist of:
-            // (build a JavaScript code string which represents the provided machine metadata)
-            var machineModuleCode;
             try {
-              machineModuleCode = Machines.buildMachineCode({
+              // Determine the path where the new module will be written
+              var machineModulePath = path.resolve(inputs.destination, 'machines', thisMachine.identity+'.js');
+
+              // and the code that it will consist of:
+              // (build a JavaScript code string which represents the provided machine metadata)
+              var machineModuleCode = Machines.buildMachineCode({
                 friendlyName: thisMachine.friendlyName || thisMachine.identity,
                 description: thisMachine.description,
                 extendedDescription: thisMachine.extendedDescription,
@@ -197,30 +207,30 @@ module.exports = {
                 exits: thisMachine.exits,
                 fn: thisMachine.fn
               }).execSync();
+
+              // Write the machine file
+              Filesystem.write({
+                destination: machineModulePath,
+                string: machineModuleCode,
+                force: inputs.force
+              }).exec({
+                error: function (err) {
+                  return next(err);
+                },
+                alreadyExists: function (){
+                  var err = new Error('Something already exists at '+machineModulePath);
+                  err.code = err.exit = 'alreadyExists';
+                  err.output = machineModulePath;
+                  return next(err);
+                },
+                success: function (){
+                  next();
+                }
+              });//</Filesystem.write>
             }
             catch (e) {
               return next(e);
             }
-
-            // Write the machine file
-            Filesystem.write({
-              destination: machineModulePath,
-              string: machineModuleCode,
-              force: inputs.force
-            }).exec({
-              error: function (err) {
-                return next(err);
-              },
-              alreadyExists: function (){
-                var err = new Error('Something already exists at '+machineModulePath);
-                err.code = err.exit = 'alreadyExists';
-                err.output = machineModulePath;
-                return next(err);
-              },
-              success: function (){
-                next();
-              }
-            });//</Filesystem.write>
           }, function afterwards(err) {
             if (err) {
               if (_.isObject(err) && err.code === 'alreadyExists') {

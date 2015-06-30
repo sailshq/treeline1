@@ -23,6 +23,11 @@ require('machine-as-script')( {
     var chalk = require('chalk');
     console.log(chalk.gray('Successfully synchronized local project with updated logic from http://treeline.io.'));
   },
+  onInitialSyncSuccess: function (){
+    var chalk = require('chalk');
+    console.log(chalk.gray('Now listening to http://treeline.io for updates...'));
+    console.log(chalk.gray('(changes will automatically generate code in this directory'));
+  },
   onPreviewServerLifted: function (url){
     var chalk = require('chalk');
     console.log('Preview server is now running at:');
