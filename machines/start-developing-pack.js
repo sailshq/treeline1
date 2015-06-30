@@ -12,6 +12,12 @@ module.exports = {
 
   inputs: {
 
+    dontOpenBrowser: {
+      description: 'Prevent the browser from being opened automatically and navigating to the scribe utility when a pack is previewed?',
+      example: true,
+      defaultsTo: false
+    },
+
     onAuthenticated: {
       description: 'An optional notifier function that will be called when authentication is complete.',
       example: '->',
@@ -114,6 +120,7 @@ module.exports = {
     var _ = require('lodash');
     var Scribe = require('test-scribe');
     var Http = require('machinepack-http');
+    var MPProc = require('machinepack-process');
     var LocalMachinepacks = require('machinepack-localmachinepacks');
     var thisPack = require('../');
     var getSocketAndConnect = require('../standalone/sails-client');
@@ -229,7 +236,17 @@ module.exports = {
                           success: function (){
                             // Initial sync complete
                             inputs.onInitialSyncSuccess();
-                            return next();
+
+                            // Open browser (unless disabled)
+                            if (!inputs.dontOpenBrowser) {
+                              return next();
+                            }
+                            MPProc.dontOpenBrowser({
+                              url: 'http://localhost:'+inputs.localPort
+                            }).exec({
+                              error: function (err){ return next(); },
+                              success: function() { return next(); }
+                            });
                           },
                         });
 

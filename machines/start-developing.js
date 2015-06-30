@@ -16,6 +16,12 @@ module.exports = {
       example: 'machinepack'
     },
 
+    dontOpenBrowser: {
+      description: 'Prevent the browser from being opened automatically and navigating to the scribe utility when a pack is previewed?',
+      example: true,
+      defaultsTo: false
+    },
+
     onAuthenticated: {
       description: 'An optional notifier function that will be called when authentication is complete.',
       example: '->'

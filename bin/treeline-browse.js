@@ -25,6 +25,7 @@ require('machine-as-script')({
 
   fn: function (inputs, exits){
 
+    var MPProc = require('machinepack-process');
     var Urls = require('machinepack-urls');
     var thisPack = require('../');
 
@@ -38,7 +39,7 @@ require('machine-as-script')({
           url: BASE_URL+'/'+project.owner+'/'+project.identity
         }).execSync();
 
-        thisPack.browseToUrl({
+        MPProc.openBrowser({
           url: url
         }).exec({
           error: exits.error,
