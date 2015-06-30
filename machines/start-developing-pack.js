@@ -254,7 +254,15 @@ module.exports = {
 
                       // If treeline.io says something changed, apply the changelog
                       // it provides to our local pack on disk.
-                      socket.on('pack:changed', function (changelog){
+                      socket.on('machinepack', function (notification){
+
+                        var changelog;
+                        try {
+                          changelog = notification.data.changelog;
+                        }
+                        catch (e) {
+                          inputs.onSyncError(e);
+                        }
 
                         thisPack.syncRemoteChanges({
                           type: 'machinepack',
