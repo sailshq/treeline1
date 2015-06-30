@@ -82,7 +82,7 @@ module.exports = {
           dir: inputs.dir
         }).exec({
           error: function (err){
-            console.error('Failed to synchronize:',err.stack);
+            console.error('Failed to synchronize:',err);
             return exits.couldNotSync(err);
           },
           success: function (){

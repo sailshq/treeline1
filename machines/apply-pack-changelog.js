@@ -79,7 +79,7 @@ module.exports = {
 
     var changedPack = inputs.changelog[0];
     if (changedPack.verb !== 'set') {
-      return exits.error('Invalid changelog: cannot be applied.  For the time being, machinepack changelogs should only use the "set" verb.  We got:\n'+util.inspect(inputs.changelog, {depth: null}) );
+      return exits.error(new Error('Invalid changelog: cannot be applied.  For the time being, machinepack changelogs should only use the "set" verb.  We got:\n'+util.inspect(inputs.changelog, {depth: null}) ));
     }
     // console.log(require('util').inspect(changedPack, {depth: null}));
 
