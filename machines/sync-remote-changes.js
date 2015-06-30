@@ -71,7 +71,9 @@ module.exports = {
         thisPack.applyPackChangelog({
           changelog: inputs.changelog
         }).exec({
-          error: exits.couldNotSync,
+          error: function (err){
+            return exits.couldNotSync(err);
+          },
           success: function (){
 
             // Trigger the `onSyncSuccess` notifier function, if one was

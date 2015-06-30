@@ -210,36 +210,45 @@ module.exports = {
                           return next(JWR.error);
                         }
 
+                        // Fake machinepack changelog:
+                        body = [{
+                          identity: packSignature.identity,
+                          verb: 'set',
+                          pack: packSignature.pack,
+                          machines: packSignature.machines
+                        }];
+                        // (TODO: remove this)
+
                         // Now subscribed.
 
-                        // If treeline.io responded with a changelog, that means something
-                        // changed, so immediately apply it to our local pack on disk.
-                        if (_.isArray(body)) {
-                          thisPack.syncRemoteChanges({
-                            type: 'machinepack',
-                            changelog: body,
-                            onSyncSuccess: inputs.onSyncSuccess,
-                            localPort: inputs.localPort
-                          }).exec({
-                            // If the initial sync or flush in scribe fails, then
-                            // give up with an error msg.
-                            error: next,
-                            success: function (){
-                              // Initial sync complete
-                              return next();
-                            },
-                          });
-                        }
+                        // treeline.io will respond with a changelog, which may or may not be
+                        // empty.  So we immediately apply it to our local pack on disk.
+                        thisPack.syncRemoteChanges({
+                          type: 'machinepack',
+                          changelog: body,
+                          onSyncSuccess: inputs.onSyncSuccess,
+                          localPort: inputs.localPort
+                        }).exec({
+                          // If the initial sync or flush in scribe fails, then
+                          // give up with an error msg.
+                          error: function (err) {
+                            return next(err);
+                          },
+                          success: function (){
+                            // Initial sync complete
+                            return next();
+                          },
+                        });
 
                       });
 
                       // If treeline.io says something changed, apply the changelog
                       // it provides to our local pack on disk.
-                      socket.on('pack:changed', function (msg){
+                      socket.on('pack:changed', function (changelog){
 
                         thisPack.syncRemoteChanges({
                           type: 'machinepack',
-                          changelog: msg.changelog,
+                          changelog: changelog,
                           onSyncSuccess: inputs.onSyncSuccess,
                           localPort: inputs.localPort
                         }).exec({
