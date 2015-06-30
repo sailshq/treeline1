@@ -52,11 +52,11 @@ module.exports = {
     //         // ...
     //       }],
     //       dependencies: [{}],
-    //       packDependencies: [{
-    //         identity: 'machinepack-blah',
-    //         // ...
-    //       }]
     //     },
+    //     dependencyPacks: [{
+    //       identity: 'machinepack-blah',
+    //       // ...
+    //     }]
     //   }
     // ];
 
@@ -68,16 +68,20 @@ module.exports = {
       return exits.success();
     }
 
-    var change = inputs.changelog[0];
-    if (change.verb !== 'set') {
+    // var changedPack = inputs.changelog[0];
+    var changedPack = GET_FAKE_CHANGELOG()[0];
+    if (changedPack.verb !== 'set') {
       return exits.error('Invalid changelog: cannot be applied.  For the time being, machinepack changelogs should only use the "set" verb.  We got:\n'+util.inspect(inputs.changelog, {depth: null}) );
     }
+    console.log(require('util').inspect(changedPack, {depth: null}));
 
     // For now, convert changelog into `packData` and use existing code
     // to generate the package.json file, the pack's machines, and its
     // Treeline-hosted machinepack dependencies.
     var packData = [];
-    packData = GET_FAKE_PACK_DATA();
+    packData = packData.concat(changedPack.dependencyPacks);
+    changedPack.definition.isMain = true;
+    packData.push(changedPack.definition);
 
 
     // [{
@@ -153,7 +157,8 @@ module.exports = {
  * [GET_FAKE_PACK_DATA description]
  */
 function GET_FAKE_PACK_DATA(){
-  return [ { _id: '459ab538-3c6a-4a0d-ad61-895bd6097c06_2.0.1',
+
+  var fakePackData = [ { _id: '459ab538-3c6a-4a0d-ad61-895bd6097c06_2.0.1',
     friendlyName: 'Http',
     description: 'Send an HTTP request.',
     author: 'balderdashy',
@@ -387,4 +392,32 @@ function GET_FAKE_PACK_DATA(){
                   headers: '{"Accepts":"application/json"}',
                   body: '[{"maybe some JSON": "like this"}]  (but could be any string)' } } },
          fn: '// Determine the amount of damage\nrequire(\'./a8ddb9a2-a8f2-417b-b5b3-6feee5b2b142_1.0.3\').add({}).exec({\n"error": function ( determineTheAmountOfDamage ) { \nexits.error(determineTheAmountOfDamage);\n},"success": function ( determineTheAmountOfDamage ) { \n// Decrement damage from bulbasaur\nrequire(\'./459ab538-3c6a-4a0d-ad61-895bd6097c06_2.0.1\').sendHttpRequest({\n"url": determineTheAmountOfDamage\n}).exec({\n"error": function ( decrementDamageFromBulbasaur ) { \nexits.error2(decrementDamageFromBulbasaur);\n},"notFound": function ( decrementDamageFromBulbasaur ) { \n// Create a bulbasaur w/ the appropriate amount of remaining HP\nrequire(\'./459ab538-3c6a-4a0d-ad61-895bd6097c06_2.0.1\').sendHttpRequest({\n"url": decrementDamageFromBulbasaur\n}).exec({\n"error": function ( createABulbasaurWTheAppropriateAmountOfRemainingHP ) { \nexits.error3(createABulbasaurWTheAppropriateAmountOfRemainingHP);\n},"notFound": function ( createABulbasaurWTheAppropriateAmountOfRemainingHP ) { \nexits.notFound(createABulbasaurWTheAppropriateAmountOfRemainingHP);\n},"badRequest": function ( createABulbasaurWTheAppropriateAmountOfRemainingHP ) { \nexits.badRequest2(createABulbasaurWTheAppropriateAmountOfRemainingHP);\n},"forbidden": function ( createABulbasaurWTheAppropriateAmountOfRemainingHP ) { \nexits.forbidden2(createABulbasaurWTheAppropriateAmountOfRemainingHP);\n},"unauthorized": function ( createABulbasaurWTheAppropriateAmountOfRemainingHP ) { \nexits.unauthorized2(createABulbasaurWTheAppropriateAmountOfRemainingHP);\n},"serverError": function ( createABulbasaurWTheAppropriateAmountOfRemainingHP ) { \nexits.serverError2(createABulbasaurWTheAppropriateAmountOfRemainingHP);\n},"requestFailed": function ( createABulbasaurWTheAppropriateAmountOfRemainingHP ) { \nexits.requestFailed2(createABulbasaurWTheAppropriateAmountOfRemainingHP);\n},"success": function ( createABulbasaurWTheAppropriateAmountOfRemainingHP ) { \nexits.success2(createABulbasaurWTheAppropriateAmountOfRemainingHP);\n}});\n\n},"badRequest": function ( decrementDamageFromBulbasaur ) { \nexits.badRequest(decrementDamageFromBulbasaur);\n},"forbidden": function ( decrementDamageFromBulbasaur ) { \nexits.forbidden(decrementDamageFromBulbasaur);\n},"unauthorized": function ( decrementDamageFromBulbasaur ) { \nexits.unauthorized(decrementDamageFromBulbasaur);\n},"serverError": function ( decrementDamageFromBulbasaur ) { \nexits.serverError(decrementDamageFromBulbasaur);\n},"requestFailed": function ( decrementDamageFromBulbasaur ) { \nexits.requestFailed(decrementDamageFromBulbasaur);\n},"success": function ( decrementDamageFromBulbasaur ) { \nexits.success(decrementDamageFromBulbasaur);\n}});\n\n}});' } ] } ];
+
+  return fakePackData;
+}
+
+
+function GET_FAKE_CHANGELOG (){
+  var _ = require('lodash');
+  var fakeChangelog = [];
+
+  var mainPack;
+  var dependencyPacks = [];
+  _.each(GET_FAKE_PACK_DATA(), function (pack){
+    if (pack.isMain) {
+      mainPack = pack;
+    }
+    else {
+      dependencyPacks.push(pack);
+    }
+  });
+
+  fakeChangelog.push({
+    identity: mainPack._id,
+    verb: 'set',
+    definition: mainPack,
+    dependencyPacks: dependencyPacks
+  });
+
+  return fakeChangelog;
 }

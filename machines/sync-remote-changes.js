@@ -72,6 +72,7 @@ module.exports = {
           changelog: inputs.changelog
         }).exec({
           error: function (err){
+            console.log('ERROR:',err);
             return exits.couldNotSync(err);
           },
           success: function (){
