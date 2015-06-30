@@ -238,10 +238,10 @@ module.exports = {
                             inputs.onInitialSyncSuccess();
 
                             // Open browser (unless disabled)
-                            if (!inputs.dontOpenBrowser) {
+                            if (inputs.dontOpenBrowser) {
                               return next();
                             }
-                            MPProc.dontOpenBrowser({
+                            MPProc.openBrowser({
                               url: 'http://localhost:'+inputs.localPort
                             }).exec({
                               error: function (err){ return next(); },
