@@ -126,47 +126,51 @@ module.exports = {
     // errMsg += 'http://github.com/treelinehq/treeline';
     // return exits.error(errMsg);
 
-    thisPack.loginIfNecessary({
-      treelineApiUrl: inputs.treelineApiUrl
-    }).exec({
-      error: function (err) {
-        return exits(err);
+
+
+    // Now simultaneously:
+    //  • lift the preview server
+    //  • synchronize local pack files w/ http://treeline.io
+    async.parallel([
+      function(next){
+        // Lift the `scribe` utility as a sails server running on
+        // a configurable local port.
+        Scribe({
+          pathToPack: pathToPack,
+          port: inputs.localPort
+        }, function (err, localScribeApp) {
+          if (err) {
+            // Failed to start scribe.
+            return next(err);
+          }
+          // Trigger optional notifier function.
+          inputs.onPreviewServerLifted('http://localhost:'+inputs.localPort);
+          return next();
+        });
       },
-      success: function (me) {
-        thisPack.linkIfNecessary({
-          type: 'machinepack',
+      function(next){
+
+        thisPack.loginIfNecessary({
           treelineApiUrl: inputs.treelineApiUrl
         }).exec({
           error: function (err) {
-            return exits(err);
+            return next(err);
           },
-          success: function (linkedProject) {
-            if (linkedProject.type !== 'machinepack') {
-              return exits.error('The project in this directory is not a machinepack.  Maybe try `treeline preview app` instead?');
-            }
-
-            // Trigger optional notifier function.
-            inputs.onAuthenticated();
-
-            // Now simultaneously:
-            //  • lift the preview server
-            //  • synchronize local pack files w/ http://treeline.io
-            async.parallel([
-              function(next){
-                // Lift the `scribe` utility as a sails server running on
-                // a configurable local port.
-                Scribe({
-                  pathToPack: pathToPack,
-                  port: inputs.localPort
-                }, function (err, localScribeApp) {
-                  if (err) {
-                    // Failed to start scribe.
-                    return next(err);
-                  }
-                  return next();
-                });
+          success: function (me) {
+            thisPack.linkIfNecessary({
+              type: 'machinepack',
+              treelineApiUrl: inputs.treelineApiUrl
+            }).exec({
+              error: function (err) {
+                return next(err);
               },
-              function(next){
+              success: function (linkedProject) {
+                if (linkedProject.type !== 'machinepack') {
+                  return next.error('The project in this directory is not a machinepack.  Maybe try `treeline preview app` instead?');
+                }
+
+                // Trigger optional notifier function.
+                inputs.onAuthenticated();
 
                 // Read local pack and compute hash of the meaningful information.
                 LocalMachinepacks.getSignature({
@@ -283,20 +287,16 @@ module.exports = {
                     });
                   }
                 });
-              },
-            ], function afterwards(err) {
-              if (err) {
-                return exits(err);
               }
-
-              // Trigger optional notifier function.
-              inputs.onPreviewServerLifted('http://localhost:'+inputs.localPort);
-
             });
-
           }
         });
+      },
+    ], function afterwards(err) {
+      if (err) {
+        return exits(err);
       }
+
     });
 
   }
