@@ -192,21 +192,23 @@ module.exports = {
 
                       socket.request({
                         method: 'get',
-                        // TODO: plug in the real URL and headers here
-                        url: '/api/v1/machine-packs/rachaelshaw',
-                        headers: { 'x-profile': 'rachaelshaw' },
+                        url: '/api/v1/machinepacks/'+linkedProject.id,
+                        headers: { 'x-auth': '6d295c9b-f354-4026-980b-19271e7ba829' },
+                        // headers: { 'x-auth': me.secret },
                         params: {
-                          // Send the hash strings
+                          // Send along hashes of each machine, as well as one
+                          // additional hash for the pack's package.json metadata.
                           packHash: packSignature.packHash,
                           machineHashes: packSignature.machineHashes
                         }
-                      }, function serverResponded (body, JWR) {
-                        // console.log('Sails responded with: ', body); console.log('with headers: ', JWR.headers); console.log('and with status code: ', JWR.statusCode);
-                        // console.log('JWR.error???',JWR.error);
-                        if (JWR.error) {
+                      }, function serverResponded (body, jwr) {
+                        // console.log('Sails responded with: ', body); console.log('with headers: ', jwr.headers); console.log('and with status code: ', jwr.statusCode);
+                        // console.log('jwr.error???',jwr.error);
+                        if (jwr.error) {
                           // If initial pack subscription fails, kill the scribe server
                           // and stop listening to changes
-                          return next(JWR.error);
+                          return next(jwr);
+                          // TODO: better error handling
                         }
 
                         // Now subscribed.
