@@ -71,7 +71,8 @@ module.exports = {
           },
           doesNotExist: function (){
             thisPack.login({
-              treelineApiUrl: inputs.treelineApiUrl || process.env.TREELINE_API_URL
+              // treelineApiUrl: inputs.treelineApiUrl || process.env.TREELINE_API_URL
+              treelineApiUrl: inputs.treelineApiUrl,
             })
             .exec({
               error: function (err) {
@@ -112,7 +113,7 @@ module.exports = {
             thisPack.fetchPackInfo({
               packId: inputs.id,
               secret: keychain.secret,
-              treelineApiUrl: inputs.treelineApiUrl
+              treelineApiUrl: inputs.treelineApiUrl,
             }).exec({
               error: exits.error,
               success: function (pack){
@@ -132,7 +133,7 @@ module.exports = {
           thisPack.listPacks({
             secret: keychain.secret,
             username: inputs.username||keychain.username,
-            treelineApiUrl: inputs.treelineApiUrl
+            treelineApiUrl: inputs.treelineApiUrl,
           }).exec({
             error: function(err) {
               return _doneGettingMachinepack.error(err);

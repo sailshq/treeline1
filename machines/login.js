@@ -111,7 +111,7 @@ module.exports = {
         username: username,
         password: password,
         adminToken: adminToken,
-        treelineApiUrl: inputs.treelineApiUrl || process.env.TREELINE_API_URL
+        treelineApiUrl: inputs.treelineApiUrl,
       }).exec({
         error: exits.error,
         fobidden: exits.forbidden,

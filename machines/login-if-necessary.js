@@ -50,7 +50,7 @@ module.exports = {
       error: exits.error,
       doesNotExist: function (){
         thisPack.login({
-          treelineApiUrl: inputs.treelineApiUrl
+          treelineApiUrl: inputs.treelineApiUrl,
         }).exec({
           error: exits.error,
           success: function (me){
