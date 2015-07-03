@@ -72,6 +72,7 @@ module.exports = {
     var Http = require('machinepack-http');
     var Prompts = require('machinepack-prompts');
     var Filesystem = require('machinepack-fs');
+    var LocalMachinepacks = require('machinepack-localmachinepacks');
     var thisPack = require('../');
     var async = require('async');
 
@@ -188,10 +189,9 @@ module.exports = {
                   success: function (packData){
 
                     // Generate the pack folder and machines (as well as package.json and other files)
-                    thisPack.generateLocalPack({
+                    LocalMachinepacks.writePack({
                       destination: destinationPath,
                       packData: _.find(packData, {isMain: true}),
-                      dependencyIdentifiers: _.pluck(_.where(packData, {isMain: false}), '_id'),
                       force: inputs.force
                     }).exec({
                       error: function (err){
@@ -220,7 +220,7 @@ module.exports = {
                       }
                     });// </thisPack.generateLocalPack>
                   }
-                });// </thisPack.fetchPack>
+                });// </LocalMachinepacks.writePack>
               }
             }); //</checkForExisting>
           }

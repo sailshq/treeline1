@@ -36,6 +36,7 @@ module.exports = {
     var path = require('path');
     var async = require('async');
     var _ = require('lodash');
+    var LocalMachinepacks = require('machinepack-localmachinepacks');
     var thisPack = require('../');
 
     // Ensure we have an absolute destination path.
@@ -61,11 +62,12 @@ module.exports = {
     //         // ...
     //       }],
     //       dependencies: [{}],
-    //     },
-    //     dependencyPacks: [{
-    //       identity: 'machinepack-blah',
-    //       // ...
-    //     }]
+    //       treelineDependencies: [{
+    //         id: 'themachinereleaseid',
+    //         identity: 'mikermcneil/machinepack-stuffandthings',
+    //         version: '4.2.5'
+    //       }]
+    //     }
     //   }
     // ];
 
@@ -81,57 +83,46 @@ module.exports = {
     if (changedPack.verb !== 'set') {
       return exits.error(new Error('Invalid changelog: cannot be applied.  For the time being, machinepack changelogs should only use the "set" verb.  We got:\n'+util.inspect(inputs.changelog, {depth: null}) ));
     }
+    // Use the `identity` as the npm package name if no package name is provided:
+    changedPack.definition.npmPackageName = changedPack.definition.npmPackageName || changedPack.identity;
+    // (TODO: do this elsewhere ^^)
 
-    // For now, convert changelog into `packData` and use existing code
-    // to generate the package.json file, the pack's machines, and its
-    // Treeline-hosted machinepack dependencies.
-    var packData = [];
-    packData = packData.concat(changedPack.dependencyPacks);
-    changedPack.definition.isMain = true;
-    packData.push(changedPack.definition);
-
-    // packData example:
-    // [{
-    //   _id: 'bc231894d-194ab1-49284e9af-28401fbc1d',
-    //   friendlyName: 'Foo',
-    //   description: 'Node.js utilities for working with foos.',
-    //   author: 'Marty McFly <marty@mcfly.com>',
-    //   license: 'MIT',
-    //   version: '0.5.17',
-    //   isMain: true,
-    //   npmPackageName: 'machinepack-do-stuff',
-    //   dependencies: [ { name: 'lodash', semverRange: '^2.4.1' } ],
-    //   machines: [{
-    //     identity: 'do-stuff',
-    //     friendlyName: 'Do stuff and things',
-    //     description: 'Do stuff given other stuff.',
-    //     extendedDescription: 'Do stuff to the stuff given the other stuff.  If the stuff doesn\'t get done the first time, try it again up to 50 times using an exponential backoff strategy.',
-    //     cacheable: false,
-    //     environment: ['req'],
-    //     inputs: {}, //=> { foo: { friendlyName: 'Foo', example: 'bar' } }
-    //     exits: {}, //=>{ error: { friendlyName: 'error', example: null } }
-    //     fn: '/*the stringified machine fn here*/',
-    //   }]
-    // }]
-
-    var destinationPath = process.cwd();
-
+    // First, we apply changes to the main pack metadata and its machines.
+    // For now we do this every time, no matter what changes we saw:
     // Generate the pack folder and machines (as well as package.json and other files)
-    thisPack.generateLocalPack({
-      destination: destinationPath,
-      packData: _.find(packData, {isMain: true}),
-      dependencyIdentifiers: _.pluck(_.where(packData, {isMain: false}), '_id'),
+    LocalMachinepacks.writePack({
+      destination: inputs.dir,
+      packData: changedPack.definition,
       force: true
     }).exec({
-      error: function (err){
-        return exits.error(err);
-      },
+      error: exits.error,
       success: function (){
 
-        // Generate machinepack dependencies.
-        async.each(_.where(packData, {isMain: false}), function(pack, next) {
+        // If any of the pack's Treeline dependencies changed, we also need to
+        // re-export those packs.  But we only need to do this one level deep,
+        // because flattening.
+
+        // Gather up the ids of all of the dependencies that changed:
+        // (for now this includes all of them)
+        var changedDependencies = changedPack.definition.treelineDependencies;
+
+        // For each of this pack's treeline dependencies which are not "real",
+        // write stub packs to disk that simply require the appropriate version.
+        // TODO
+
+        // Extrapolate the following into a separate machine:
+
+        // Hit Treeline.io to fetch all of the "real" dependency packs
+        // (i.e. the ones that are real releases) and get their machine code.
+        var dependencyPacks = [];
+        // TODO
+
+        // Now loop over each of the "real" dependency packs and write them to disk.
+        async.each(dependencyPacks, function(pack, next) {
+
+          // Write the exported pack dependency to disk
           thisPack.generateLocalDependency({
-            destination: destinationPath,
+            destination: inputs.dir,
             packData: pack,
             force: true
           }).exec({
@@ -139,7 +130,11 @@ module.exports = {
               return next(err);
             },
             success: function (){
-              next();
+              // For each of this pack dependency's treeline dependencies which are not "real",
+              // write stub packs to disk that simply require the appropriate version.
+              // TODO
+
+              return next();
             }
           });// </thisPack.generateLocalDependency>
         }, function(err) {
@@ -148,9 +143,9 @@ module.exports = {
           }
           return exits.success();
         }); // </async.each>
-      }
-    });// </thisPack.generateLocalPack>
 
+      }
+    });
 
   },
 
