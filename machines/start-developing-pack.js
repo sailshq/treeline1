@@ -199,7 +199,7 @@ module.exports = {
 
                       socket.request({
                         method: 'get',
-                        url: '/api/v1/machinepacks/'+linkedProject.id,
+                        url: '/api/v1/machinepacks/'+linkedProject.id+'/sync',
                         headers: { 'x-auth': '6d295c9b-f354-4026-980b-19271e7ba829' },
                         // headers: { 'x-auth': me.secret },
                         params: {
