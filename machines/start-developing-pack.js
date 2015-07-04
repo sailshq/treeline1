@@ -215,7 +215,6 @@ module.exports = {
                           // If initial pack subscription fails, kill the scribe server
                           // and stop listening to changes
                           return next(jwr);
-                          // TODO: better error handling
                         }
 
                         // Now subscribed.
