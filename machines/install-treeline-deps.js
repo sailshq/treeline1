@@ -84,21 +84,25 @@ module.exports = {
 
                 debug('Got exported dependency packs:',exportedDependencyPacks);
 
-                // For each of the pack's direct "shallow" (version-agnostic) dependencies,
-                // write stub packs to disk that simply require the appropriate version.
-                // TODO
 
-                // Now loop over each of the "real" (deep) dependency packs and write
-                // the exported versions of them to disk.
+                // Now loop over each of pack's dependency packs and write
+                // the "real" exported pack files to disk.
                 async.each(exportedDependencyPacks, function(pack, next) {
 
-                  // Write the exported pack dependency to disk
-                  // TODO: write this in the node_modules folder once the relevant updates
+
+                  // If this is a direct, "shallow" (version-agnostic) dependency,
+                  // also write a stub pack for it as an alias to the proper version
+                  // (by simply requiring it).  This is to allow analog machines to work.
+                  // TODO
+                  var aliasDependencyPath = path.join(inputs.dir,'machines',pack.id);
+
+                  // TODO: Write this in the node_modules folder once the relevant updates
                   // have been made in the compiler.  The current strategy of writing
                   // to the machines folder and concatenating the version is purely
                   // temporary.
-                  var dependencyBasePath = path.resolve(inputs.dir,'machines',pack.id);
-                  var dependencyPathWithVersion = dependencyBasePath + '_' + pack.version;
+
+                  // Write the exported pack dependency to disk
+                  var dependencyPathWithVersion = path.join(inputs.dir,'machines',pack.id + '_' + pack.version);
                   LocalMachinepacks.writePack({
                     destination: dependencyPathWithVersion,
                     packData: pack,
@@ -111,6 +115,7 @@ module.exports = {
                       // For each of this dependency's treeline dependencies, write
                       // stub packs to disk that simply require the appropriate version.
                       // TODO
+                      var aliasDependencyPath = path.join(dependencyPathWithVersion,'machines',pack.id);
 
                       return next();
                     }
