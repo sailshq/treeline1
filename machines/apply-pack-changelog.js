@@ -103,7 +103,7 @@ module.exports = {
 
         // If any of the pack's Treeline dependencies changed, we also need to
         // re-export those packs.  But we only need to do this one level deep,
-        // because flattening.
+        // because flattening.  For the time being, we re-export ALL dependencies.
 
         // Now install actual Treeline dependencies
         // (fetch from treeline.io and write to local disk)

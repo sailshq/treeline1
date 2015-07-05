@@ -39,70 +39,87 @@ module.exports = {
     var _ = require('lodash');
     var LocalMachinepacks = require('machinepack-localmachinepacks');
     var Http = require('machinepack-http');
+    var Filesystem = require('machinepack-fs');
     var thisPack = require('../');
+    var debug = require('debug')('treeline-cli');
+
+
 
     // Ensure we have an absolute destination path.
     inputs.dir = inputs.dir ? path.resolve(inputs.dir) : process.cwd();
 
-    // For each of this pack's shallow dependencies, write stub packs to disk
-    // that simply require the appropriate version.
-    // TODO
+    debug('running `install-treeline-deps`');
 
-    // First, look up this pack's id from its package.json file.
-    // TODO
-    var packId;
-
-    // And look up user credentials from a keychain file
-    // (but if no keychain is found, try anyway-- this might be an open-source pack)
-    // TODO
-    var secret;
-
-    // Hit Treeline.io to fetch and export the deep dependencies for this pack.
-    // Because the packs are flattened, this includes nested dependencies as well
-    // as top-level dependencies of this pack.
-    Http.sendHttpRequest({
-      method: 'get',
-      baseUrl: inputs.treelineApiUrl,
-      url: '/api/v1/'+packId+'/dependencies',
-      headers: {
-       'x-auth': secret
-      },
-    }).exec({
+    // Look up user credentials from a keychain file
+    thisPack.readKeychain().exec({
       error: exits.error,
-      success: function (exportedDependencyPacks){
+      success: function (keychain) {
 
-        // For each of the pack's "shallow" (version-agnostic) dependencies, write
-        // stub packs to disk that simply require the appropriate version.
-        // TODO
+        // Look up this pack's id from its linkfile.
+        thisPack.readLinkfile().exec({
+          error: exits.error,
+          success: function (projectInfo){
+            debug('Using project info:',projectInfo);
 
-        // Now loop over each of the "real" (deep) dependency packs and write
-        // the exported versions of them to disk.
-        async.each(exportedDependencyPacks, function(pack, next) {
+            // Hit Treeline.io to fetch and export the deep dependencies for this pack.
+            // Because the packs are flattened, this includes nested dependencies as well
+            // as top-level dependencies of this pack.
+            var url = '/api/v1/machinepacks/'+projectInfo.id+'/dependencies';
+            debug('Communicating w/ '+inputs.treelineApiUrl+url);
+            Http.sendHttpRequest({
+              method: 'get',
+              baseUrl: inputs.treelineApiUrl,
+              url: '/api/v1/machinepacks/'+projectInfo.id+'/dependencies',
+              headers: { 'x-auth': keychain.secret },
+            }).exec({
+              error: exits.error,
+              success: function (response){
+                var exportedDependencyPacks;
+                try {
+                  exportedDependencyPacks = JSON.parse(response.body);
+                }
+                catch (e) {
+                  return exits.error(e);
+                }
 
-          // Write the exported pack dependency to disk
-          // TODO: write this in the node_modules folder once the relevant updates
-          // have been made in the compiler
-          LocalMachinepacks.writePack({
-            destination: path.resolve(inputs.destination,'machines',pack.id),
-            packData: pack,
-            force: true
-          }).exec({
-            error: function (err){
-              return next(err);
-            },
-            success: function (){
-              // For each of this dependency's treeline dependencies, write
-              // stub packs to disk that simply require the appropriate version.
-              // TODO
+                debug('Got exported dependency packs:',exportedDependencyPacks);
 
-              return next();
-            }
-          });// </write treeline dependency to local disk>
-        }, function (err){
-          if (err) {
-            return exits.error(err);
+                // For each of the pack's direct "shallow" (version-agnostic) dependencies,
+                // write stub packs to disk that simply require the appropriate version.
+                // TODO
+
+                // Now loop over each of the "real" (deep) dependency packs and write
+                // the exported versions of them to disk.
+                async.each(exportedDependencyPacks, function(pack, next) {
+
+                  // Write the exported pack dependency to disk
+                  // TODO: write this in the node_modules folder once the relevant updates
+                  // have been made in the compiler
+                  LocalMachinepacks.writePack({
+                    destination: path.resolve(inputs.dir,'machines',pack.id),
+                    packData: pack,
+                    force: true
+                  }).exec({
+                    error: function (err){
+                      return next(err);
+                    },
+                    success: function (){
+                      // For each of this dependency's treeline dependencies, write
+                      // stub packs to disk that simply require the appropriate version.
+                      // TODO
+
+                      return next();
+                    }
+                  });// </write treeline dependency to local disk>
+                }, function (err){
+                  if (err) {
+                    return exits.error(err);
+                  }
+                  return exits.success();
+                });
+              }
+            });
           }
-          return exits.success();
         });
       }
     });
