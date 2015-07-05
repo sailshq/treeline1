@@ -68,10 +68,12 @@ module.exports = {
 
     var path = require('path');
     var _ = require('lodash');
+    var async = require('async');
     var Http = require('machinepack-http');
     var Prompts = require('machinepack-prompts');
     var Filesystem = require('machinepack-fs');
     var LocalMachinepacks = require('machinepack-localmachinepacks');
+    var NPM = require('machinepack-npm');
     var thisPack = require('../');
 
     thisPack.readKeychain().exec({
@@ -197,22 +199,28 @@ module.exports = {
                       },
                       success: function (){
 
-                        // Install this pack's NPM dependencies
-                        // TODO
-
-                        // Now install actual Treeline dependencies
-                        // (fetch from treeline.io and write to local disk)
-                        thisPack.installTreelineDeps({
-                          dir: destinationPath,
-                          treelineApiUrl: inputs.treelineApiUrl
-                        }).exec({
-                          error: function(err) {
-                            return exits.error(err);
+                        async.parallel([
+                          // Install this pack's NPM dependencies
+                          function (doneInstallingNPMDeps){
+                            NPM.installDependencies({
+                              dir: destinationPath
+                            })
+                            .exec(doneInstallingNPMDeps);
                           },
-                          success: function (){
-                            return exits.success();
+                          // Now install actual Treeline dependencies
+                          // (fetch from treeline.io and write to local disk)
+                          function (doneInstallingTreelineDeps){
+                            thisPack.installTreelineDeps({
+                              dir: destinationPath,
+                              treelineApiUrl: inputs.treelineApiUrl
+                            }).exec(doneInstallingTreelineDeps);
                           }
-                        }); //</thisPack.installTreelineDeps>
+                        ], function afterwards(err){
+                          if (err) {
+                            return exits.error(err);
+                          }
+                          return exits.success();
+                        });//</async.parallel>
 
                       }
                     });// </LocalMachinepacks.writePack>

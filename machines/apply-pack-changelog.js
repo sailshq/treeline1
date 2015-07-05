@@ -31,15 +31,10 @@ module.exports = {
   },
 
 
-  exits: {
-
-
-  },
-
-
   fn: function (inputs,exits) {
     var util = require('util');
     var path = require('path');
+    var async = require('async');
     var LocalMachinepacks = require('machinepack-localmachinepacks');
     var thisPack = require('../');
 
@@ -55,28 +50,9 @@ module.exports = {
     // Over time, we can add a more granular changelog as a separate
     // key (i.e. not `definition`).
 
-    // var EXAMPLE = [
-    //   {
-    //     identity: 'machinepack-baz',
-    //     verb: 'set',
-    //     definition: {
-    //       friendlyName: 'Baz',
-    //       machines: [{
-    //         identity: 'foo-bar',
-    //         // ...
-    //       }],
-    //       dependencies: [{}],
-    //       treelineDependencies: [{
-    //         id: 'mikermcneil/machinepack-stuffandthings',
-    //         version: '4.2.5'
-    //       }]
-    //     }
-    //   }
-    // ];
-
     // For now, notice that we also include `treelineDependencies`, which consists
-    // of other Treeline-hosted machinepacks which this pack depends upon.
-    // TODO: use NPM instead
+    // of other Treeline-hosted machinepacks which this pack depends upon. Eventually,
+    // we can use NPM for this (when there is support for organizations)
 
     if (inputs.changelog.length === 0) {
       return exits.success();
@@ -98,26 +74,34 @@ module.exports = {
       error: exits.error,
       success: function (){
 
-        // Install this pack's NPM dependencies
-        // TODO
+        async.parallel([
 
-        // If any of the pack's Treeline dependencies changed, we also need to
-        // re-export those packs.  But we only need to do this one level deep,
-        // because flattening.  For the time being, we re-export ALL dependencies.
-
-        // Now install actual Treeline dependencies
-        // (fetch from treeline.io and write to local disk)
-        thisPack.installTreelineDeps({
-          dir: inputs.dir,
-          treelineApiUrl: inputs.treelineApiUrl
-        }).exec({
-          error: function(err) {
-            return exits.error(err);
+          // Install this pack's NPM dependencies
+          function (doneInstallingNPMDeps){
+            NPM.installDependencies({
+              dir: path.join(inputs.dir)
+            })
+            .exec(doneInstallingNPMDeps);
           },
-          success: function (){
-            return exits.success();
+
+          // If any of the pack's Treeline dependencies changed, we also need to
+          // re-export those packs.  But we only need to do this one level deep,
+          // because flattening.  For the time being, we re-export ALL dependencies.
+          //
+          // Now install actual Treeline dependencies
+          // (fetch from treeline.io and write to local disk)
+          function (doneInstallingTreelineDeps){
+            thisPack.installTreelineDeps({
+              dir: inputs.dir,
+              treelineApiUrl: inputs.treelineApiUrl
+            }).exec(doneInstallingTreelineDeps);
           }
-        });
+        ], function afterwards(err){
+          if (err) {
+            return exits.error(err);
+          }
+          return exits.success();
+        });//</async.parallel>
       }
     });
 
