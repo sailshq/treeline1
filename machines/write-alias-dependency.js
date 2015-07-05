@@ -26,22 +26,36 @@ module.exports = {
 
 
   fn: function (inputs,exits) {
+    var path = require('path');
+    var rttc = require('rttc');
     var LocalMachinepacks = require('machinepack-localmachinepacks');
 
     // Ensure we have an absolute destination path.
     inputs.dir = path.resolve(inputs.dir);
 
     // Ensure packData is valid using an example schema.
-    inputs.packData = rttc.coerce(rttc.infer({
-      friendlyName: 'Foo',
-      description: 'Node.js utilities for working with foos.',
-      author: 'Marty McFly <marty@mcfly.com>',
-      license: 'MIT',
-      id: 'marty/machinepack-do-stuff',
-      npmPackageName: '@treelinehq/marty/machinepack-do-stuff',
-      dependencies: [ { name: 'lodash', semverRange: '^2.4.1' } ]
-    }), inputs.packData);
+    inputs.packData = rttc.coerce({
+      id: 'string',
+      npmPackageName: 'string',
+      version: 'string',
+      friendlyName: 'string',
+      description: 'string',
+      author: 'string',
+      license: 'string',
+      dependencies: [ { name: 'string', semverRange: 'string' } ]
+    }, inputs.packData);
 
+    // If version is invalid, bail out w/ an error.
+    if (!inputs.packData.version) {
+      return exits.error(new Error('Invalid `version`. Should be a semantic version string (e.g. "4.2.31")'));
+    }
+
+    // Build some code for the index.js file that will require
+    // the correct version of the dependency.
+    var rawVersionSpecificPkgName = inputs.packData.npmPackageName + '_' + inputs.packData.version;
+    inputs.packData.indexJsCode = '// This is an alias for the specific version of the machinepack.\nmodule.exports = require(\''+rawVersionSpecificPkgName+'\');\n';
+
+    // Finally, write the pack to disk.
     LocalMachinepacks.writePack({
       destination: inputs.dir,
       packData: inputs.packData,

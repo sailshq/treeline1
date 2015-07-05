@@ -87,26 +87,38 @@ module.exports = {
                 // the "real" exported pack files to disk.
                 async.each(exportedDependencyPacks, function(pack, next) {
 
+                  // Validate that the "npmPackageName" exists and doesn't contain any underscores.
+                  // (use the `id` as the npm package name if no package name is provided)
+                  pack.npmPackageName = pack.npmPackageName || pack.id;
+                  pack.npmPackageName = pack.npmPackageName.replace(/_/g,'-');
+                  // TODO: enforce both things (^^) in the API when `npmPackageName`s
+                  // are initially set or modified (including if/when they are inferred)
 
                   // If this is a direct, "shallow" (version-agnostic) dependency,
                   // also write a stub pack for it as an alias to the proper version
                   // (by simply requiring it).  This is to allow analog machines to work.
-                  var aliasDependencyPath = path.join(inputs.dir,'machines',pack.id);
-                  writeAliasDependency({
-                    dir: aliasDependencyPath,
+                  thisPack.writeAliasDependency({
+                    dir: path.join(inputs.dir,'machines',pack.npmPackageName),
                     packData: pack
                   }).exec({
                     error: function (err) { return next(err); },
                     success: function () {
+
+                      // Create a modified "npmPackageName" which includes the version string
+                      // as a suffix (e.g. `rachaelshaw/machinepack-foobar_1.5.39`)
+                      var versionSpecificPkgName = pack.npmPackageName + '_' + pack.version;
+
                       // Write the "real" exported pack dependency release to disk
-                      var dependencyPathWithVersion = path.join(inputs.dir,'machines',pack.id + '_' + pack.version);
                       // TODO: Write this in the node_modules folder once the relevant updates
                       // have been made in the compiler.  The current strategy of writing
                       // to the machines folder and concatenating the version is purely
                       // temporary.
                       LocalMachinepacks.writePack({
-                        destination: dependencyPathWithVersion,
-                        packData: pack,
+                        destination: path.join(inputs.dir,'machines',versionSpecificPkgName),
+                        // Pass in a modified version of the pack w/ the tweaked pkg name.
+                        packData: _.extend({}, pack, {
+                          npmPackageName: versionSpecificPkgName
+                        }),
                         force: true
                       }).exec({
                         error: function (err){
@@ -117,23 +129,48 @@ module.exports = {
                           // Install NPM dependencies for this treeline pack dependency
                           // TODO
 
-                          // For each of this dependency's treeline dependencies, write
-                          // stub packs to disk that simply require the appropriate version.
-                          // TODO
-                          var aliasDependencyPath = path.join(dependencyPathWithVersion,'machines',pack.id);
+                          // For ALL of this dependency's stated top-level treeline dependencies,
+                          // write stub packs to disk that simply require the appropriate version
+                          // from the top-level pack.
+                          async.each(pack.treelineDependencies, function (depOfDepMapping, next) {
+                            // Look up additional information about this dependency from the flat
+                            // list of top-level dependencies we've been using above
+                            var deepDepPack = _.find(exportedDependencyPacks, {
+                              id: depOfDepMapping.id,
+                              version: depOfDepMapping.version
+                            });
 
-                          return next();
+                            // If this dependency does not exist in this list, we have a problem.
+                            if (!deepDepPack) {
+                              return next(new Error('Consistency violation: Unexpected dependency id/version combination ("'+depOfDepMapping.id+'@'+depOfDepMapping.version+'")'));
+                            }
+
+                            // Finally, write the alias pack to disk.
+                            thisPack.writeAliasDependency({
+                              dir: path.join(inputs.dir,'machines',versionSpecificPkgName,'node_modules',deepDepPack.npmPackageName),
+                              packData: deepDepPack
+                            }).exec({
+                              error: function (err) { return next(err); },
+                              success: function () {
+                                return next();
+                              }
+                            });
+                          }, function afterwards (err) {
+                            if (err) { return next(err); }
+                            return next();
+                          }); //</async.each dependency of dependency>
+
                         }
                       });// </write treeline dependency to local disk>
                     }
                   });
 
-                }, function (err){
+                }, function afterwards(err){
                   if (err) {
                     return exits.error(err);
                   }
                   return exits.success();
-                });
+                }); //</async.each dependency>
               }
             });
           }
