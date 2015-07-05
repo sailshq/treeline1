@@ -43,8 +43,6 @@ module.exports = {
     var thisPack = require('../');
     var debug = require('debug')('treeline-cli');
 
-
-
     // Ensure we have an absolute destination path.
     inputs.dir = inputs.dir ? path.resolve(inputs.dir) : process.cwd();
 
@@ -93,33 +91,43 @@ module.exports = {
                   // If this is a direct, "shallow" (version-agnostic) dependency,
                   // also write a stub pack for it as an alias to the proper version
                   // (by simply requiring it).  This is to allow analog machines to work.
-                  // TODO
                   var aliasDependencyPath = path.join(inputs.dir,'machines',pack.id);
-
-                  // TODO: Write this in the node_modules folder once the relevant updates
-                  // have been made in the compiler.  The current strategy of writing
-                  // to the machines folder and concatenating the version is purely
-                  // temporary.
-
-                  // Write the exported pack dependency to disk
-                  var dependencyPathWithVersion = path.join(inputs.dir,'machines',pack.id + '_' + pack.version);
-                  LocalMachinepacks.writePack({
-                    destination: dependencyPathWithVersion,
-                    packData: pack,
-                    force: true
+                  writeAliasDependency({
+                    dir: aliasDependencyPath,
+                    packData: pack
                   }).exec({
-                    error: function (err){
-                      return next(err);
-                    },
-                    success: function (){
-                      // For each of this dependency's treeline dependencies, write
-                      // stub packs to disk that simply require the appropriate version.
-                      // TODO
-                      var aliasDependencyPath = path.join(dependencyPathWithVersion,'machines',pack.id);
+                    error: function (err) { return next(err); },
+                    success: function () {
+                      // Write the "real" exported pack dependency release to disk
+                      var dependencyPathWithVersion = path.join(inputs.dir,'machines',pack.id + '_' + pack.version);
+                      // TODO: Write this in the node_modules folder once the relevant updates
+                      // have been made in the compiler.  The current strategy of writing
+                      // to the machines folder and concatenating the version is purely
+                      // temporary.
+                      LocalMachinepacks.writePack({
+                        destination: dependencyPathWithVersion,
+                        packData: pack,
+                        force: true
+                      }).exec({
+                        error: function (err){
+                          return next(err);
+                        },
+                        success: function (){
 
-                      return next();
+                          // Install NPM dependencies for this treeline pack dependency
+                          // TODO
+
+                          // For each of this dependency's treeline dependencies, write
+                          // stub packs to disk that simply require the appropriate version.
+                          // TODO
+                          var aliasDependencyPath = path.join(dependencyPathWithVersion,'machines',pack.id);
+
+                          return next();
+                        }
+                      });// </write treeline dependency to local disk>
                     }
-                  });// </write treeline dependency to local disk>
+                  });
+
                 }, function (err){
                   if (err) {
                     return exits.error(err);

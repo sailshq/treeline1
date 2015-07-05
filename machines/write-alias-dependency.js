@@ -39,8 +39,7 @@ module.exports = {
       license: 'MIT',
       id: 'marty/machinepack-do-stuff',
       npmPackageName: '@treelinehq/marty/machinepack-do-stuff',
-      dependencies: [ { name: 'lodash', semverRange: '^2.4.1' } ],
-      machines: []
+      dependencies: [ { name: 'lodash', semverRange: '^2.4.1' } ]
     }), inputs.packData);
 
     LocalMachinepacks.writePack({

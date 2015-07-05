@@ -98,6 +98,9 @@ module.exports = {
       error: exits.error,
       success: function (){
 
+        // Install this pack's NPM dependencies
+        // TODO
+
         // If any of the pack's Treeline dependencies changed, we also need to
         // re-export those packs.  But we only need to do this one level deep,
         // because flattening.  For the time being, we re-export ALL dependencies.
