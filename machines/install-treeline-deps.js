@@ -94,19 +94,24 @@ module.exports = {
                   // TODO: enforce both things (^^) in the API when `npmPackageName`s
                   // are initially set or modified (including if/when they are inferred)
 
+                  // Create a modified "npmPackageName" which includes the version string
+                  // as a suffix (e.g. `rachaelshaw/machinepack-foobar_1.5.39`)
+                  var versionSpecificPkgName = pack.npmPackageName + '_' + pack.version;
+
                   // If this is a direct, "shallow" (version-agnostic) dependency,
                   // also write a stub pack for it as an alias to the proper version
                   // (by simply requiring it).  This is to allow analog machines to work.
                   thisPack.writeAliasDependency({
                     dir: path.join(inputs.dir,'machines',pack.npmPackageName),
-                    packData: pack
+                    packData: pack,
+                    // Eventually, we'll be able to just use a normal require(), since all of the
+                    // dependencies will be in a `node_modules` folder.  However, for now, we need
+                    // to use a relative path.
+                    // TODO: update this when that happens
+                    requireStr: '../'+versionSpecificPkgName
                   }).exec({
                     error: function (err) { return next(err); },
                     success: function () {
-
-                      // Create a modified "npmPackageName" which includes the version string
-                      // as a suffix (e.g. `rachaelshaw/machinepack-foobar_1.5.39`)
-                      var versionSpecificPkgName = pack.npmPackageName + '_' + pack.version;
 
                       // Write the "real" exported pack dependency release to disk
                       // TODO: Write this in the node_modules folder once the relevant updates
@@ -133,6 +138,7 @@ module.exports = {
                           // write stub packs to disk that simply require the appropriate version
                           // from the top-level pack.
                           async.each(pack.treelineDependencies, function (depOfDepMapping, next) {
+
                             // Look up additional information about this dependency from the flat
                             // list of top-level dependencies we've been using above
                             var deepDepPack = _.find(exportedDependencyPacks, {
@@ -145,15 +151,19 @@ module.exports = {
                               return next(new Error('Consistency violation: Unexpected dependency id/version combination ("'+depOfDepMapping.id+'@'+depOfDepMapping.version+'")'));
                             }
 
+
                             // Finally, write the alias pack to disk.
                             thisPack.writeAliasDependency({
                               dir: path.join(inputs.dir,'machines',versionSpecificPkgName,'node_modules',deepDepPack.npmPackageName),
-                              packData: deepDepPack
+                              packData: deepDepPack,
+                              // Eventually, we'll be able to just use a normal require(), since all of the
+                              // dependencies will be in a `node_modules` folder.  However, for now, we need
+                              // to use a relative path.
+                              // TODO: update this when that happens
+                              requireStr: '../../../'+deepDepPack.npmPackageName+'_'+deepDepPack.version
                             }).exec({
                               error: function (err) { return next(err); },
-                              success: function () {
-                                return next();
-                              }
+                              success: function () { return next(); }
                             });
                           }, function afterwards (err) {
                             if (err) { return next(err); }

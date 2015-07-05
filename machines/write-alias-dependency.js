@@ -22,6 +22,12 @@ module.exports = {
       required: true
     },
 
+    requireStr: {
+      description: 'A string to use in the `require()` in the generated index.js file.',
+      extendedDescription: 'If omitted, will default to a portamento of the npmPackageName and version provided in `packData`.',
+      example: '../machinepack-foo_3.1.415127'
+    }
+
   },
 
 
@@ -52,8 +58,10 @@ module.exports = {
 
     // Build some code for the index.js file that will require
     // the correct version of the dependency.
-    var rawVersionSpecificPkgName = inputs.packData.npmPackageName + '_' + inputs.packData.version;
-    inputs.packData.indexJsCode = '// This is an alias for the specific version of the machinepack.\nmodule.exports = require(\''+rawVersionSpecificPkgName+'\');\n';
+    // If `requireStr` was not provided, default it to a portamento
+    // of the npm package name & version string.
+    inputs.requireStr = inputs.requireStr || (inputs.packData.npmPackageName + '_' + inputs.packData.version);
+    inputs.packData.indexJsCode = '// This is an alias for the specific version of the machinepack.\nmodule.exports = require(\''+inputs.requireStr+'\');\n';
 
     // Finally, write the pack to disk.
     LocalMachinepacks.writePack({
