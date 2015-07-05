@@ -238,7 +238,8 @@ module.exports = {
                         type: 'machinepack',
                         changelog: body,
                         onSyncSuccess: inputs.onSyncSuccess,
-                        localPort: inputs.localPort
+                        localPort: inputs.localPort,
+                        treelineApiUrl: inputs.treelineApiUrl
                       }).exec({
                         // If the initial sync or flush in scribe fails, then
                         // give up with an error msg.
@@ -280,7 +281,8 @@ module.exports = {
                         type: 'machinepack',
                         changelog: changelog,
                         onSyncSuccess: inputs.onSyncSuccess,
-                        localPort: inputs.localPort
+                        localPort: inputs.localPort,
+                        treelineApiUrl: inputs.treelineApiUrl
                       }).exec({
                         // If applying a pack changelog to the local machinepack
                         // fails, then trigger the `onSyncError` notifier function.

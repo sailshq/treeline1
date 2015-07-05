@@ -20,6 +20,12 @@ module.exports = {
       description: 'Path to the local machinepack where the changelog should be applied.',
       extendedDescription: 'If unspecified, defaults to the current working directory.  If provided as a relative path, this will be resolved from the current working directory.',
       example: '/Users/mikermcneil/Desktop/foo'
+    },
+
+    treelineApiUrl: {
+      description: 'The base URL for the Treeline API (useful if you\'re in a country that can\'t use SSL, etc.)',
+      example: 'http://api.treeline.io',
+      defaultsTo: 'https://api.treeline.io'
     }
 
   },
@@ -99,18 +105,11 @@ module.exports = {
         // re-export those packs.  But we only need to do this one level deep,
         // because flattening.
 
-        // Gather up the ids of all of the dependencies that changed:
-        // (for now this is all of them)
-        var changedDependencies = changedPack.definition.treelineDependencies;
-
-        // For each of this pack's shallow dependencies, write stub packs to disk
-        // that simply require the appropriate version.
-        // TODO
-
         // Now install actual Treeline dependencies
         // (fetch from treeline.io and write to local disk)
         thisPack.installTreelineDeps({
-          packId: ''
+          dir: inputs.dir,
+          treelineApiUrl: inputs.treelineApiUrl
         }).exec({
           error: function(err) {
             return exits.error(err);
