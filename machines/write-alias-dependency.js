@@ -40,6 +40,7 @@ module.exports = {
     inputs.dir = path.resolve(inputs.dir);
 
     // Ensure packData is valid using an example schema.
+    // (note that we explicitly exclude certain properties-- particularly `machines` and `dependencies`)
     inputs.packData = rttc.coerce({
       id: 'string',
       npmPackageName: 'string',
@@ -47,8 +48,7 @@ module.exports = {
       friendlyName: 'string',
       description: 'string',
       author: 'string',
-      license: 'string',
-      dependencies: [ { name: 'string', semverRange: 'string' } ]
+      license: 'string'
     }, inputs.packData);
 
     // If version is invalid, bail out w/ an error.
@@ -63,11 +63,20 @@ module.exports = {
     inputs.requireStr = inputs.requireStr || (inputs.packData.npmPackageName + '_' + inputs.packData.version);
     inputs.packData.indexJsCode = '// This is an alias for the specific version of the machinepack.\nmodule.exports = require(\''+inputs.requireStr+'\');\n';
 
+    // Append some text to the description explaining this is just an alias, and not the real pack.
+    inputs.packData.description = inputs.packData.description+'(This is just an alias that requires a specific version of this machinepack, which is located elsewhere. See index.js if you\'re curious.)';
+
     // Finally, write the pack to disk.
     LocalMachinepacks.writePack({
       destination: inputs.dir,
       packData: inputs.packData,
-      force: true
+      force: true,
+      // We disable `ensureMachineDep` here to avoid needlessly installing the
+      // `machine` dependency from NPM in this pack-- it will never be used and
+      // would just be a waste of time.
+      ensureMachineDep: false,
+      // TODO: consider also excluding other info which might be confusing
+      // (e.g. the empty `machinepack.machines` array included in the exported package.json file)
     }).exec({
       error: exits.error,
       success: function (){

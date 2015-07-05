@@ -40,6 +40,7 @@ module.exports = {
     var LocalMachinepacks = require('machinepack-localmachinepacks');
     var Http = require('machinepack-http');
     var Filesystem = require('machinepack-fs');
+    var NPM = require('machinepack-npm');
     var thisPack = require('../');
     var debug = require('debug')('treeline-cli');
 
@@ -120,8 +121,8 @@ module.exports = {
                       // temporary.
                       LocalMachinepacks.writePack({
                         destination: path.join(inputs.dir,'machines',versionSpecificPkgName),
-                        // Pass in a modified version of the pack w/ the tweaked pkg name.
                         packData: _.extend({}, pack, {
+                          // Pass in a modified version of the pack w/ the tweaked pkg name.
                           npmPackageName: versionSpecificPkgName
                         }),
                         force: true
@@ -131,45 +132,62 @@ module.exports = {
                         },
                         success: function (){
 
-                          // Install NPM dependencies for this treeline pack dependency
-                          // TODO
+                          async.parallel([
+                            function (doneInstallingNPMDeps){
+                              // Install NPM dependencies for this treeline pack dependency
+                              NPM.installDependencies({
+                                dir: path.join(inputs.dir,'machines',versionSpecificPkgName)
+                              })
+                              .exec({
+                                error: function (err){ return doneInstallingNPMDeps(err); },
+                                success: function (){
+                                  return doneInstallingNPMDeps();
+                                }
+                              });
+                            },
+                            function (doneInstallingTreelineDeps){
+                              // For ALL of this dependency's stated top-level treeline dependencies,
+                              // write stub packs to disk that simply require the appropriate version
+                              // from the top-level pack.
+                              async.each(pack.treelineDependencies, function (depOfDepMapping, next) {
 
-                          // For ALL of this dependency's stated top-level treeline dependencies,
-                          // write stub packs to disk that simply require the appropriate version
-                          // from the top-level pack.
-                          async.each(pack.treelineDependencies, function (depOfDepMapping, next) {
+                                // Look up additional information about this dependency from the flat
+                                // list of top-level dependencies we've been using above
+                                var deepDepPack = _.find(exportedDependencyPacks, {
+                                  id: depOfDepMapping.id,
+                                  version: depOfDepMapping.version
+                                });
 
-                            // Look up additional information about this dependency from the flat
-                            // list of top-level dependencies we've been using above
-                            var deepDepPack = _.find(exportedDependencyPacks, {
-                              id: depOfDepMapping.id,
-                              version: depOfDepMapping.version
-                            });
+                                // If this dependency does not exist in this list, we have a problem.
+                                if (!deepDepPack) {
+                                  return next(new Error('Consistency violation: Unexpected dependency id/version combination ("'+depOfDepMapping.id+'@'+depOfDepMapping.version+'")'));
+                                }
 
-                            // If this dependency does not exist in this list, we have a problem.
-                            if (!deepDepPack) {
-                              return next(new Error('Consistency violation: Unexpected dependency id/version combination ("'+depOfDepMapping.id+'@'+depOfDepMapping.version+'")'));
+
+                                // Finally, write the alias pack to disk.
+                                thisPack.writeAliasDependency({
+                                  dir: path.join(inputs.dir,'machines',versionSpecificPkgName,'node_modules',deepDepPack.npmPackageName),
+                                  packData: deepDepPack,
+                                  // Eventually, we'll be able to just use a normal require(), since all of the
+                                  // dependencies will be in a `node_modules` folder.  However, for now, we need
+                                  // to use a relative path.
+                                  // TODO: update this when that happens
+                                  requireStr: '../../../'+deepDepPack.npmPackageName+'_'+deepDepPack.version
+                                }).exec({
+                                  error: function (err) { return next(err); },
+                                  success: function () { return next(); }
+                                });
+                              }, function afterwards (err) {
+                                if (err) { return doneInstallingTreelineDeps(err); }
+                                return doneInstallingTreelineDeps();
+                              }); //</async.each dependency of dependency>
                             }
-
-
-                            // Finally, write the alias pack to disk.
-                            thisPack.writeAliasDependency({
-                              dir: path.join(inputs.dir,'machines',versionSpecificPkgName,'node_modules',deepDepPack.npmPackageName),
-                              packData: deepDepPack,
-                              // Eventually, we'll be able to just use a normal require(), since all of the
-                              // dependencies will be in a `node_modules` folder.  However, for now, we need
-                              // to use a relative path.
-                              // TODO: update this when that happens
-                              requireStr: '../../../'+deepDepPack.npmPackageName+'_'+deepDepPack.version
-                            }).exec({
-                              error: function (err) { return next(err); },
-                              success: function () { return next(); }
-                            });
-                          }, function afterwards (err) {
-                            if (err) { return next(err); }
+                          ], function afterwards (err){
+                            if (err) {
+                              return next(err);
+                            }
                             return next();
-                          }); //</async.each dependency of dependency>
-
+                          }); //</async.parallel>
                         }
                       });// </write treeline dependency to local disk>
                     }
