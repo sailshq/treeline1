@@ -36,6 +36,7 @@ module.exports = {
     var path = require('path');
     var async = require('async');
     var LocalMachinepacks = require('machinepack-localmachinepacks');
+    var NPM = require('machinepack-npm');
     var thisPack = require('../');
 
     // Ensure we have an absolute destination path.
