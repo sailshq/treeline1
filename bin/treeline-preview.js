@@ -4,9 +4,9 @@ require('machine-as-script')( {
   machine: require('../machines/start-developing'),
   args: ['type']
 }).configure({
-  onAuthenticated: function (){
+  onHasKeychain: function (username){
     var chalk = require('chalk');
-    console.log(chalk.gray('Authenticated successfully.'));
+    console.log(chalk.gray('Located keychain file: connecting as "'+username+'".'));
   },
   onConnected: function (){
     var chalk = require('chalk');

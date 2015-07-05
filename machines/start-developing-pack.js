@@ -18,8 +18,8 @@ module.exports = {
       defaultsTo: false
     },
 
-    onAuthenticated: {
-      description: 'An optional notifier function that will be called when authentication is complete.',
+    onHasKeychain: {
+      description: 'An optional notifier function that will be called when a keychain is located (doesn\'t mean it is necessarily valid).',
       example: '->',
       defaultsTo: function (){}
     },
@@ -172,7 +172,7 @@ module.exports = {
                 }
 
                 // Trigger optional notifier function.
-                inputs.onAuthenticated();
+                inputs.onHasKeychain(me.username);
 
                 // Read local pack and compute hash of the meaningful information.
                 LocalMachinepacks.getSignature({
@@ -200,8 +200,7 @@ module.exports = {
                       socket.request({
                         method: 'get',
                         url: '/api/v1/machinepacks/'+linkedProject.id+'/sync',
-                        headers: { 'x-auth': '6d295c9b-f354-4026-980b-19271e7ba829' },
-                        // headers: { 'x-auth': me.secret },
+                        headers: { 'x-auth': me.secret },
                         params: {
                           // Send along hashes of each machine, as well as one
                           // additional hash for the pack's package.json metadata.
@@ -212,6 +211,12 @@ module.exports = {
                         // console.log('Sails responded with: ', body); console.log('with headers: ', jwr.headers); console.log('and with status code: ', jwr.statusCode);
                         // console.log('jwr.error???',jwr.error);
                         if (jwr.error) {
+
+                          // Set up an exit via 'forbidden'.
+                          if (jwr.statusCode === 401) {
+                            jwr.exit = 'forbidden';
+                          }
+
                           // If initial pack subscription fails, kill the scribe server
                           // and stop listening to changes
                           return next(jwr);

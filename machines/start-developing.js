@@ -22,9 +22,9 @@ module.exports = {
       defaultsTo: false
     },
 
-    onAuthenticated: {
-      description: 'An optional notifier function that will be called when authentication is complete.',
-      example: '->'
+    onHasKeychain: {
+      description: 'An optional notifier function that will be called when a keychain is located (doesn\'t mean it is necessarily valid).',
+      example: '->',
     },
 
     onConnected: {
