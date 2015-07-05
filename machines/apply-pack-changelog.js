@@ -31,7 +31,7 @@ module.exports = {
   },
 
 
-  fn: function (inputs,exits) {
+  fn: function (inputs, exits, env) {
     var util = require('util');
     var path = require('path');
     var async = require('async');
@@ -64,9 +64,26 @@ module.exports = {
       return exits.error(new Error('Invalid changelog: cannot be applied.  For the time being, machinepack changelogs should only use the "set" verb.  We got:\n'+util.inspect(inputs.changelog, {depth: null}) ));
     }
 
-    // First, we apply changes to the main pack metadata and its machines.
-    // For now we do this every time, no matter what changes we saw:
-    // Generate the pack folder and machines (as well as package.json and other files)
+    // Before going any further, we'll build a postinstall script that installs
+    // Treeline dependencies, then inject it into the pack metadata.  This is so
+    // that, when this pack is used as a dependency in a production setting
+    // (i.e. without the use of the Treeline CLI tool) it will still fetch the
+    // appropriate dependencies directly from Treeline.io.  See comments above
+    // about the eventual plan to move to a "everything on NPM" model (the issue
+    // right now is that we can't publish private packages on behalf of users who
+    // don't have a paid NPM account, because they can't install them).
+    changedPack.definition.postInstallScript = 'treeline install';
+    if (inputs.treelineApiUrl !== env.thisMachine.inputs.treelineApiUrl.defaultsTo) {
+      changedPack.definition.postInstallScript += ' --treelineApiUrl=\''+inputs.treelineApiUrl+'\'';
+    }
+    // changedPack.definition.postInstallScript = 'node -e 'require("treeline-installer")()';
+    // TODO: ensure a depedency on `treeline-installer`
+
+
+    // Now we apply changes to the main pack metadata and its machines.
+    // This generates the pack folder and machines (as well as package.json
+    // and other files) At the moment, we do this every time, no matter what
+    // changes there were:
     LocalMachinepacks.writePack({
       destination: inputs.dir,
       packData: changedPack.definition,

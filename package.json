@@ -32,6 +32,7 @@
     "treeline-new": "./bin/treeline-new.js",
     "treeline-deploy": "./bin/treeline-deploy.js",
     "treeline-export": "./bin/treeline-export.js",
+    "treeline-install": "./bin/treeline-install.js",
     "tl": "./bin/treeline.js"
   },
   "scripts": {

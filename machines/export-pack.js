@@ -178,6 +178,7 @@ module.exports = {
               },
               success: function (){
                 // Fetch metadata and machine code for the remote pack
+                // TODO (for mike): use the same endpoint as in `start-developing-pack`
                 thisPack.fetchPack({
                   secret: keychain.secret,
                   packId: chosenPack.id,

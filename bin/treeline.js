@@ -30,6 +30,7 @@ program.usage(chalk.gray('[options]')+' '+chalk.bold('<command>'))
 .command('link', 'link the current directory to a Treeline app or machinepack')
 .command('unlink', 'remove the Treeline linkfile from the current directory')
 .command('export', 'export a machinepack (e.g. to run as a script)')
+.command('install', 'compile+export+install dependencies from treeline.io')
 .command('about', 'about this module');
 
 
