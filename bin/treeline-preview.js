@@ -11,6 +11,7 @@ require('machine-as-script')( {
   onConnected: function (){
     var chalk = require('chalk');
     console.log(chalk.gray('Now connected to Treeline mothership.'));
+    console.log(chalk.gray('Syncing...'));
   },
   onSyncError: function (err){
     var chalk = require('chalk');

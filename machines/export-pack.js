@@ -189,6 +189,29 @@ module.exports = {
                   },
                   success: function (packData){
 
+                    // Before going any further, we'll build a postinstall script that installs
+                    // Treeline dependencies, then inject it into the pack metadata.  This is so
+                    // that, when this pack is used as a dependency in a production setting
+                    // (i.e. without the use of the Treeline CLI tool) it will still fetch the
+                    // appropriate dependencies directly from Treeline.io.  See comments above
+                    // about the eventual plan to move to a "everything on NPM" model (the issue
+                    // right now is that we can't publish private packages on behalf of users who
+                    // don't have a paid NPM account, because they can't install them).
+
+                    // Use a separate lighter-weight module which is just the logic for installing treeline deps:
+                    packData.postInstallScript = 'node ./node_modules/treeline-installer/bin/treeline-installer';
+
+                    // Ensure a dependency on `treeline-installer`
+                    // (use the same semver range as in OUR package.json file)
+                    if (!_.find(packData.dependencies, {name: 'treeline-installer'})) {
+                      packData.dependencies.push({ name: 'treeline-installer', semverRange: require('../package.json').dependencies['treeline-installer'] });
+                    }
+
+                    // Add a `treelineApiUrl` CLI opt if the current api url is different than the default.
+                    if (inputs.treelineApiUrl !== env.thisMachine().inputs.treelineApiUrl.defaultsTo) {
+                      packData.postInstallScript += ' --treelineApiUrl=\''+inputs.treelineApiUrl+'\'';
+                    }
+
                     // Generate the pack folder and machines (as well as package.json and other files)
                     LocalMachinepacks.writePack({
                       destination: destinationPath,
@@ -202,19 +225,12 @@ module.exports = {
 
                         async.parallel([
                           // Install this pack's NPM dependencies
+                          // (this will also install treeline deps b/c of the postinstall script)
                           function (doneInstallingNPMDeps){
                             NPM.installDependencies({
                               dir: destinationPath
                             })
                             .exec(doneInstallingNPMDeps);
-                          },
-                          // Now install actual Treeline dependencies
-                          // (fetch from treeline.io and write to local disk)
-                          function (doneInstallingTreelineDeps){
-                            thisPack.installTreelineDeps({
-                              dir: destinationPath,
-                              treelineApiUrl: inputs.treelineApiUrl
-                            }).exec(doneInstallingTreelineDeps);
                           }
                         ], function afterwards(err){
                           if (err) {
