@@ -10,7 +10,7 @@ module.exports = {
   inputs: {
 
     dir: {
-      description: 'Path to the local machinepack where the dependencies should be installed.',
+      description: 'Path to the local project.',
       extendedDescription: 'If unspecified, defaults to the current working directory.  If provided as a relative path, this will be resolved from the current working directory.',
       example: '/Users/mikermcneil/Desktop/foo'
     },

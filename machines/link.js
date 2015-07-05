@@ -9,6 +9,12 @@ module.exports = {
 
   inputs: {
 
+    dir: {
+      description: 'Path to the local project.',
+      extendedDescription: 'If unspecified, defaults to the current working directory.  If provided as a relative path, this will be resolved from the current working directory.',
+      example: '/Users/mikermcneil/Desktop/foo'
+    },
+
     type: {
       friendlyName: 'Type',
       description: 'The type of Treeline project to link (app or machinepack)',
@@ -82,7 +88,11 @@ module.exports = {
 
 
   fn: function (inputs, exits) {
+    var path = require('path');
     var thisPack = require('../');
+
+    // Ensure we have an absolute destination path.
+    inputs.dir = inputs.dir ? path.resolve(inputs.dir) : process.cwd();
 
     // If `inputs.type` was provided, use it.
     // Otherwise, sniff around for the package.json file and figure out

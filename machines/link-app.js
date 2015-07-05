@@ -3,10 +3,16 @@ module.exports = {
   friendlyName: 'Link app',
 
 
-  description: 'Link the current directory to an app in Treeline.',
+  description: 'Link the specified directory to an app in Treeline.',
 
 
   inputs: {
+
+    dir: {
+      description: 'Path to the local project.',
+      extendedDescription: 'If unspecified, defaults to the current working directory.  If provided as a relative path, this will be resolved from the current working directory.',
+      example: '/Users/mikermcneil/Desktop/foo'
+    },
 
     identity: {
       description: 'The identity (i.e. slug) of the app to link',
@@ -48,12 +54,15 @@ module.exports = {
 
   fn: function (inputs, exits){
 
+    var path = require('path');
     var _ = require('lodash');
     var Prompts = require('machinepack-prompts');
     var thisPack = require('../');
     var request = require("request");
-    var Path = require('path');
     var Tar = require('tar.gz');
+
+    // Ensure we have an absolute destination path.
+    inputs.dir = inputs.dir ? path.resolve(inputs.dir) : process.cwd();
 
     var appToLink = {
       identity: inputs.identity

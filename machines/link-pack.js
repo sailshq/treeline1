@@ -3,10 +3,16 @@ module.exports = {
   friendlyName: 'Link machinepack',
 
 
-  description: 'Link the current directory to a machinepack in Treeline.',
+  description: 'Link the specified directory to a machinepack in Treeline.',
 
 
   inputs: {
+
+    dir: {
+      description: 'Path to the local project.',
+      extendedDescription: 'If unspecified, defaults to the current working directory.  If provided as a relative path, this will be resolved from the current working directory.',
+      example: '/Users/mikermcneil/Desktop/foo'
+    },
 
     id: {
       description: 'The id of the machinepack to link',
@@ -55,10 +61,13 @@ module.exports = {
 
   fn: function (inputs, exits){
 
-    var Path = require('path');
+    var path = require('path');
     var _ = require('lodash');
     var Prompts = require('machinepack-prompts');
     var thisPack = require('../');
+
+    // Ensure we have an absolute destination path.
+    inputs.dir = inputs.dir ? path.resolve(inputs.dir) : process.cwd();
 
 
     (function getMachinepackToLink(_doneGettingMachinepack){
