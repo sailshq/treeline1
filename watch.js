@@ -85,7 +85,7 @@ module.exports = function(sails) {
 	return {
 		start: function(config, options, cb) {
 
-      var _ioClient = require('./sails.io')(require('socket.io-client'));
+      var _ioClient = require('sails.io.js')(require('socket.io-client'));
 
 			// Get the Treeline URL
 			var src = config.src;
