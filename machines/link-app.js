@@ -64,10 +64,6 @@ module.exports = {
       // If identity was supplied, we don't need to show a prompt, but we will eventually
       // need to fetch more information about the app.  For now, we proceed.
       if (appToLink.identity) {
-        // Install template files if necessary
-        if (process.env.TREELINE_APP_FROM_TEMPLATE) {
-          return installTemplateAssets();
-        }
         return _doneGettingApp.success();
       }
 
@@ -77,7 +73,7 @@ module.exports = {
           error: function (err){ return _doneGettingSecret.error(err); },
           doesNotExist: function (){
             thisPack.login({
-              treelineApiUrl: inputs.treelineApiUrl || process.env.TREELINE_API_URL
+              treelineApiUrl: inputs.treelineApiUrl
             })
             .exec({
               error: function (err) {
@@ -109,24 +105,10 @@ module.exports = {
         },
         success: function (keychain) {
 
-          if (process.env.TREELINE_APP_ID) {
-            appToLink = {
-              id: process.env.TREELINE_APP_ID,
-              identity: process.env.TREELINE_APP_IDENTITY,
-              displayName: process.env.TREELINE_APP_DISPLAY_NAME,
-              fromTemplate: process.env.TREELINE_APP_FROM_TEMPLATE,
-            };
-            // Install template files if necessary
-            if (process.env.TREELINE_APP_FROM_TEMPLATE) {
-              return installTemplateAssets();
-            }
-            return _doneGettingApp.success();
-          }
-
           // Fetch list of apps, then prompt user to choose one:
           thisPack.listApps({
             secret: keychain.secret,
-            treelineApiUrl: inputs.treelineApiUrl || process.env.TREELINE_API_URL
+            treelineApiUrl: inputs.treelineApiUrl
           }).exec({
             error: function(err) {
               return _doneGettingApp.error(err);
@@ -167,11 +149,8 @@ module.exports = {
                   appToLink.id = appDataFromServer.id;
 
                   // If it's not a template app, don't worry about assets
-                  if (!appDataFromServer.fromTemplate) {return _doneGettingApp.success();}
-
-                  // If it's a template app and we have the env override, install the assets
-                  if (process.env.TREELINE_INSTALL_TEMPLATE_ASSETS) {
-                    return installTemplateAssets();
+                  if (!appDataFromServer.fromTemplate) {
+                    return _doneGettingApp.success();
                   }
 
                   // Otherwise ask the user if they want to install the assets
@@ -192,32 +171,6 @@ module.exports = {
           });
         }
       });
-
-      // Download and install template assets (currently hardcoded to admin panel)
-      function installTemplateAssets() {
-        request({
-          url: "https://s3.amazonaws.com/treeline-templates-adminpanel/adminpanel.tgz",
-          method: "GET",
-          encoding: null
-        })
-        .pipe(require('fs').createWriteStream(Path.resolve(process.cwd(),"adminpanel.tgz")))
-        .on("error", function() {
-          return _doneGettingApp.error("Could not download template assets.");
-        })
-        .on("close", function() {
-          new Tar().extract(Path.resolve(process.cwd(),"adminpanel.tgz"), process.cwd(), function(err) {
-            if (err) {
-              return _doneGettingApp.error("Could not extract template assets.");
-            }
-            try {
-              require('fs').unlinkSync(Path.resolve(process.cwd(),"adminpanel.tgz"));
-            } catch(e) {
-              return _doneGettingApp.error("Could not remove template assets archive file.");
-            }
-            return _doneGettingApp.success();
-          });
-        });
-      }
 
     })({
       error: function (err){

@@ -67,7 +67,7 @@ module.exports = {
 
       // Make sure the treeline API is alive
       pingServer: function(next) {
-        thisPack.pingServer({url: inputs.treelineApiUrl  || process.env.TREELINE_API_URL || 'https://api.treeline.io'}).exec({
+        thisPack.pingServer({url: inputs.treelineApiUrl}).exec({
           error: function (err){
             return next(err);
           },
@@ -132,7 +132,7 @@ module.exports = {
           },
           doesNotExist: function (){
             thisPack.login({
-              treelineApiUrl: inputs.treelineApiUrl || process.env.TREELINE_API_URL || 'https://api.treeline.io'
+              treelineApiUrl: inputs.treelineApiUrl
             }).exec({
               error: next,
               success: function (me){
@@ -154,7 +154,7 @@ module.exports = {
           },
           doesNotExist: function (){
             thisPack.linkApp({
-              treelineApiUrl: inputs.treelineApiUrl || process.env.TREELINE_API_URL || 'https://api.treeline.io'
+              treelineApiUrl: inputs.treelineApiUrl
             }).exec({
               error: next,
               noApps: function (output){
@@ -207,7 +207,7 @@ module.exports = {
                 secret: asyncData.me.secret
               },
               config: {
-                treelineURL: inputs.treelineApiUrl || process.env.TREELINE_API_URL ||'https://api.treeline.io'
+                treelineURL: inputs.treelineApiUrl
               }
             };
             debug('Will connect using:',conf);

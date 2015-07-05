@@ -7,6 +7,17 @@ module.exports = {
   description: 'Read data from the linkfile in the current directory.',
 
 
+  inputs: {
+
+    dir: {
+      description: 'Path to the local machinepack where the dependencies should be installed.',
+      extendedDescription: 'If unspecified, defaults to the current working directory.  If provided as a relative path, this will be resolved from the current working directory.',
+      example: '/Users/mikermcneil/Desktop/foo'
+    },
+
+  },
+
+
   exits: {
 
     error: {
@@ -38,11 +49,13 @@ module.exports = {
   fn: function(inputs, exits) {
     var path = require('path');
     var Filesystem = require('machinepack-fs');
-    var dir = process.cwd();
+
+    // Ensure we have an absolute destination path.
+    inputs.dir = inputs.dir ? path.resolve(inputs.dir) : process.cwd();
 
     // Read and parse JSON file located at source path on disk into usable data.
     Filesystem.readJson({
-      source: path.resolve(dir, 'treeline.json'),
+      source: path.join(inputs.dir, 'treeline.json'),
       schema: {
         id: '123',
         identity: 'my-cool-app',

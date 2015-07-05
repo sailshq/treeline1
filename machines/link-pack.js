@@ -71,7 +71,6 @@ module.exports = {
           },
           doesNotExist: function (){
             thisPack.login({
-              // treelineApiUrl: inputs.treelineApiUrl || process.env.TREELINE_API_URL
               treelineApiUrl: inputs.treelineApiUrl,
             })
             .exec({

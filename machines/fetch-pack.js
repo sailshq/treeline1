@@ -30,7 +30,8 @@ module.exports = {
 
     treelineApiUrl: {
       description: 'The base URL for the Treeline API (useful if you\'re in a country that can\'t use SSL, etc.)',
-      example: 'https://api.treeline.io'
+      example: 'https://api.treeline.io',
+      defaultsTo: 'https://api.treeline.io'
     }
 
   },
@@ -99,7 +100,7 @@ module.exports = {
     var url = '/api/v1/machine-packs/'+inputs.packId+'/export';
     Http.sendHttpRequest({
       method: 'get',
-      baseUrl: inputs.treelineApiUrl || process.env.TREELINE_API_URL || 'https://api.treeline.io',
+      baseUrl: inputs.treelineApiUrl,,
       url: url,
       headers: {
        'x-auth': inputs.secret

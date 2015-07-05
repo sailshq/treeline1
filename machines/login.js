@@ -21,6 +21,12 @@ module.exports = {
       protect: true
     },
 
+    adminToken: {
+      description: 'The token to use to verify an admin that can sync code to debug compiler issues',
+      example: 'abc-123',
+      protect: true
+    },
+
     treelineApiUrl: {
       description: 'The base URL for the Treeline API (useful if you\'re in a country that can\'t use SSL, etc.)',
       example: 'http://api.treeline.io'
@@ -60,22 +66,17 @@ module.exports = {
     var Prompts = require('machinepack-prompts');
     var thisPack = require('../');
 
-    var username = inputs.username || process.env.TREELINE_USERNAME;
-    var password = inputs.password || process.env.TREELINE_PASSWORD;
-
-    // Check for an Admin Token
-    // this is used for an admin to be able to sync some code down to test the compiler
-    // when an issue arises.
-    var adminToken = process.env.TREELINE_ADMIN_TOKEN;
 
     async.series([
       function (next){
-        if (username) return next();
+        if (inputs.username) {
+          return next();
+        }
 
         // Set a different message if an admin is authenticating
-        var message = "";
+        var message = '';
 
-        if(adminToken) {
+        if(inputs.adminToken) {
           message = 'Please enter the username of the user to authenticate as';
         } else {
           message = 'Please enter your Treeline username or email address';
@@ -92,14 +93,14 @@ module.exports = {
         });
       },
       function (next){
-        if (password || adminToken) return next();
+        if (inputs.password || inputs.adminToken) return next();
         Prompts.text({
           message: 'Please enter your Treeline password',
           protect: true
         }).exec({
           error: next,
           success: function (_password){
-            password = _password;
+            inputs.password = _password;
             return next();
           }
         });
@@ -108,9 +109,9 @@ module.exports = {
       if (err) return exits.error(err);
 
       thisPack.authenticate({
-        username: username,
-        password: password,
-        adminToken: adminToken,
+        username: inputs.username,
+        password: inputs.password,
+        adminToken: inputs.adminToken,
         treelineApiUrl: inputs.treelineApiUrl,
       }).exec({
         error: exits.error,
@@ -119,13 +120,13 @@ module.exports = {
         success: function (secret){
 
           thisPack.writeKeychain({
-            username: username,
+            username: inputs.username,
             secret: secret,
           }).exec({
             error: exits.error,
             success: function (){
               return exits.success({
-                username: username,
+                username: inputs.username,
                 secret: secret
               });
             }

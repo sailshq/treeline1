@@ -7,6 +7,17 @@ module.exports = {
   description: 'Read data from the Treeline identity/config file.',
 
 
+  inputs: {
+
+    keychainPath: {
+      description: 'Path to the keychain file on this computer. Defaults to `.treeline.secret.json` in the home directory.',
+      extendedDescription: 'If provided as a relative path, this will be resolved from the current working directory.',
+      example: '/Users/mikermcneil/Desktop/foo'
+    },
+
+  },
+
+
   exits: {
 
     error: {
@@ -33,25 +44,17 @@ module.exports = {
 
 
   fn: function(inputs, exits) {
-
-    // Return values from env vars if they exist
-    if (process.env.TREELINE_USERNAME && process.env.TREELINE_SECRET) {
-      return setImmediate(function() {
-        return exits.success({
-          username: process.env.TREELINE_USERNAME,
-          secret: process.env.TREELINE_SECRET
-        });
-      });
-    }
-
     var path = require('path');
     var Paths = require('machinepack-paths');
     var Filesystem = require('machinepack-fs');
 
+    // If specified, ensure keychainPath is an absolute path. If not specified,
+    // assume the default (`~/.treeline.secret.json`)
+    inputs.keychainPath = inputs.keychainPath ? path.resolve(inputs.keychainPath) : path.resolve(Paths.home().execSync(), '.treeline.secret.json');
+
     // Read and parse JSON file located at source path on disk into usable data.
     Filesystem.readJson({
-      // Allow the source to be overridden by an environment var
-      source: process.env.TREELINE_KEYCHAIN || path.resolve(Paths.home().execSync(), '.treeline.secret.json'),
+      source: inputs.keychainPath,
       schema: {
         username: 'mikermcneil',
         secret: '29f559ae-3bec-4d0a-8458-1f4e32a72407'
