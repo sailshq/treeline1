@@ -198,6 +198,7 @@ module.exports = {
                         return exits.error(err);
                       },
                       success: function (){
+
                         async.each(_.where(packData, {isMain: false}), function(pack, next) {
                           thisPack.generateLocalDependency({
                             destination: destinationPath,
@@ -216,11 +217,11 @@ module.exports = {
                             return exits.error(err);
                           }
                           return exits.success({name: chosenPack.displayName, path: destinationPath});
-                        });
+                        }); //</async.each>
                       }
-                    });// </thisPack.generateLocalPack>
+                    });// </LocalMachinepacks.writePack>
                   }
-                });// </LocalMachinepacks.writePack>
+                });// </fetchPack>
               }
             }); //</checkForExisting>
           }

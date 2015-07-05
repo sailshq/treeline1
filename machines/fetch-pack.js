@@ -62,6 +62,8 @@ module.exports = {
       description: 'Done.',
       example: [{
         _id: 'bc231894d-194ab1-49284e9af-28401fbc1d',
+        id: 'bc231894d-194ab1-49284e9af-28401fbc1d',
+        identity: 'machinepack-do-stuff',
         friendlyName: 'Foo',
         description: 'Node.js utilities for working with foos.',
         author: 'Marty McFly <marty@mcfly.com>',

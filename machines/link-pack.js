@@ -37,7 +37,7 @@ module.exports = {
     },
 
     forbidden: {
-      description: 'Username/password combo invalid or not applicable for the selected machinepack.'
+      description: 'Credentials invalid, or not applicable for the selected machinepack.'
     },
 
     success: {

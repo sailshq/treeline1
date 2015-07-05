@@ -109,7 +109,8 @@
       "start-developing-app",
       "normalize-type",
       "sync-remote-changes",
-      "apply-pack-changelog"
+      "apply-pack-changelog",
+      "install-treeline-deps"
     ],
     "testsUrl": "https://travis-ci.org/treeline-io/treeline"
   },
