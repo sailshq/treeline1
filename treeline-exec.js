@@ -84,6 +84,8 @@ program.unknownOption = function NOOP(){};
     var Machines = require('machinepack-machines');
     var enpeem = require('enpeem');
 
+    console.log('\n***WARNING***\nThis is an experimental feature!\n\n');
+
     console.log();
     console.log();
     console.log('Preview machine from registry');
