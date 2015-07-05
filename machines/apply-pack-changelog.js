@@ -73,7 +73,7 @@ module.exports = {
     // right now is that we can't publish private packages on behalf of users who
     // don't have a paid NPM account, because they can't install them).
     changedPack.definition.postInstallScript = 'treeline install';
-    if (inputs.treelineApiUrl !== env.thisMachine.inputs.treelineApiUrl.defaultsTo) {
+    if (inputs.treelineApiUrl !== env.thisMachine().inputs.treelineApiUrl.defaultsTo) {
       changedPack.definition.postInstallScript += ' --treelineApiUrl=\''+inputs.treelineApiUrl+'\'';
     }
     // changedPack.definition.postInstallScript = 'node -e 'require("treeline-installer")()';
