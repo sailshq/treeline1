@@ -60,7 +60,7 @@ module.exports = {
     var debug = require('debug')('treeline-cli');
     var Urls = require('machinepack-urls');
     var thisPack = require('../');
-    var npm = require('machinepack-npm');
+    var NPM = require('machinepack-npm');
     var path = require('path');
     var chalk = require('chalk');
     async.auto({
@@ -81,7 +81,8 @@ module.exports = {
       },
 
       checkForUpdates: function(next) {
-        npm.getPackageJson({
+        // Fetch the package.json string for the `treeline` package from the public NPM registry.
+        NPM.fetchInfo({
           packageName: 'treeline',
         }).exec({
           // An unexpected error occurred.  We'll ignore it.
@@ -96,7 +97,7 @@ module.exports = {
           success: function (packageJsonString){
             try {
               // Parse metadata for the latest version of the NPM package given a package.json string.
-              var latestPackageJson = npm.parsePackageJson({
+              var latestPackageJson = NPM.parsePackageJson({
                 json: packageJsonString,
               }).execSync();
               // Get our own package.json

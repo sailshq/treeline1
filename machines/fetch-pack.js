@@ -100,7 +100,7 @@ module.exports = {
     var url = '/api/v1/machine-packs/'+inputs.packId+'/export';
     Http.sendHttpRequest({
       method: 'get',
-      baseUrl: inputs.treelineApiUrl,,
+      baseUrl: inputs.treelineApiUrl,
       url: url,
       headers: {
        'x-auth': inputs.secret
