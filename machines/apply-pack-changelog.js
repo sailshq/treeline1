@@ -86,9 +86,6 @@ module.exports = {
     if (changedPack.verb !== 'set') {
       return exits.error(new Error('Invalid changelog: cannot be applied.  For the time being, machinepack changelogs should only use the "set" verb.  We got:\n'+util.inspect(inputs.changelog, {depth: null}) ));
     }
-    // Use the `identity` as the npm package name if no package name is provided:
-    changedPack.definition.npmPackageName = changedPack.definition.npmPackageName || changedPack.identity;
-    // (TODO: make it so we don't have to do this here-- there should either ALWAYS be an `npmPackageName` or NEVER ^^)
 
     // First, we apply changes to the main pack metadata and its machines.
     // For now we do this every time, no matter what changes we saw:
