@@ -94,9 +94,13 @@ module.exports = {
 
                   // Write the exported pack dependency to disk
                   // TODO: write this in the node_modules folder once the relevant updates
-                  // have been made in the compiler
+                  // have been made in the compiler.  The current strategy of writing
+                  // to the machines folder and concatenating the version is purely
+                  // temporary.
+                  var dependencyBasePath = path.resolve(inputs.dir,'machines',pack.id);
+                  var dependencyPathWithVersion = dependencyBasePath + '_' + pack.version;
                   LocalMachinepacks.writePack({
-                    destination: path.resolve(inputs.dir,'machines',pack.id),
+                    destination: dependencyPathWithVersion,
                     packData: pack,
                     force: true
                   }).exec({
