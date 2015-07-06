@@ -196,7 +196,7 @@ module.exports = {
             }
 
             // Spit out a message before doing the "npm install" steps
-            console.log(chalk.grey("Ensuring dependencies are up to date..."));
+            console.log(chalk.grey('Ensuring dependencies are up to date...'));
             return next(null, linkedProject);
           }
         });

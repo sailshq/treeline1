@@ -55,7 +55,7 @@ module.exports = {
 
         // Copy the postinstall script into the new project's files
         Filesystem.read({
-          source: path.resolve(__dirname, '..', 'lib', 'apiPostInstallScript.js')
+          source: path.resolve(__dirname, '../legacy/lib/apiPostInstallScript.js')
         }).exec({
           error: function (err) {
             return exits.error(err);
