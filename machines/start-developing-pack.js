@@ -194,8 +194,8 @@ module.exports = {
                   // With that request, send hash of local pack to treeline.io, requesting
                   // an update if anything has changed (note that this will also subscribe
                   // our socket to future changes)
-                  thisPack.connect({
-                    baseUrl: inputs.treelineApiUrl
+                  thisPack.connectToTreeline({
+                    treelineApiUrl: inputs.treelineApiUrl
                   }, function (err, socket) {
                     if (err) {
                       return next(err);

@@ -4,7 +4,8 @@ module.exports = {
   friendlyName: 'Ping server',
 
 
-  description: 'Check that a server is alive.',
+  description: 'Check that a server is alive by sending a request to the given URL.',
+
 
   extendedDescription: 'Makes a request to the specified URL and considers any non-zero status response proof of life.',
 
@@ -12,22 +13,15 @@ module.exports = {
   inputs: {
 
     url: {
-      description: 'The URL to ping',
-      example: 'http://api.treeline.io',
+      description: 'The URL to ping.',
+      example: 'https://api.treeline.io',
       required: true
     }
 
   },
 
 
-  defaultExit: 'success',
-
-
   exits: {
-
-    error: {
-      description: 'Unexpected error occurred'
-    },
 
     success: {
       friendlyName: 'alive',
@@ -35,22 +29,20 @@ module.exports = {
     },
 
     noResponse: {
-      description: 'The server did not respond.',
-      example: 'http://api.treeline.io'
+      description: 'The server did not respond.'
     }
 
   },
 
 
   fn: function (inputs, exits){
-
     var _ = require('lodash');
     var request = require('request');
 
     request.get(inputs.url, function(err, res, body) {
       if (err){
-        if (_.isObject(err) && err.code === 'ECONNREFUSED') {
-          return exits.noResponse(inputs.url);
+        if (_.isError(err) && err.code === 'ECONNREFUSED') {
+          return exits.noResponse();
         }
         return exits.error(err);
       }
