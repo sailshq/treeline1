@@ -97,6 +97,6 @@ module.exports = function runApp (conf, args, cb) {
 
 
 function logTree() {
-  var asciiArt = require('../../').buildAsciiArt().execSync();
+  var asciiArt = require('../../../').buildAsciiArt().execSync();
   console.log(asciiArt);
 }
