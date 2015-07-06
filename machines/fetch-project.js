@@ -108,7 +108,7 @@ module.exports = {
                   id: jsonData.id,
                   identity: jsonData.fullName,
                   displayName: jsonData.name,
-                  owner: '[APP_OWNER]' // <= actually get this somehow
+                  owner: '[APP_OWNER]' // <= TODO: actually get the real version of this by making it easier for users to view apps owned by other accounts
                 });
               }
             });// </MpJson.parse>

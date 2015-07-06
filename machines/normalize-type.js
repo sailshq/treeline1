@@ -13,6 +13,12 @@ module.exports = {
       friendlyName: 'Type',
       description: 'The type of Treeline project ("app" or "machinepack")',
       example: 'machinepack'
+    },
+
+    dir: {
+      description: 'Path to the local project.',
+      extendedDescription: 'If unspecified, defaults to the current working directory.  If provided as a relative path, this will be resolved from the current working directory.',
+      example: '/Users/mikermcneil/Desktop/foo'
     }
 
   },
@@ -37,50 +43,70 @@ module.exports = {
     var IfThen = require('machinepack-ifthen');
     var thisPack = require('../');
 
+    // Ensure we have an absolute destination path.
+    inputs.dir = inputs.dir ? path.resolve(inputs.dir) : process.cwd();
 
     // If `inputs.type` was provided, use it.
-    // Otherwise, sniff around for the package.json file and figure out
-    // what kind of project this is.
+    // Otherwise, sniff around for the package.json/treeline.json files
+    // to figure out what kind of project this is.
     IfThen.ifThenFinally({
 
       bool: !inputs.type,
 
-      then: function (_i, _exits){
-        // Read and parse the package.json file.
-        Filesystem.readJson({
-          source: path.resolve(process.cwd(), 'package.json'),
-          schema: {
-            machinepack: {}
-          }
-        }).exec({
-          // An unexpected error occurred.  Could be no file exists at the
-          // provided `source` path.
-          error: _exits.error,
-          // OK.
-          success: function (packageJson){
-            // If we see a `machinepack.machines` array, we'll assume this must be
-            // a machinepack.
-            if (packageJson.machinepack.machines) {
-              inputs.type = 'machinepack';
-            }
-            // Otherwise... welp I guess it's an app.
-            else {
-              inputs.type = 'app';
-            }
+      expectedOutput: 'app or pack',
 
-            return _exits.success();
-          },
+      then: function (_i, _exits){
+
+        // Read and parse the linkfile
+        thisPack.readLinkfile({
+          dir: inputs.dir
+        }).exec(function (err, linkedProjectInfo){
+          // Tolerate errors and just try next approach if this doesn't work.
+          if (!err) {
+            return _exits.success(linkedProjectInfo.type);
+          }
+          // Read and parse the package.json file.
+          Filesystem.readJson({
+            source: path.join(inputs.dir, 'package.json'),
+            schema: {
+              machinepack: {}
+            }
+          }).exec({
+            // An unexpected error occurred.  Could be no file exists at the
+            // provided `source` path.
+            error: _exits.error,
+            // OK.
+            success: function (packageJson){
+              // If we see a `machinepack.machines` array, we'll assume this must be
+              // a machinepack.
+              if (packageJson.machinepack.machines) {
+                inputs.type = 'machinepack';
+              }
+              // Otherwise... welp I guess it's an app.
+              else {
+                inputs.type = 'app';
+              }
+
+              return _exits.success(inputs.type);
+            },
+          });
+
         });
+
+      },
+
+      orElse: function (__, _exits) {
+        return _exits.success(inputs.type);
       }
 
     }).exec({
 
       error: exits.error,
 
-      success: function (){
+      success: function (type){
 
         // Link either an app or a machinepack
-        switch (inputs.type.toLowerCase()) {
+        switch (type.toLowerCase()) {
           case 'machinepack':
           case 'pack':
           case 'p':
