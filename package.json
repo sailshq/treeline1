@@ -108,7 +108,8 @@
       "install-treeline-deps",
       "write-alias-dependency",
       "build-ascii-art",
-      "connect-to-treeline"
+      "connect-to-treeline",
+      "fetch-project"
     ],
     "testsUrl": "https://travis-ci.org/treeline-io/treeline"
   },

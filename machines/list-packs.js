@@ -19,7 +19,7 @@ module.exports = {
       required: true
     },
 
-    username: {
+    owner: {
       description: 'The username of the Treeline account whose machinepacks will be listed.',
       example: 'mikermcneil',
       required: true
@@ -32,9 +32,6 @@ module.exports = {
     }
 
   },
-
-
-  defaultExit: 'success',
 
 
   exits: {
@@ -74,7 +71,7 @@ module.exports = {
     Http.sendHttpRequest({
       method: 'get',
       baseUrl: inputs.treelineApiUrl,
-      url: '/api/v1/machine-packs/'+inputs.username,
+      url: '/api/v1/machine-packs/'+inputs.owner,
       params: {},
       headers: {
        'x-auth': inputs.secret

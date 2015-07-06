@@ -19,6 +19,13 @@ module.exports = {
       required: true
     },
 
+    // TODO: implement this
+    // owner: {
+    //   description: 'The username of the Treeline account whose apps will be listed.',
+    //   example: 'mikermcneil',
+    //   required: true
+    // },
+
     treelineApiUrl: {
       description: 'The base URL for the Treeline API (useful if you\'re in a country that can\'t use SSL, etc.)',
       example: 'https://api.treeline.io',
@@ -26,9 +33,6 @@ module.exports = {
     }
 
   },
-
-
-  defaultExit: 'success',
 
 
   exits: {
@@ -102,8 +106,7 @@ module.exports = {
             schema: [{
               id: 432,
               fullName: 'some-string-like-this',
-              name: 'Some string like this',
-              fromTemplate: 'sometemplate'
+              name: 'Some string like this'
             }]
           }).execSync();
 
@@ -111,8 +114,7 @@ module.exports = {
             return {
               id: app.id,
               identity: app.fullName,
-              displayName: app.name,
-              fromTemplate: app.fromTemplate
+              displayName: app.name
             };
           });
 
