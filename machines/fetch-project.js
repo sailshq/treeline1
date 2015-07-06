@@ -26,7 +26,7 @@ module.exports = {
     },
 
     secret: {
-      description: 'The Treeline secret key of the account (for authentication.)',
+      description: 'The Treeline secret key of an account w/ access to this project.',
       example: '29f559ae-3bec-4d0a-8458-1f4e32a72407',
       protect: true,
       required: true
@@ -58,6 +58,7 @@ module.exports = {
 
 
   fn: function(inputs, exits) {
+    var util = require('util');
     var IfThen = require('machinepack-ifthen');
     var Http = require('machinepack-http');
     var MPJson = require('machinepack-json');
@@ -99,6 +100,9 @@ module.exports = {
             }).exec({
               error: exits.error,
               success: function (jsonData){
+                if (!jsonData.id) {
+                  return exits.error(new Error('Unexpected response from Treeline:'+util.inspect(jsonData,{depth: null})));
+                }
                 return exits.success({
                   type: 'app',
                   id: jsonData.id,
@@ -138,10 +142,13 @@ module.exports = {
             }).exec({
               error: exits.error,
               success: function (jsonData){
+                if (!jsonData.id) {
+                  return exits.error(new Error('Unexpected response from Treeline:'+util.inspect(jsonData,{depth: null})));
+                }
                 return exits.success({
                   type: 'machinepack',
                   id: jsonData.id,
-                  identity: jsonData.identity,
+                  identity: jsonData.id,
                   displayName: jsonData.friendlyName,
                   owner: jsonData.owner.username
                 });
