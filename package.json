@@ -84,7 +84,6 @@
     "private": true,
     "machineDir": "machines/",
     "machines": [
-      "browse-to-url",
       "read-keychain",
       "read-linkfile",
       "write-linkfile",
