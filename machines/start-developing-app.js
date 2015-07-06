@@ -47,7 +47,7 @@ module.exports = {
       }
     },
 
-    forbidden: {
+    unrecognizedCredentials: {
       description: 'Unrecognized username/password combination.',
       extendedDescription: 'Please try again or visit http://treeline.io to reset your password or locate your username.'
     },

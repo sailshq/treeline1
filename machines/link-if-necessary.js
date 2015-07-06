@@ -52,7 +52,7 @@ module.exports = {
       }
     },
 
-    forbidden: {
+    unrecognizedCredentials: {
       description: 'Username/password combo invalid or not applicable for the selected app/machinepack.'
     },
 

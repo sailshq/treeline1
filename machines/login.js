@@ -47,7 +47,7 @@ module.exports = {
       description: 'Unexpected error occurred.'
     },
 
-    forbidden: {
+    unrecognizedCredentials: {
       description: 'Unrecognized username/password combination.',
       extendedDescription: 'Please try again or visit http://treeline.io to reset your password or locate your username.'
     },
@@ -92,7 +92,7 @@ module.exports = {
         }).exec({
           error: next,
           success: function (_username){
-            username = _username;
+            inputs.username = _username;
             return next();
           }
         });
@@ -120,7 +120,7 @@ module.exports = {
         treelineApiUrl: inputs.treelineApiUrl,
       }).exec({
         error: exits.error,
-        fobidden: exits.forbidden,
+        unrecognizedCredentials: exits.unrecognizedCredentials,
         requestFailed: exits.requestFailed,
         success: function (secret){
 

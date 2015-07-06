@@ -39,16 +39,13 @@ module.exports = {
   },
 
 
-  defaultExit: 'success',
-
-
   exits: {
 
     error: {
       description: 'Unexpected error occurred'
     },
 
-    forbidden: {
+    unrecognizedCredentials: {
       description: 'Unrecognized username/password combination.',
       extendedDescription: 'Please try again or visit http://treeline.io to reset your password or locate your username.'
     },
@@ -72,7 +69,7 @@ module.exports = {
 
     // If no password or adminToken was given then run the forbidden exit
     if(!inputs.password && !inputs.adminToken) {
-      return exits.forbidden();
+      return exits.error(new Error('Invalid credentials.'));
     }
 
     // If an admin token was used then we should hit a special endpoint
@@ -97,9 +94,13 @@ module.exports = {
       error: function(err) {
         return exits.error(err);
       },
+      // 400 status code returned from server
+      badRequest: function(result) {
+        return exits.unrecognizedCredentials(result.body);
+      },
       // 403 status code returned from server
       forbidden: function(result) {
-        return exits.forbidden(result.body);
+        return exits.unrecognizedCredentials(result.body);
       },
       // Unexpected connection error: could not send or receive HTTP request.
       requestFailed: function() {
