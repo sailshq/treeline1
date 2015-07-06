@@ -15,6 +15,12 @@ module.exports = {
       example: '/Users/mikermcneil/Desktop/foo'
     },
 
+    keychainPath: {
+      description: 'Path to the keychain file on this computer. Defaults to `.treeline.secret.json` in the home directory.',
+      extendedDescription: 'If provided as a relative path, this will be resolved from the current working directory.',
+      example: '/Users/mikermcneil/Desktop/foo'
+    },
+
     treelineApiUrl: {
       description: 'The base URL for the Treeline API (useful if you\'re in a country that can\'t use SSL, etc.)',
       example: 'http://api.treeline.io',
@@ -50,25 +56,35 @@ module.exports = {
     debug('running `install-treeline-deps`');
 
     // Look up user credentials from a keychain file
-    thisPack.readKeychain().exec({
+    thisPack.readKeychain({
+      keychainPath: inputs.keychainPath
+    }).exec({
       error: exits.error,
+      doesNotExist: function () {
+        return exits.error('Cannot install dependencies because the keychain file cannot be found.  Please run `treeline login` on the command-line to authenticate this computer with your Treeline account.');
+      },
       success: function (keychain) {
 
-        // Look up this pack's id from its linkfile.
-        thisPack.readLinkfile().exec({
+        // Look up this pack or app's id from its linkfile.
+        thisPack.readLinkfile({
+          dir: inputs.dir
+        }).exec({
           error: exits.error,
+          doesNotExist: function () {
+            return exits.error('Cannot install dependencies because a linkfile (i.e. `treeline.json`) does not exist in this directory.  Please associate this directory with a Treeline project by running `treeline link` on the command-line.');
+          },
           success: function (projectInfo){
             debug('Using project info:',projectInfo);
 
-            // Hit Treeline.io to fetch and export the deep dependencies for this pack.
+            // Hit Treeline.io to fetch and export the deep dependencies for this project.
             // Because the packs are flattened, this includes nested dependencies as well
-            // as top-level dependencies of this pack.
+            // as top-level dependencies of this project.
             var url = '/api/v1/machinepacks/'+projectInfo.id+'/dependencies';
             debug('Communicating w/ '+inputs.treelineApiUrl+url);
             Http.sendHttpRequest({
               method: 'get',
               baseUrl: inputs.treelineApiUrl,
-              url: '/api/v1/machinepacks/'+projectInfo.id+'/dependencies',
+              url: url,
               headers: { 'x-auth': keychain.secret },
             }).exec({
               error: exits.error,
