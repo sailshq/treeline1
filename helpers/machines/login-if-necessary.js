@@ -52,13 +52,14 @@ module.exports = {
 
   fn: function (inputs, exits){
     var thisPack = require('../');
+    var publicPack = require('../../');
 
     thisPack.readKeychain({
       keychainPath: inputs.keychainPath
     }).exec({
       error: exits.error,
       doesNotExist: function (){
-        thisPack.login({
+        publicPack.login({
           treelineApiUrl: inputs.treelineApiUrl,
           keychainPath: inputs.keychainPath
         }).exec({

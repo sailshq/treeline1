@@ -75,6 +75,7 @@ module.exports = {
     var NPM = require('machinepack-npm');
     var legacyPreviewCode = require('../legacy/lib/actions');
     var thisPack = require('../');
+    var publicPack = require('../../');
 
 
 
@@ -149,7 +150,7 @@ module.exports = {
             return next(err);
           },
           doesNotExist: function (){
-            thisPack.login({
+            publicPack.login({
               keychainPath: inputs.keychainPath,
               treelineApiUrl: inputs.treelineApiUrl
             }).exec({
@@ -174,7 +175,7 @@ module.exports = {
             if (err) return next(err);
           },
           doesNotExist: function (){
-            thisPack.link({
+            publicPack.link({
               type: 'app',
               dir: inputs.dir,
               keychainPath: inputs.keychainPath,

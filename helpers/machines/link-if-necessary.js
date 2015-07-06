@@ -70,13 +70,14 @@ module.exports = {
 
   fn: function (inputs, exits) {
     var thisPack = require('../');
+    var publicPack = require('../../');
 
     thisPack.readLinkfile({
       dir: inputs.dir
     }).exec({
       error: exits.error,
       doesNotExist: function (){
-        thisPack.link({
+        publicPack.link({
           dir: inputs.dir,
           type: inputs.type,
           treelineApiUrl: inputs.treelineApiUrl,
