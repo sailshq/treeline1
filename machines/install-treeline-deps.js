@@ -41,14 +41,14 @@ module.exports = {
 
   fn: function (inputs,exits) {
     var path = require('path');
+    var debug = require('debug')('treeline-cli');
     var async = require('async');
     var _ = require('lodash');
     var LocalMachinepacks = require('machinepack-localmachinepacks');
     var Http = require('machinepack-http');
     var Filesystem = require('machinepack-fs');
     var NPM = require('machinepack-npm');
-    var thisPack = require('../');
-    var debug = require('debug')('treeline-cli');
+    var helperPack = require('../helpers');
 
     // Ensure we have an absolute destination path.
     inputs.dir = inputs.dir ? path.resolve(inputs.dir) : process.cwd();
@@ -56,7 +56,7 @@ module.exports = {
     debug('running `install-treeline-deps`');
 
     // Look up user credentials from a keychain file
-    thisPack.readKeychain({
+    helperPack.readKeychain({
       keychainPath: inputs.keychainPath
     }).exec({
       error: exits.error,
@@ -66,7 +66,7 @@ module.exports = {
       success: function (keychain) {
 
         // Look up this pack or app's id from its linkfile.
-        thisPack.readLinkfile({
+        helperPack.readLinkfile({
           dir: inputs.dir
         }).exec({
           error: exits.error,
@@ -118,7 +118,7 @@ module.exports = {
                   // If this is a direct, "shallow" (version-agnostic) dependency,
                   // also write a stub pack for it as an alias to the proper version
                   // (by simply requiring it).  This is to allow analog machines to work.
-                  thisPack.writeAliasDependency({
+                  helperPack.writeAliasDependency({
                     dir: path.join(inputs.dir,'machines',pack.npmPackageName),
                     packData: pack,
                     // Eventually, we'll be able to just use a normal require(), since all of the
@@ -181,7 +181,7 @@ module.exports = {
 
 
                                 // Finally, write the alias pack to disk.
-                                thisPack.writeAliasDependency({
+                                helperPack.writeAliasDependency({
                                   dir: path.join(inputs.dir,'machines',versionSpecificPkgName,'node_modules',deepDepPack.npmPackageName),
                                   packData: deepDepPack,
                                   // Eventually, we'll be able to just use a normal require(), since all of the

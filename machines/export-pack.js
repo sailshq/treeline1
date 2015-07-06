@@ -33,6 +33,18 @@ module.exports = {
       defaultsTo: false
     },
 
+    dir: {
+      description: 'Path to the local project.',
+      extendedDescription: 'If unspecified, defaults to the current working directory.  If provided as a relative path, this will be resolved from the current working directory.',
+      example: '/Users/mikermcneil/Desktop/foo'
+    },
+
+    keychainPath: {
+      description: 'Path to the keychain file on this computer. Defaults to `.treeline.secret.json` in the home directory.',
+      extendedDescription: 'If provided as a relative path, this will be resolved from the current working directory.',
+      example: '/Users/mikermcneil/Desktop/foo'
+    },
+
     treelineApiUrl: {
       description: 'The base URL for the Treeline API (useful if you\'re in a country that can\'t use SSL, etc.)',
       example: 'http://api.treeline.io',
@@ -65,7 +77,6 @@ module.exports = {
 
 
   fn: function (inputs, exits){
-
     var path = require('path');
     var _ = require('lodash');
     var async = require('async');
@@ -74,9 +85,12 @@ module.exports = {
     var Filesystem = require('machinepack-fs');
     var LocalMachinepacks = require('machinepack-localmachinepacks');
     var NPM = require('machinepack-npm');
-    var thisPack = require('../');
+    var helperPack = require('../helpers');
 
-    thisPack.readKeychain().exec({
+
+    helperPack.readKeychain({
+      keychainPath: inputs.keychainPath
+    }).exec({
       error: exits.error,
       doesNotExist: exits.notLoggedIn,
       success: function (keychain){
@@ -86,7 +100,7 @@ module.exports = {
           // show a prompt, but we do also still need to fetch more
           // information about the machinepack.
           if (inputs.id) {
-            thisPack.fetchPackInfo({
+            helperPack.fetchPackInfo({
               packId: inputs.id,
               secret: keychain.secret,
               treelineApiUrl: inputs.treelineApiUrl
@@ -106,8 +120,8 @@ module.exports = {
           }
 
           // Fetch list of machinepacks.
-          thisPack.listPacks({
-            username: inputs.username || keychain.username,
+          helperPack.listPacks({
+            owner: inputs.username || keychain.username,
             secret: keychain.secret,
             treelineApiUrl: inputs.treelineApiUrl
           }).exec({
@@ -141,7 +155,7 @@ module.exports = {
                 }
               });// </Prompts.select>
             }
-          });// </thisPack.listPacks>
+          });// </helperPack.listPacks>
         })({
           error: function (err){
             return exits.error(err);
@@ -179,7 +193,7 @@ module.exports = {
               success: function (){
                 // Fetch metadata and machine code for the remote pack
                 // TODO (for mike): use the same endpoint as in `start-developing-pack`
-                thisPack.fetchPack({
+                helperPack.fetchPack({
                   secret: keychain.secret,
                   packId: chosenPack.id,
                   treelineApiUrl: inputs.treelineApiUrl
@@ -248,6 +262,6 @@ module.exports = {
           }
         }); // </obtainPack>
       }
-    }); //</thisPack.readKeychain>
+    }); //</helperPack.readKeychain>
   }
 };

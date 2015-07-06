@@ -88,19 +88,19 @@ module.exports = {
     var _ = require('lodash');
     var IfThen = require('machinepack-ifthen');
     var Prompts = require('machinepack-prompts');
-    var thisPack = require('../');
+    var helperPack = require('../helpers');
 
     // If `inputs.type` was provided, use it.
     // Otherwise, sniff around for the package.json file and figure out
     // what kind of project this is.
-    thisPack.normalizeType({
+    helperPack.normalizeType({
       type: inputs.type
     }).exec({
       error: exits.error,
       success: function (type) {
 
         // Ensure this computer is logged in, and if not, log in interactively.
-        thisPack.loginIfNecessary({
+        helperPack.loginIfNecessary({
           keychainPath: inputs.keychainPath,
           treelineApiUrl: inputs.treelineApiUrl,
         })
@@ -137,7 +137,7 @@ module.exports = {
                   }],
 
                   then: function fetchApps(__, exits){
-                    thisPack.listApps({
+                    helperPack.listApps({
                       secret: keychain.secret,
                       owner: inputs.owner||keychain.username,
                       treelineApiUrl: inputs.treelineApiUrl
@@ -156,7 +156,7 @@ module.exports = {
                   },
 
                   orElse: function fetchPacks(__, exits){
-                    thisPack.listPacks({
+                    helperPack.listPacks({
                       secret: keychain.secret,
                       owner: inputs.owner||keychain.username,
                       treelineApiUrl: inputs.treelineApiUrl
@@ -206,7 +206,7 @@ module.exports = {
               success: function(projectId) {
 
                 // Look up more information about the project to link.
-                thisPack.fetchProject({
+                helperPack.fetchProject({
                   id: projectId,
                   type: type,
                   secret: keychain.secret,
@@ -216,7 +216,7 @@ module.exports = {
                   success: function (project){
 
                     // Write linkfile
-                    thisPack.writeLinkfile({
+                    helperPack.writeLinkfile({
                       owner: project.owner,
                       type: project.type,
                       displayName: project.displayName,

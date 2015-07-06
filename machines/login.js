@@ -69,7 +69,7 @@ module.exports = {
   fn: function (inputs, exits){
     var async = require('async');
     var Prompts = require('machinepack-prompts');
-    var thisPack = require('../');
+    var helperPack = require('../helpers');
 
 
     async.series([
@@ -113,7 +113,7 @@ module.exports = {
     ], function (err){
       if (err) return exits.error(err);
 
-      thisPack.authenticate({
+      helperPack.authenticate({
         username: inputs.username,
         password: inputs.password,
         adminToken: inputs.adminToken,
@@ -124,7 +124,7 @@ module.exports = {
         requestFailed: exits.requestFailed,
         success: function (secret){
 
-          thisPack.writeKeychain({
+          helperPack.writeKeychain({
             username: inputs.username,
             secret: secret,
             keychainPath: inputs.keychainPath

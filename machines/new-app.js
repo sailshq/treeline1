@@ -35,12 +35,10 @@ module.exports = {
 
 
   fn: function (inputs,exits) {
-
     var path = require('path');
-    var thisPack = require('../');
-
-    // Get a reference to the Sails generator
+    var helperPack = require('../helpers');
     var sailsgen = require('../node_modules/sails/node_modules/sails-generate');
+
 
     var dir = process.cwd();
 
@@ -75,7 +73,7 @@ module.exports = {
     }, function (err){
       if (err) return exits.error(err);
 
-      thisPack.addPostinstallScript({
+      helperPack.addPostinstallScript({
         destination: path.resolve(dir, inputs.name)
       }).exec({
         error: function(e) {

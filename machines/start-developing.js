@@ -68,6 +68,18 @@ module.exports = {
       defaultsTo: 1337
     },
 
+    dir: {
+      description: 'Path to the local project.',
+      extendedDescription: 'If unspecified, defaults to the current working directory.  If provided as a relative path, this will be resolved from the current working directory.',
+      example: '/Users/mikermcneil/Desktop/foo'
+    },
+
+    keychainPath: {
+      description: 'Path to the keychain file on this computer. Defaults to `.treeline.secret.json` in the home directory.',
+      extendedDescription: 'If provided as a relative path, this will be resolved from the current working directory.',
+      example: '/Users/mikermcneil/Desktop/foo'
+    },
+
     treelineApiUrl: {
       description: 'The base URL for the Treeline API (useful if you\'re in a country that can\'t use SSL, etc.)',
       example: 'http://api.treeline.io',
@@ -124,23 +136,22 @@ module.exports = {
 
 
   fn: function (inputs,exits) {
-
-    var thisPack = require('../');
+    var helperPack = require('../helpers');
 
     // If `inputs.type` was provided, use it.
     // Otherwise, sniff around for the package.json file and figure out
     // what kind of project this is.
-    thisPack.normalizeType({
+    helperPack.normalizeType({
       type: inputs.type
     }).exec({
       error: exits.error,
       success: function (type) {
         // Start interactive development session for either an app or a machinepack
         if (type === 'app') {
-          return thisPack.startDevelopingApp(inputs).exec(exits);
+          return helperPack.startDevelopingApp(inputs).exec(exits);
         }
         else {
-          return thisPack.startDevelopingPack(inputs).exec(exits);
+          return helperPack.startDevelopingPack(inputs).exec(exits);
         }
       }
     });
