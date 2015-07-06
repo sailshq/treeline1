@@ -41,9 +41,9 @@ require('machine-as-script')({
 
   fn: function (inputs, exits){
 
-    var thisPack = require('../');
+    var helperPack = require('../helpers');
 
-    thisPack.readKeychain({
+    helperPack.readKeychain({
       keychainPath: inputs.keychainPath
     }).exec({
       error: exits.error,

@@ -27,9 +27,9 @@ require('machine-as-script')({
 
     var MPProc = require('machinepack-process');
     var Urls = require('machinepack-urls');
-    var thisPack = require('../');
+    var helperPack = require('../helpers');
 
-    thisPack.readLinkfile().exec({
+    helperPack.readLinkfile().exec({
       error: exits.error,
       doesNotExist: exits.notLinked,
       success: function (project){

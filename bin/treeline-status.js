@@ -10,6 +10,17 @@ require('machine-as-script')({
   description: 'Get account status and determine the Treeline app linked to from the current directory.',
 
 
+  inputs: {
+
+    keychainPath: {
+      description: 'Path to the keychain file on this computer. Defaults to `.treeline.secret.json` in the home directory.',
+      extendedDescription: 'If provided as a relative path, this will be resolved from the current working directory.',
+      example: '/Users/mikermcneil/Desktop/foo'
+    },
+
+  },
+
+
   exits: {
     error: {},
     success: {
@@ -30,7 +41,7 @@ require('machine-as-script')({
 
 
   fn: function (inputs, exits){
-    var thisPack = require('../');
+    var helperPack = require('../helpers');
 
 
     // This is the object we'll be building up below.
@@ -40,7 +51,9 @@ require('machine-as-script')({
     };
 
     (function getAccount(next){
-      thisPack.readKeychain().exec({
+      helperPack.readKeychain({
+        keychainPath: inputs.keychainPath
+      }).exec({
         error: function (err) {
           return next(err);
         },
@@ -56,7 +69,7 @@ require('machine-as-script')({
       if (err) return exits.error(err);
 
       (function getLinkedProject(next){
-        thisPack.readLinkfile().exec({
+        helperPack.readLinkfile().exec({
           error: function (err) {
             if (err) return next(err);
           },
