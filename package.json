@@ -54,6 +54,7 @@
     "machinepack-paths": "^1.1.0",
     "machinepack-process": "^1.3.0",
     "machinepack-prompts": "0.4.0",
+    "machinepack-sockets": "^1.2.0",
     "machinepack-urls": "^4.0.0",
     "machinepack-util": "0.8.5",
     "open": "0.0.5",
@@ -106,7 +107,8 @@
       "apply-pack-changelog",
       "install-treeline-deps",
       "write-alias-dependency",
-      "build-ascii-art"
+      "build-ascii-art",
+      "connect-to-treeline"
     ],
     "testsUrl": "https://travis-ci.org/treeline-io/treeline"
   },

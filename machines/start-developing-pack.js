@@ -123,7 +123,6 @@ module.exports = {
     var MPProc = require('machinepack-process');
     var LocalMachinepacks = require('machinepack-localmachinepacks');
     var thisPack = require('../');
-    var getSocketAndConnect = require('../standalone/sails-client');
 
 
     // The path to pack is always the current working directory
@@ -195,7 +194,7 @@ module.exports = {
                   // With that request, send hash of local pack to treeline.io, requesting
                   // an update if anything has changed (note that this will also subscribe
                   // our socket to future changes)
-                  getSocketAndConnect({
+                  thisPack.connect({
                     baseUrl: inputs.treelineApiUrl
                   }, function (err, socket) {
                     if (err) {
@@ -314,7 +313,7 @@ module.exports = {
                     // (this is happening already in almost every case thanks to the `process.exit(1)`
                     //  we're calling in `bin/treeline-preview`. But we should make doubly sure.)
 
-                  }); // </getSocketAndConnect>
+                  }); // </thisPack.connect>
                 }); // </LocalMachinepacks.getSignature>
               }
             });
