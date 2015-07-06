@@ -4,7 +4,7 @@ module.exports = {
   friendlyName: 'Log in',
 
 
-  description: 'Authenticate this computer to access your Treeline account.',
+  description: 'Prompt (or use provided provided credentials) to authenticate w/ treeline.io, then authorize this computer to access your Treeline account by writing a keychain file.',
 
 
   inputs: {
