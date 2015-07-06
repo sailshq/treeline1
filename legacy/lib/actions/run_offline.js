@@ -97,7 +97,6 @@ module.exports = function runApp (conf, args, cb) {
 
 
 function logTree() {
-
-  var VERSION = require('../../package.json').version;
-  console.log(require('../../standalone/get-art')({version: VERSION}));
+  var asciiArt = require('../../').buildAsciiArt().execSync();
+  console.log(asciiArt);
 }
