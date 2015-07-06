@@ -10,7 +10,15 @@ require('machine-as-script')({
   description: 'Get known metadata about the Treeline account currently authenticated with this computer.',
 
 
-  inputs: {},
+  inputs: {
+
+    keychainPath: {
+      description: 'Path to the keychain file on this computer. Defaults to `.treeline.secret.json` in the home directory.',
+      extendedDescription: 'If provided as a relative path, this will be resolved from the current working directory.',
+      example: '/Users/mikermcneil/Desktop/foo'
+    }
+
+  },
 
 
   exits: {
@@ -35,11 +43,13 @@ require('machine-as-script')({
 
     var thisPack = require('../');
 
-    thisPack.readKeychain().exec({
+    thisPack.readKeychain({
+      keychainPath: inputs.keychainPath
+    }).exec({
       error: exits.error,
       doesNotExist: exits.notLoggedIn,
-      success: function (user){
-        return exits.success(user.username);
+      success: function (keychain){
+        return exits.success(keychain.username);
       }
     });
   }

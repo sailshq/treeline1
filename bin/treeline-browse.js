@@ -34,7 +34,7 @@ require('machine-as-script')({
       doesNotExist: exits.notLinked,
       success: function (project){
 
-        var BASE_URL = 'http://treeline.io/';
+        var BASE_URL = 'http://treeline.io';
         var url = Urls.resolve({
           url: BASE_URL+'/'+project.owner+'/'+project.identity
         }).execSync();
