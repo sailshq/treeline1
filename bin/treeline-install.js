@@ -3,9 +3,7 @@
 
 require('machine-as-script')({
 
-  // TODO: require('treeline-installer')
-  // (but not until it's no longer a circular dependency)
-  machine: require('../machines/install-treeline-deps')
+  machine: require('machinepack-local-treeline-projects').installTreelineDeps()
 
 }).exec({
 
