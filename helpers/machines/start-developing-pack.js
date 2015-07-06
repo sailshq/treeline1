@@ -142,6 +142,9 @@ module.exports = {
     // it to process.cwd().
     inputs.dir = inputs.dir ? path.resolve(inputs.dir) : process.cwd();
 
+    // Keep track of whether or not we were able to lift scribe yet.
+    var hasLiftedScribe;
+
     // Now simultaneously:
     //  • lift the preview server
     //  • synchronize local pack files w/ http://treeline.io
@@ -151,14 +154,18 @@ module.exports = {
         // a configurable local port.
         Scribe({
           pathToPack: inputs.dir,
-          port: inputs.localPort
+          port: inputs.localPort,
+          log: { level: 'silent' }
         }, function (err, localScribeApp) {
           if (err) {
-            // Failed to start scribe.
-            return next(err);
+            // If we fail to start scribe, don't give up yet
+            // (just try again after everything has synced)
+            return next();
           }
           // Trigger optional notifier function.
           inputs.onPreviewServerLifted('http://localhost:'+inputs.localPort);
+
+          hasLiftedScribe = true;
           return next();
         });
       },
@@ -260,6 +267,50 @@ module.exports = {
                         // give up with an error msg.
                         error: function (err) {
                           return next(err);
+                        },
+                        // If scribe could not be flushed, check and see if
+                        // it's even been lifted yet.  If so, trigger the notifier function,
+                        // and continue on. But if it's not lifted yet, try and lift it again first!
+                        couldNotFlush: function (err){
+                          if (hasLiftedScribe) {
+                            inputs.onFlushError(err);
+                            return next();
+                          }
+
+                          // Lift the `scribe` utility as a sails server running on
+                          // a configurable local port.
+                          Scribe({
+                            pathToPack: inputs.dir,
+                            port: inputs.localPort,
+                            log: { level: 'silent' }
+                          }, function (err, localScribeApp) {
+                            if (err) {
+                              // If we fail to start scribe, and it fails again, give up.
+                              return next(err);
+                            }
+
+                            // If we got it this time.. great!
+
+                            // Trigger optional notifier function.
+                            inputs.onPreviewServerLifted('http://localhost:'+inputs.localPort);
+
+                            // Track that we've been able to lift scribe.
+                            hasLiftedScribe = true;
+
+                            // Initial sync complete
+                            inputs.onInitialSyncSuccess();
+
+                            // Open browser (unless disabled)
+                            if (inputs.dontOpenBrowser) {
+                              return next();
+                            }
+                            MPProc.openBrowser({
+                              url: 'http://localhost:'+inputs.localPort
+                            }).exec({
+                              error: function (err){ return next(); },
+                              success: function() { return next(); }
+                            });
+                          });
                         },
                         success: function (){
                           // Initial sync complete
