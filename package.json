@@ -72,7 +72,6 @@
     "test-scribe": "^0.1.0",
     "treeline-generate-backend": "0.12.3",
     "treeline-generate-views": "0.10.7",
-    "treeline-installer": "^1.0.2",
     "unbounce": "^0.1.0",
     "wrench": "1.5.8"
   },

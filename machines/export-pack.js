@@ -216,9 +216,8 @@ module.exports = {
                     packData.postInstallScript = 'node ./node_modules/treeline-installer/bin/treeline-installer';
 
                     // Ensure a dependency on `treeline-installer`
-                    // (use the same semver range as in OUR package.json file)
                     if (!_.find(packData.dependencies, {name: 'treeline-installer'})) {
-                      packData.dependencies.push({ name: 'treeline-installer', semverRange: require('../package.json').dependencies['treeline-installer'] });
+                      packData.dependencies.push({ name: 'treeline-installer', semverRange: '^1.0.3' });
                     }
 
                     // Add a `treelineApiUrl` CLI opt if the current api url is different than the default.
