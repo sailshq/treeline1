@@ -197,14 +197,21 @@ module.exports = {
         var owner = '[APP_OWNER]'; // e.g. 'mikermcneil';
 
         var linkedProjectData = {
-          id: appToLink.id,
-          identity: appToLink.identity,
-          displayName: appToLink.displayName, // TODO: look this up when identity is provided manually w/o listing apps
+          owner: owner, // TODO: get this
           type: 'app',
-          owner: owner  // TODO: get this
+          displayName: appToLink.displayName, // TODO: look this up when identity is provided manually w/o listing apps
+          identity: appToLink.identity,
+          id: appToLink.id,
         };
 
-        thisPack.writeLinkfile(linkedProjectData).exec({
+        thisPack.writeLinkfile({
+          owner: linkedProjectData.owner,
+          type: linkedProjectData.type,
+          displayName: linkedProjectData.displayName, // TODO: look this up when identity is provided manually w/o listing apps
+          identity: linkedProjectData.identity,
+          id: linkedProjectData.id,
+          dir: inputs.dir,
+        }).exec({
           error: function (err){
             return exits.error(err);
           },

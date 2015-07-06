@@ -29,7 +29,13 @@ module.exports = {
     treelineApiUrl: {
       description: 'The base URL for the Treeline API (useful if you\'re in a country that can\'t use SSL, etc.)',
       example: 'https://api.treeline.io'
-    }
+    },
+
+    keychainPath: {
+      description: 'Path to the keychain file on this computer. Defaults to `.treeline.secret.json` in the home directory.',
+      extendedDescription: 'If provided as a relative path, this will be resolved from the current working directory.',
+      example: '/Users/mikermcneil/Desktop/foo'
+    },
 
   },
 
@@ -74,12 +80,15 @@ module.exports = {
 
       (function getSecret_loginIfNecessary(_doneGettingSecret){
         // Look up the account secret
-        thisPack.readKeychain().exec({
+        thisPack.readKeychain({
+          keychainPath: inputs.keychainPath,
+        }).exec({
           error: function(err) {
             return _doneGettingSecret.error(err);
           },
           doesNotExist: function (){
             thisPack.login({
+              keychainPath: inputs.keychainPath,
               treelineApiUrl: inputs.treelineApiUrl,
             })
             .exec({
@@ -205,7 +214,14 @@ module.exports = {
       },
       success: function (machinepackToLink){
 
-        thisPack.writeLinkfile(machinepackToLink).exec({
+        thisPack.writeLinkfile({
+          owner: machinepackToLink.owner,
+          type: machinepackToLink.type,
+          displayName: machinepackToLink.displayName,
+          identity: machinepackToLink.identity,
+          id: machinepackToLink.id,
+          dir: inputs.dir,
+        }).exec({
           error: function (err){
             return exits.error(err);
           },

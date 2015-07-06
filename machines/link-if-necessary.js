@@ -9,6 +9,12 @@ module.exports = {
 
   inputs: {
 
+    dir: {
+      description: 'Path to the local project.',
+      extendedDescription: 'If unspecified, defaults to the current working directory.  If provided as a relative path, this will be resolved from the current working directory.',
+      example: '/Users/mikermcneil/Desktop/foo'
+    },
+
     type: {
       friendlyName: 'Type',
       description: 'The type of Treeline project this is (app or machinepack)',
@@ -20,7 +26,13 @@ module.exports = {
       description: 'The base URL for the Treeline API (useful if you\'re in a country that can\'t use SSL, etc.)',
       example: 'http://api.treeline.io',
       defaultsTo: 'https://api.treeline.io'
-    }
+    },
+
+    keychainPath: {
+      description: 'Path to the keychain file on this computer. Defaults to `.treeline.secret.json` in the home directory.',
+      extendedDescription: 'If provided as a relative path, this will be resolved from the current working directory.',
+      example: '/Users/mikermcneil/Desktop/foo'
+    },
   },
 
 
@@ -59,12 +71,16 @@ module.exports = {
   fn: function (inputs, exits) {
     var thisPack = require('../');
 
-    thisPack.readLinkfile().exec({
+    thisPack.readLinkfile({
+      dir: inputs.dir
+    }).exec({
       error: exits.error,
       doesNotExist: function (){
         thisPack.link({
+          dir: inputs.dir,
           type: inputs.type,
           treelineApiUrl: inputs.treelineApiUrl,
+          keychainPath: inputs.keychainPath
         }).exec({
           error: exits.error,
           noApps: exits.noApps,
