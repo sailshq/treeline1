@@ -73,7 +73,7 @@ module.exports = {
     var debug = require('debug')('treeline-cli');
     var Urls = require('machinepack-urls');
     var NPM = require('machinepack-npm');
-    var legacyPreviewCode = require('../legacy/lib/actions');
+    var legacyPreviewCode = require('../../legacy/lib/actions');
     var thisPack = require('../');
     var publicPack = require('../../');
 
