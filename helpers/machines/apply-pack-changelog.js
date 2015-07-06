@@ -80,7 +80,7 @@ module.exports = {
     // Ensure a dependency on `treeline-installer`
     // (use the same semver range as in OUR package.json file)
     if (!_.find(changedPack.definition.dependencies, {name: 'treeline-installer'})) {
-      changedPack.definition.dependencies.push({ name: 'treeline-installer', semverRange: require('../package.json').dependencies['treeline-installer'] });
+      changedPack.definition.dependencies.push({ name: 'treeline-installer', semverRange: require('../../package.json').dependencies['treeline-installer'] });
     }
 
     // Add a `treelineApiUrl` CLI opt if the current api url is different than the default.
