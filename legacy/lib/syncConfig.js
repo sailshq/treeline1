@@ -6,7 +6,6 @@ var log = require('../logger');
 var debug = require('debug')('treeline');
 var _ = require('lodash');
 var beautify = require('js-beautify').js_beautify;
-var pathToRegexp = require('path-to-regexp');
 
 
 module.exports = function(sails, socket) {

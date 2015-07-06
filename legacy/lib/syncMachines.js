@@ -107,7 +107,7 @@ module.exports = function(sails, socket) {
       var curMachinePacks = fs.readdirSync(machinesDir);
       // Find the ones that aren't present in the curDirs array
       var eraseDirs = _.difference(curMachinePacks, curDirs);
-      // Wrench 'em
+      // Delete them
       eraseDirs.forEach(function(dir) {
         wrench.rmdirSyncRecursive(path.join(machinesDir,dir), true);
       });

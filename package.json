@@ -10,13 +10,8 @@
     "sails",
     "node-machine"
   ],
-  "author": "Mike McNeil",
-  "maintainers": [
-    "The Treeline Company",
-    "Mike McNeil",
-    "Scott Gress"
-  ],
-  "main": "pack.js",
+  "author": "The Treeline Company",
+  "main": "index.js",
   "license": "MIT",
   "bin": {
     "treeline": "./bin/treeline.js",
@@ -77,8 +72,7 @@
     "treeline-generate-views": "0.10.7",
     "treeline-installer": "^1.0.0",
     "unbounce": "^0.1.0",
-    "wrench": "1.5.8",
-    "yargs": "3.4.5"
+    "wrench": "1.5.8"
   },
   "machinepack": {
     "private": true,

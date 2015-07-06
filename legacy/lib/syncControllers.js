@@ -66,12 +66,13 @@ module.exports = function(sails, socket) {
       // Sort routes in order to establish precedence
       // (eliminates dependency on key order and avoids issues w/ wildcards)
       routes.sort(function(routeA, routeB) {
-        var routeParams = [];
-        var regexpA = pathToRegexp(routeA.path, routeParams);
+        var routeParamsA = [];
+        var regexpA = pathToRegexp(routeA.path, routeParamsA);
+        var routeParamsB = [];
+        var regexpB = pathToRegexp(routeB.path, routeParamsB);
 
-        // If routeA has any dynamic route params, toss it to the
-        // bottom of the list.
-        if (routeParams.length) {
+        // If routeA has more dynamic route params than routeB, make it go last.
+        if (routeParamsA.length > routeParamsB.length) {
           return 1;
         }
         else return -1;
