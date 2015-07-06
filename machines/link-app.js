@@ -59,7 +59,6 @@ module.exports = {
     var Prompts = require('machinepack-prompts');
     var thisPack = require('../');
     var request = require("request");
-    var Tar = require('tar.gz');
 
     // Ensure we have an absolute destination path.
     inputs.dir = inputs.dir ? path.resolve(inputs.dir) : process.cwd();

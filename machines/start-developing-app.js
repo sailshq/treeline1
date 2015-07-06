@@ -53,16 +53,19 @@ module.exports = {
 
 
   fn: function (inputs, exits){
-
     var util = require('util');
+    var path = require('path');
+    var chalk = require('chalk');
     var async = require('async');
     var _ = require('lodash');
     var debug = require('debug')('treeline-cli');
     var Urls = require('machinepack-urls');
-    var thisPack = require('../');
     var NPM = require('machinepack-npm');
-    var path = require('path');
-    var chalk = require('chalk');
+    var legacyPreviewCode = require('../legacy/lib/actions');
+    var thisPack = require('../');
+
+
+
     async.auto({
 
       // Make sure the treeline API is alive
@@ -182,7 +185,8 @@ module.exports = {
       // Make sure there's a package.json
       packageJson: ['link', ensurePackageJson],
 
-      // Make sure there is a postinstall script (this converts old projects to new projects)
+      // Make sure there is a postinstall script
+      // (this converts old projects to new projects)
       ensurePostInstall: ['packageJson', ensurePostInstall],
 
       // Make sure dependencies are installed
@@ -191,13 +195,7 @@ module.exports = {
       // Lift app
       _liftedApp: ['_installedDependencies', function(next, asyncData) {
 
-        // console.log('!!! would hve previewed app!',asyncData);
-        // next();
-
-        // bring in the existing preview code
-        var actions = require('../lib/actions');
-
-        actions.run(
+        legacyPreviewCode.run(
           (function buildConf (){
             var conf = {
               targetProject: {

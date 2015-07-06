@@ -1,8 +1,4 @@
-/**
- * Module dependencies
- */
 
-var util = require('util');
 var chalk = require('chalk');
 
 
