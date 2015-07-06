@@ -72,6 +72,18 @@ module.exports = {
       defaultsTo: 1337
     },
 
+    dir: {
+      description: 'Path to the local project.',
+      extendedDescription: 'If unspecified, defaults to the current working directory.  If provided as a relative path, this will be resolved from the current working directory.',
+      example: '/Users/mikermcneil/Desktop/foo'
+    },
+
+    keychainPath: {
+      description: 'Path to the keychain file on this computer. Defaults to `.treeline.secret.json` in the home directory.',
+      extendedDescription: 'If provided as a relative path, this will be resolved from the current working directory.',
+      example: '/Users/mikermcneil/Desktop/foo'
+    },
+
     treelineApiUrl: {
       description: 'The base URL for the Treeline API (useful if you\'re in a country that can\'t use SSL, etc.)',
       example: 'http://api.treeline.io',
@@ -125,9 +137,10 @@ module.exports = {
     var thisPack = require('../');
 
 
-    // The path to pack is always the current working directory
-    // (for the time being, at least)
-    var pathToPack = process.cwd();
+    // The path to pack is generally the current working directory
+    // Here, we ensure is is absolute, and if it was not specified, default
+    // it to process.cwd().
+    inputs.dir = inputs.dir ? path.resolve(inputs.dir) : process.cwd();
 
     // Now simultaneously:
     //  • lift the preview server
@@ -137,7 +150,7 @@ module.exports = {
         // Lift the `scribe` utility as a sails server running on
         // a configurable local port.
         Scribe({
-          pathToPack: pathToPack,
+          pathToPack: inputs.dir,
           port: inputs.localPort
         }, function (err, localScribeApp) {
           if (err) {
@@ -152,6 +165,7 @@ module.exports = {
       function(next){
 
         thisPack.loginIfNecessary({
+          keychainPath: inputs.keychainPath,
           treelineApiUrl: inputs.treelineApiUrl
         }).exec({
           error: function (err) {
@@ -160,6 +174,8 @@ module.exports = {
           success: function (me) {
             thisPack.linkIfNecessary({
               type: 'machinepack',
+              dir: inputs.dir,
+              keychainPath: inputs.keychainPath,
               treelineApiUrl: inputs.treelineApiUrl
             }).exec({
               error: function (err) {
@@ -175,7 +191,7 @@ module.exports = {
 
                 // Read local pack and compute hash of the meaningful information.
                 LocalMachinepacks.getSignature({
-                  dir: pathToPack
+                  dir: inputs.dir
                 }).exec(function (err, packSignature) {
                   if (err) {
                     // Ignore "notMachinepack" errors (make up an empty signature)
