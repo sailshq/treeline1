@@ -9,6 +9,18 @@ module.exports = {
 
   inputs: {
 
+    dir: {
+      description: 'Path to the local project.',
+      extendedDescription: 'If unspecified, defaults to the current working directory.  If provided as a relative path, this will be resolved from the current working directory.',
+      example: '/Users/mikermcneil/Desktop/foo'
+    },
+
+    keychainPath: {
+      description: 'Path to the keychain file on this computer. Defaults to `.treeline.secret.json` in the home directory.',
+      extendedDescription: 'If provided as a relative path, this will be resolved from the current working directory.',
+      example: '/Users/mikermcneil/Desktop/foo'
+    },
+
     treelineApiUrl: {
       description: 'The base URL for the Treeline API (useful if you\'re in a country that can\'t use SSL, etc.)',
       example: 'http://api.treeline.io',
@@ -130,12 +142,15 @@ module.exports = {
 
       // Get login credentials
       me: ['checkForUpdates', function (next){
-        thisPack.readKeychain().exec({
+        thisPack.readKeychain({
+          keychainPath: inputs.keychainPath
+        }).exec({
           error: function (err) {
             return next(err);
           },
           doesNotExist: function (){
             thisPack.login({
+              keychainPath: inputs.keychainPath,
               treelineApiUrl: inputs.treelineApiUrl
             }).exec({
               error: next,
@@ -152,13 +167,18 @@ module.exports = {
 
       // Figure out which project to lift
       link: ['me', function (next){
-        thisPack.readLinkfile().exec({
+        thisPack.readLinkfile({
+          dir: inputs.dir
+        }).exec({
           error: function (err) {
             if (err) return next(err);
           },
           doesNotExist: function (){
-            thisPack.linkApp({
-              treelineApiUrl: inputs.treelineApiUrl
+            thisPack.link({
+              type: 'app',
+              dir: inputs.dir,
+              keychainPath: inputs.keychainPath,
+              treelineApiUrl: inputs.treelineApiUrl,
             }).exec({
               error: next,
               noApps: function (output){

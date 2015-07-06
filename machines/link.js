@@ -178,6 +178,12 @@ module.exports = {
                   error: exits.error,
                   success: function interactivelyPromptForProjectToLink(choices){
 
+                    // If there are no choices, we can't possibly link anything.
+                    if (choices.length === 0) {
+                      if (type === 'app') { return exits.noApps(); }
+                      else { return exits.noMachinepacks(); }
+                    }
+
                     var promptMsg;
                     if (type === 'app') {
                       promptMsg = 'Which app would you like to link with the current directory?';
