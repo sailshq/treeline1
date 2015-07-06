@@ -27,6 +27,12 @@ module.exports = {
       protect: true
     },
 
+    keychainPath: {
+      description: 'Path to the keychain file on this computer. Defaults to `.treeline.secret.json` in the home directory.',
+      extendedDescription: 'If provided as a relative path, this will be resolved from the current working directory.',
+      example: '/Users/mikermcneil/Desktop/foo'
+    },
+
     treelineApiUrl: {
       description: 'The base URL for the Treeline API (useful if you\'re in a country that can\'t use SSL, etc.)',
       example: 'http://api.treeline.io'
@@ -61,7 +67,6 @@ module.exports = {
   },
 
   fn: function (inputs, exits){
-
     var async = require('async');
     var Prompts = require('machinepack-prompts');
     var thisPack = require('../');
@@ -122,6 +127,7 @@ module.exports = {
           thisPack.writeKeychain({
             username: inputs.username,
             secret: secret,
+            keychainPath: inputs.keychainPath
           }).exec({
             error: exits.error,
             success: function (){

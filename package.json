@@ -98,8 +98,6 @@
       "new-app",
       "ping-server",
       "fetch-pack",
-      "generate-local-pack",
-      "generate-local-dependency",
       "start-developing",
       "link",
       "list-packs",
