@@ -169,7 +169,7 @@ module.exports = {
           },
           success: function (me) {
             thisPack.linkIfNecessary({
-              type: 'machinepack',
+              type: 'app',
               dir: inputs.dir,
               keychainPath: inputs.keychainPath,
               treelineApiUrl: inputs.treelineApiUrl
@@ -178,9 +178,6 @@ module.exports = {
                 return next(err);
               },
               success: function (linkedProject) {
-                if (linkedProject.type !== 'machinepack') {
-                  return next.error('The project in this directory is not a machinepack.  Maybe try `treeline preview app` instead?');
-                }
 
                 // Trigger optional notifier function.
                 inputs.onHasKeychain(me.username);
