@@ -19,7 +19,6 @@ module.exports = require('machine').pack({
         'normalize-type',
         'sync-remote-changes',
         'apply-pack-changelog',
-        'write-alias-dependency',
         'build-ascii-art',
         'connect-to-treeline',
         'fetch-project'
