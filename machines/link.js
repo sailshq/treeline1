@@ -218,7 +218,7 @@ module.exports = {
                     // Write linkfile
                     helperPack.writeLinkfile({
                       owner: project.owner,
-                      type: project.type,
+                      type: type,
                       displayName: project.displayName,
                       identity: project.identity,
                       id: project.id,

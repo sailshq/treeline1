@@ -79,9 +79,9 @@ module.exports = {
       error: exits.error,
       success: function (type) {
         // Start interactive development session for either an app or a machinepack
-        if (type === 'app') {
-          return exits.error(new Error('New `sync-remote-changes` machine is not supported for apps yet (only machinepacks).  Please try again later!'));
-        }
+        // if (type === 'app') {
+        //   return exits.error(new Error('New `sync-remote-changes` machine is not supported for apps yet (only machinepacks).  Please try again later!'));
+        // }
 
         thisPack.applyPackChangelog({
           changelog: inputs.changelog,

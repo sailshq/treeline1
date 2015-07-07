@@ -63,65 +63,65 @@ module.exports = {
     var Http = require('machinepack-http');
     var MPJson = require('machinepack-json');
 
-    IfThen.ifThenFinally({
+    // IfThen.ifThenFinally({
 
-      bool: inputs.type === 'app',
+    //   bool: inputs.type === 'app',
 
-      expectedOutput: {
-        owner: 'mikermcneil',
-        type: 'machinepack',
-        displayName: 'Export test',
-        identity: 'export-test',
-        id: 'mikermcneil/export-test',
-      },
+    //   expectedOutput: {
+    //     owner: 'mikermcneil',
+    //     type: 'machinepack',
+    //     displayName: 'Export test',
+    //     identity: 'export-test',
+    //     id: 'mikermcneil/export-test',
+    //   },
 
-      then: function lookupApp (__, exits) {
+    //   then: function lookupApp (__, exits) {
+    //     Http.sendHttpRequest({
+    //       method: 'get',
+    //       baseUrl: inputs.treelineApiUrl,
+    //       url: '/api/v1/projects/'+inputs.id,
+    //       headers: {
+    //        'x-auth': inputs.secret
+    //       },
+    //     }).exec({
+    //       error: exits.error,
+    //       success: function (response) {
+    //         MPJson.parse({
+    //           json: response.body,
+    //           schema: {
+    //             id: '235235',
+    //             name: 'My App (actually the friendlyName)',
+    //             fullName: 'my-app (actually the identity)',
+    //             description: 'An app',
+    //             imageUrl: 'http://icon.com',
+    //             access: 'public',
+    //             updatedAt: '2015-03-23T22:52:49.000Z'
+    //           }
+    //         }).exec({
+    //           error: exits.error,
+    //           success: function (jsonData){
+    //             if (!jsonData.id) {
+    //               return exits.error(new Error('Unexpected response from Treeline:'+util.inspect(jsonData,{depth: null})));
+    //             }
+    //             return exits.success({
+    //               type: 'app',
+    //               id: jsonData.id,
+    //               identity: jsonData.fullName,
+    //               displayName: jsonData.name,
+    //               owner: '[APP_OWNER]' // <= TODO: actually get the real version of this by making it easier for users to view apps owned by other accounts
+    //             });
+    //           }
+    //         });// </MpJson.parse>
+    //       }
+    //     });// </Http.sendHttpRequest>
+    //   },
+
+    //   orElse: function lookupMachinepack (__, exits) {
+
         Http.sendHttpRequest({
           method: 'get',
           baseUrl: inputs.treelineApiUrl,
-          url: '/api/v1/projects/'+inputs.id,
-          headers: {
-           'x-auth': inputs.secret
-          },
-        }).exec({
-          error: exits.error,
-          success: function (response) {
-            MPJson.parse({
-              json: response.body,
-              schema: {
-                id: '235235',
-                name: 'My App (actually the friendlyName)',
-                fullName: 'my-app (actually the identity)',
-                description: 'An app',
-                imageUrl: 'http://icon.com',
-                access: 'public',
-                updatedAt: '2015-03-23T22:52:49.000Z'
-              }
-            }).exec({
-              error: exits.error,
-              success: function (jsonData){
-                if (!jsonData.id) {
-                  return exits.error(new Error('Unexpected response from Treeline:'+util.inspect(jsonData,{depth: null})));
-                }
-                return exits.success({
-                  type: 'app',
-                  id: jsonData.id,
-                  identity: jsonData.fullName,
-                  displayName: jsonData.name,
-                  owner: '[APP_OWNER]' // <= TODO: actually get the real version of this by making it easier for users to view apps owned by other accounts
-                });
-              }
-            });// </MpJson.parse>
-          }
-        });// </Http.sendHttpRequest>
-      },
-
-      orElse: function lookupMachinepack (__, exits) {
-
-        Http.sendHttpRequest({
-          method: 'get',
-          baseUrl: inputs.treelineApiUrl,
-          url: '/api/v2/machine-packs/'+inputs.id,
+          url: '/api/v2/machine-packs/' + (inputs.type === 'machinepack' ? inputs.id : '_project_' + inputs.id),
           headers: {
            'x-auth': inputs.secret
           },
@@ -156,14 +156,14 @@ module.exports = {
             });// </MpJson.parse>
           }
         });// </Http.sendHttpRequest>
-      }
+      // }
 
-    }).exec({
-      error: exits.error,
-      success: function (project){
-        return exits.success(project);
-      }
-    }); // </IfThen.ifThenFinally>
+    // }).exec({
+    //   error: exits.error,
+    //   success: function (project){
+    //     return exits.success(project);
+    //   }
+    // }); // </IfThen.ifThenFinally>
 
   }
 
