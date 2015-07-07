@@ -4,10 +4,67 @@ module.exports = {
   friendlyName: 'Start interactive development session (app)',
 
 
-  description: 'Lift the app in the current directory, streaming down updated backend code if necessary.',
+  description: 'Preview the app in the current directory, streaming down updated code as changes are made on https://treeline.io.',
+
+
+  extendedDescription: 'Note that this will run the app on a local server (http://localhost:1337).',
 
 
   inputs: {
+
+    onHasKeychain: {
+      description: 'An optional notifier function that will be called when a keychain is located (doesn\'t mean it is necessarily valid).',
+      example: '->',
+      defaultsTo: function (){}
+    },
+
+    onConnected: {
+      description: 'An optional notifier function that will be called when a connection is established with Treeline.io and this project is being initially synchronized with the server.',
+      example: '->',
+      defaultsTo: function (){}
+    },
+
+    onSyncError: {
+      description: 'An optional notifier function that will be called when Treeline attempts to sync remote changes to the local project, but it fails.',
+      example: '->',
+      defaultsTo: function (){}
+    },
+
+    onSyncSuccess: {
+      description: 'An optional notifier function that will be called each time Treeline successfully applies synced remote changes to the local project.',
+      example: '->',
+      defaultsTo: function (){}
+    },
+
+    onInitialSyncSuccess: {
+      description: 'An optional notifier function that will be called the first time Treeline successfully synchronizes the local project w/ treeline.io.',
+      example: '->',
+      defaultsTo: function (){}
+    },
+
+    onPreviewServerLifted: {
+      description: 'An optional notifier function that will be called when the preview server has successfully lifted and can be safely accessed.',
+      example: '->',
+      defaultsTo: function (){}
+    },
+
+    onSocketDisconnect: {
+      description: 'An optional notifier function that will be called if/when the remote connection with http://treeline.io is lost (and as the local Treeline client attempts to reconnect).',
+      example: '->',
+      defaultsTo: function (){}
+    },
+
+    onFlushError: {
+      description: 'An optional notifier function that will be called if/when the router of the locally-running app cannot be flushed.',
+      example: '->',
+      defaultsTo: function (){}
+    },
+
+    localPort: {
+      description: 'The local port to run the preview server on.  Defaults to 1337.',
+      example: 1337,
+      defaultsTo: 1337
+    },
 
     dir: {
       description: 'Path to the local project.',
@@ -40,14 +97,7 @@ module.exports = {
       description: 'The current working directory is not linked to an app or machinepack on Treeline.io.'
     },
 
-    noApps: {
-      description: 'No apps belong to the account associated with this computer.',
-      example: {
-        username: 'mikermcneil'
-      }
-    },
-
-    unrecognizedCredentials: {
+    forbidden: {
       description: 'Unrecognized username/password combination.',
       extendedDescription: 'Please try again or visit http://treeline.io to reset your password or locate your username.'
     },
@@ -57,259 +107,333 @@ module.exports = {
     },
 
     success: {
-      description: 'Done.',
-      example: '==='
+      description: 'The success exit should never be triggered.'
     },
 
   },
 
 
   fn: function (inputs, exits){
-    var util = require('util');
-    var path = require('path');
-    var chalk = require('chalk');
+
     var async = require('async');
     var _ = require('lodash');
-    var debug = require('debug')('treeline-cli');
-    var Urls = require('machinepack-urls');
-    var NPM = require('machinepack-npm');
-    var legacyPreviewCode = require('../../legacy/lib/actions');
+    var Http = require('machinepack-http');
+    var MPProc = require('machinepack-process');
+    var LocalMachinepacks = require('machinepack-localmachinepacks');
     var thisPack = require('../');
-    var publicPack = require('../../');
 
 
+    // The path to pack is generally the current working directory
+    // Here, we ensure is is absolute, and if it was not specified, default
+    // it to process.cwd().
+    inputs.dir = inputs.dir ? path.resolve(inputs.dir) : process.cwd();
 
-    async.auto({
+    // Keep track of whether or not we were able to lift the preview app yet.
+    var hasLiftedPreviewServer;
 
-      // Make sure the treeline API is alive
-      pingServer: function(next) {
-        thisPack.pingServer({url: inputs.treelineApiUrl}).exec({
-          error: function (err){
-            return next(err);
-          },
-          success: function (){
+    // Now simultaneously:
+    //  • lift the preview server
+    //  • synchronize local pack files w/ http://treeline.io
+    async.parallel([
+      function(next){
+        // Lift the preview server on a configurable local port
+        // (either the Sails app being developed, or the `scribe` utility
+        //  running as a Sails server)
+        liftPreviewServer({
+          pathToProject: inputs.dir,
+          port: inputs.localPort,
+          log: { level: 'silent' }
+        }, {
+          error: function (err) {
+            // If we fail to start the preview server, don't give up yet
+            // (just try again after everything has synced)
             return next();
           },
-          noResponse: function (){
-            return next('requestFailed');
+          success: function () {
+            // Trigger optional notifier function.
+            inputs.onPreviewServerLifted('http://localhost:'+inputs.localPort);
+
+            hasLiftedPreviewServer = true;
+            return next();
           }
         });
       },
+      function(next){
 
-      checkForUpdates: function(next) {
-        // Fetch the package.json string for the `treeline` package from the public NPM registry.
-        NPM.fetchInfo({
-          packageName: 'treeline',
-        }).exec({
-          // An unexpected error occurred.  We'll ignore it.
-          error: function (err){
-           return next();
-          },
-          // Oh my.  This would be bad.  But it's probably just a problem with NPM, so we'll ignore it.
-          packageNotFound: function (){
-           return next();
-          },
-          // OK. Let's parse this sucker.
-          success: function (packageJsonString){
-            try {
-              // Parse metadata for the latest version of the NPM package given a package.json string.
-              var latestPackageJson = NPM.parsePackageJson({
-                json: packageJsonString,
-              }).execSync();
-              // Get our own package.json
-              var ourPackageJson = require(path.resolve(__dirname, "..", "package.json"));
-              // If ours doesn't match the latest, show a helpful reminder
-              if (ourPackageJson.version !== latestPackageJson.version) {
-                console.log(chalk.bgCyan(chalk.black("A new version of Treeline (v " + latestPackageJson.version + ") is available!  Run"), chalk.red(chalk.bold("npm install -g treeline")) + chalk.black(" to update.")));
-              }
-            }
-            catch (e) {
-              // Don't worry about errors in the above; we'll just
-              // try again next time.
-            }
-            next();
-          },
-        });
-      },
-
-      checkForTreelineGeneratedFiles: [function(next) {
-        require('fs').open(path.resolve(process.cwd(), "api", "responses", "response.js"), "r", function(err) {
-          if (err && err.code == 'ENOENT') {
-            console.log(chalk.red("Could not find api/responses/response.js: was this app generated with `treeline new`?"));
-          }
-          return next();
-        });
-      }],
-
-      // Get login credentials
-      me: ['checkForUpdates', function (next){
-        thisPack.readKeychain({
-          keychainPath: inputs.keychainPath
+        thisPack.loginIfNecessary({
+          keychainPath: inputs.keychainPath,
+          treelineApiUrl: inputs.treelineApiUrl
         }).exec({
           error: function (err) {
             return next(err);
           },
-          doesNotExist: function (){
-            publicPack.login({
-              keychainPath: inputs.keychainPath,
-              treelineApiUrl: inputs.treelineApiUrl
-            }).exec({
-              error: next,
-              success: function (me){
-                return next(null, me);
-              }
-            });
-          },
-          success: function (me){
-            return next(null, me);
-          }
-        });
-      }],
-
-      // Figure out which project to lift
-      link: ['me', function (next){
-        thisPack.readLinkfile({
-          dir: inputs.dir
-        }).exec({
-          error: function (err) {
-            if (err) return next(err);
-          },
-          doesNotExist: function (){
-            publicPack.link({
+          success: function (me) {
+            thisPack.linkIfNecessary({
               type: 'app',
               dir: inputs.dir,
               keychainPath: inputs.keychainPath,
-              treelineApiUrl: inputs.treelineApiUrl,
+              treelineApiUrl: inputs.treelineApiUrl
             }).exec({
-              error: next,
-              noApps: function (output){
-                return next({exit: 'noApps', output: output});
+              error: function (err) {
+                return next(err);
               },
-              success: function (linkedProject){
-                return next(null, linkedProject);
+              success: function (linkedProject) {
+
+                // Trigger optional notifier function.
+                inputs.onHasKeychain(me.username);
+
+                // Read local pack and compute hash of the meaningful information.
+                LocalMachinepacks.getSignature({
+                  dir: inputs.dir
+                }).exec(function (err, packSignature) {
+                  if (err) {
+                    // Ignore "notMachinepack" errors (make up an empty signature)
+                    if (err.exit === 'notMachinepack') {
+                      packSignature = {};
+                    }
+                    // All other errors are fatal.
+                    else {
+                      return next(err);
+                    }
+                  }
+
+                  // Now we'll start up a synchronized development session by
+                  // listening for changes from Treeline by first connecting a socket,
+                  // then sending a GET request to subscribe to this particular pack.
+                  // With that request, send hash of local pack to treeline.io, requesting
+                  // an update if anything has changed (note that this will also subscribe
+                  // our socket to future changes)
+                  thisPack.connectToTreeline({
+                    treelineApiUrl: inputs.treelineApiUrl
+                  }, function (err, socket) {
+                    if (err) {
+                      return next(err);
+                    }
+
+                    // Trigger optional notifier function.
+                    inputs.onConnected();
+
+                    socket.request({
+                      method: 'get',
+                      url: '/api/v1/machinepacks/'+linkedProject.id+'/sync',
+                      headers: { 'x-auth': me.secret },
+                      params: {
+                        // Send along hashes of each machine, as well as one
+                        // additional hash for the pack's package.json metadata.
+                        packHash: packSignature.packHash,
+                        machineHashes: packSignature.machineHashes
+                      }
+                    }, function serverResponded (body, jwr) {
+                      // console.log('Sails responded with: ', body); console.log('with headers: ', jwr.headers); console.log('and with status code: ', jwr.statusCode);
+                      // console.log('jwr.error???',jwr.error);
+                      if (jwr.error) {
+
+                        // Set up an exit via 'forbidden'.
+                        if (jwr.statusCode === 401) {
+                          jwr.exit = 'forbidden';
+                        }
+
+                        // If initial pack subscription fails, kill the scribe server
+                        // and stop listening to changes
+                        return next(jwr);
+                      }
+
+                      // Now subscribed.
+
+                      // treeline.io will respond with a changelog, which may or may not be
+                      // empty.  So we immediately apply it to our local pack on disk.
+                      thisPack.syncRemoteChanges({
+                        type: inputs.type,
+                        changelog: body,
+                        onSyncSuccess: inputs.onSyncSuccess,
+                        localPort: inputs.localPort,
+                        treelineApiUrl: inputs.treelineApiUrl
+                      }).exec({
+                        // If the initial sync or flush in scribe fails, then
+                        // give up with an error msg.
+                        error: function (err) {
+                          return next(err);
+                        },
+                        // If scribe could not be flushed, check and see if
+                        // it's even been lifted yet.  If so, trigger the notifier function,
+                        // and continue on. But if it's not lifted yet, try and lift it again first!
+                        couldNotFlush: function (err){
+                          if (hasLiftedPreviewServer) {
+                            inputs.onFlushError(err);
+                            return next();
+                          }
+
+                          // Lift the preview server
+                          liftPreviewServer({
+                            pathToProject: inputs.dir,
+                            port: inputs.localPort,
+                            log: { level: 'silent' }
+                          }, {
+                            error: function (err){
+                              // If we fail to start the preview server AGAIN, just give up.
+                              return next(err);
+                            },
+                            success: function () {
+                              // If we got it this time.. great!
+
+                              // Trigger optional notifier function.
+                              inputs.onPreviewServerLifted('http://localhost:'+inputs.localPort);
+
+                              // Track that we've been able to lift the preview server.
+                              hasLiftedPreviewServer = true;
+
+                              // Initial sync complete
+                              inputs.onInitialSyncSuccess();
+
+                              // Open browser (unless disabled)
+                              if (inputs.dontOpenBrowser) {
+                                return next();
+                              }
+                              MPProc.openBrowser({
+                                url: 'http://localhost:'+inputs.localPort
+                              }).exec({
+                                error: function (err){ return next(); },
+                                success: function() { return next(); }
+                              });
+                            }
+                          });
+                        },
+                        success: function (){
+                          // Initial sync complete
+                          inputs.onInitialSyncSuccess();
+
+                          // Open browser (unless disabled)
+                          if (inputs.dontOpenBrowser) {
+                            return next();
+                          }
+                          MPProc.openBrowser({
+                            url: 'http://localhost:'+inputs.localPort
+                          }).exec({
+                            error: function (err){ return next(); },
+                            success: function() { return next(); }
+                          });
+                        },
+                      });
+
+                    });
+
+                    // If treeline.io says something changed, apply the changelog
+                    // it provides to our local pack on disk.
+                    socket.on('machinepack', function (notification){
+
+                      var changelog;
+                      try {
+                        changelog = notification.data.changelog;
+                      }
+                      catch (e) {
+                        inputs.onSyncError(e);
+                      }
+
+                      thisPack.syncRemoteChanges({
+                        type: 'machinepack',
+                        changelog: changelog,
+                        onSyncSuccess: inputs.onSyncSuccess,
+                        localPort: inputs.localPort,
+                        treelineApiUrl: inputs.treelineApiUrl
+                      }).exec({
+                        // If applying a pack changelog to the local machinepack
+                        // fails, then trigger the `onSyncError` notifier function.
+                        error: function (err){
+                          inputs.onSyncError(err);
+                        },
+                        // If flushing (reloading the pack in `scribe`, or flushing routes
+                        // in a Sails app)  fails, then trigger the `onFlushError` notifier function.
+                        couldNotFlush: function (err){
+                          inputs.onFlushError(err);
+                        },
+                        success: function (){
+                          // everything is hunky dory
+                        },
+                      });
+                    });
+
+                    // Trigger `onSocketDisconnect` if the connection to treeline.io is broken
+                    socket.on('disconnect', function() {
+                      inputs.onSocketDisconnect();
+                    });
+
+                    // If anything goes horribly wrong or the process is stopped manually w/ <CTRL+C>,
+                    // then ensure we:
+                    //  • stop listening for changes
+                    //  • kill the local preview server
+                    //
+                    // TODO
+                    // (this is happening already in almost every case thanks to the `process.exit(1)`
+                    //  we're calling in `bin/treeline-preview`. But we should make doubly sure.)
+
+                  }); // </thisPack.connect>
+                }); // </LocalMachinepacks.getSignature>
               }
             });
-          },
-          success: function (linkedProject){
-
-            if (linkedProject.type !== 'app') {
-              return next(new Error('The Treeline project in this directory is not an app.  Try `treeline preview machinepack`.'));
-            }
-
-            // Spit out a message before doing the "npm install" steps
-            console.log(chalk.grey('Ensuring dependencies are up to date...'));
-            return next(null, linkedProject);
           }
         });
-      }],
-
-      // Make sure there's a package.json
-      packageJson: ['link', ensurePackageJson],
-
-      // Make sure there is a postinstall script
-      // (this converts old projects to new projects)
-      ensurePostInstall: ['packageJson', ensurePostInstall],
-
-      // Make sure dependencies are installed
-      _installedDependencies: ['packageJson', ensureMachineDependencies],
-
-      // Lift app
-      _liftedApp: ['_installedDependencies', function(next, asyncData) {
-
-        legacyPreviewCode.run(
-          (function buildConf (){
-            var conf = {
-              targetProject: {
-                id: asyncData.link.id,
-                fullName: asyncData.link.displayName
-              },
-              credentials: {
-                secret: asyncData.me.secret
-              },
-              config: {
-                treelineURL: inputs.treelineApiUrl
-              }
-            };
-            debug('Will connect using:',conf);
-
-            // build `conf` object for the delight of existing preview code
-            return conf;
-          })(),
-          [{/* ...? */}],
-          next
-        );
-      }]
-
-    }, function (err, results) {
+      },
+    ], function afterwards(err) {
       if (err) {
-        if (err === 'requestFailed'){
-          return exits.requestFailed(err);
-        }
-        if (_.isObject(err) && err.exit === 'noApps'){
-          return exits.noApps(err.output);
-        }
         return exits(err);
       }
-      return exits.success(results._liftedApp);
+
     });
-
-
-
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-    var fs = require('fs');
-    var fse = require('fs-extra');
-    var exec = require('child_process').exec;
-
-    function ensurePackageJson(cb, results) {
-      // Check for existing package.json
-      if (fs.existsSync(path.resolve(process.cwd(), "package.json"))) {
-        return cb();
-      }
-      fse.outputJSON(path.resolve(process.cwd(), "package.json"), {
-        name: results.link.identity,
-        version: "0.0.0"
-      }, cb);
-    }
-
-    function ensurePostInstall(cb, results) {
-      // Check for existing postinstall script
-      var dir = process.cwd();
-
-      thisPack.addPostinstallScript({
-        destination: dir
-      }).exec({
-        error: function(e) {
-          return cb(e);
-        },
-        success: function() {
-          return cb();
-        }
-      });
-    }
-
-    function ensureMachineDependencies (cb) {
-      debug("Running npm install...");
-      // Always "npm install", in case something got interrupted
-      exec("npm install machine", {cwd: process.cwd()}, function(err, stdout) {
-        if (err) {return cb(err);}
-        exec("npm install sails-hook-machines", {cwd: process.cwd()}, function(err, stdout) {
-          debug(stdout);
-          cb(err);
-        });
-      });
-    }
 
   }
 
 };
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * this is only temporary
+ * @return {[type]} [description]
+ */
+function liftPreviewServer (inputs, exits){
+  var _ = require('lodash');
+  var Sails = require('sails').Sails;
+  var Scribe = require('test-scribe');
+
+  // This might be a pack...
+  if (inputs.type === 'pack') {
+    Scribe(_.extend({
+      pathToPack: inputs.pathToProject
+    }, inputs), function (err, localScribeApp) {
+      if (err) {
+        return exits.error(err);
+      }
+      return exits.success(localScribeApp);
+    });
+    return;
+  }
+
+
+  // ...or an app.
+  var sailsConfig = _.merge({
+    log: { level: 'error' }
+  }, inputs);
+  sailsConfig = _.merge(sailsConfig,{
+    globals: false,
+    hooks: {
+      grunt: false
+    }
+  });
+
+  var app = Sails();
+  app.lift(sailsConfig, function (err) {
+    if (err) {
+      return exits.error(err);
+    }
+    return exits.success(app);
+  });
+
+}

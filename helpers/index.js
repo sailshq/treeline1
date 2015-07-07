@@ -18,7 +18,6 @@ module.exports = require('machine').pack({
         'link-if-necessary',
         'start-developing-pack',
         'start-developing-app',
-        'start-developing-app-2',
         'normalize-type',
         'sync-remote-changes',
         'apply-pack-changelog',
