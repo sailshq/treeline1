@@ -56,7 +56,7 @@ module.exports = {
     ART = ART.replace(/\//g, chalk.bgWhite(chalk.white('/')));
     ART = ART.replace(/\\/g, chalk.bgWhite(chalk.white('\\')));
 
-    var TREELINE_CLI_VERSION = require('../package.json').version;
+    var TREELINE_CLI_VERSION = require('../../package.json').version;
 
     var coloredArt = formatPretty(ART, [{
       str: 'Treeline',
