@@ -15,6 +15,16 @@ module.exports = {
       defaultsTo: 'https://api.treeline.io'
     },
 
+    eventListeners: {
+      description: 'A mapping of event listeners for client socket events.',
+      example: [
+        {
+          name: 'foobar',
+          fn: '->'
+        }
+      ]
+    },
+
     timeout: {
       description: 'The max time to wait before giving up on initial connection (in miliseconds)',
       example: 5000,

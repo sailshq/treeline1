@@ -15,13 +15,14 @@ module.exports = require('machine').pack({
         'login-if-necessary',
         'link-if-necessary',
         'start-developing-pack',
-        'start-developing-app',
+        'start-developing-project',
         'normalize-type',
         'sync-remote-changes',
         'apply-pack-changelog',
         'build-ascii-art',
         'connect-to-treeline',
-        'fetch-project'
+        'fetch-project',
+        'fetch-and-subscribe-to-project'
       ]
     }
   },

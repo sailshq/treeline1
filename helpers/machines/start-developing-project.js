@@ -1,16 +1,23 @@
 module.exports = {
 
 
-  friendlyName: 'Start interactive development session (app)',
+  friendlyName: 'Start interactive development session',
 
 
-  description: 'Preview the app in the current directory, streaming down updated code as changes are made on https://treeline.io.',
+  description: 'Preview the Treeline project (app or pack) in the current directory, streaming down updated code as changes are made on https://treeline.io.',
 
 
-  extendedDescription: 'Note that this will run the app on a local server (http://localhost:1337).',
+  extendedDescription: 'Note that this will run the preview server on a local port (by default, accessible at `http://localhost:1337`).',
 
 
   inputs: {
+
+    type: {
+      friendlyName: 'Type',
+      description: 'The type of Treeline project this is ("app" or "machinepack")',
+      extendedDescription: 'If left unspecified, we\'ll sniff around in the directory and guess what kind of thing this is based on its package.json file.',
+      example: 'machinepack'
+    },
 
     onHasKeychain: {
       description: 'An optional notifier function that will be called when a keychain is located (doesn\'t mean it is necessarily valid).',
@@ -123,7 +130,7 @@ module.exports = {
     var thisPack = require('../');
 
 
-    // The path to pack is generally the current working directory
+    // The path to the project is generally the current working directory
     // Here, we ensure is is absolute, and if it was not specified, default
     // it to process.cwd().
     inputs.dir = inputs.dir ? path.resolve(inputs.dir) : process.cwd();
@@ -141,8 +148,7 @@ module.exports = {
         //  running as a Sails server)
         liftPreviewServer({
           pathToProject: inputs.dir,
-          port: inputs.localPort,
-          log: { level: 'silent' }
+          port: inputs.localPort
         }, {
           error: function (err) {
             // If we fail to start the preview server, don't give up yet
@@ -169,7 +175,7 @@ module.exports = {
           },
           success: function (me) {
             thisPack.linkIfNecessary({
-              type: 'app',
+              type: inputs.type,
               dir: inputs.dir,
               keychainPath: inputs.keychainPath,
               treelineApiUrl: inputs.treelineApiUrl
@@ -204,7 +210,51 @@ module.exports = {
                   // an update if anything has changed (note that this will also subscribe
                   // our socket to future changes)
                   thisPack.connectToTreeline({
-                    treelineApiUrl: inputs.treelineApiUrl
+                    treelineApiUrl: inputs.treelineApiUrl,
+                    listeners: [
+                      {
+                        name: 'disconnect',
+                        // If the connection to treeline.io is broken, trigger
+                        // the `onSocketDisconnect` notifier.
+                        fn: function () {
+                          inputs.onSocketDisconnect();
+                        }
+                      },
+                      {
+                        name: 'machinepack',
+                        // If treeline.io says something changed, apply the changelog
+                        // it provides to our local pack on disk.
+                        fn: function (notification) {
+                          var changelog;
+                          try {
+                            changelog = notification.data.changelog;
+                          }
+                          catch (e) {
+                            inputs.onSyncError(e);
+                          }
+
+                          thisPack.syncRemoteChanges({
+                            type: inputs.type,
+                            changelog: changelog,
+                            onSyncSuccess: inputs.onSyncSuccess,
+                            localPort: inputs.localPort,
+                            treelineApiUrl: inputs.treelineApiUrl
+                          }).exec({
+                            // If applying a pack changelog to the local machinepack
+                            // fails, then trigger the `onSyncError` notifier function.
+                            error: function (err){
+                              inputs.onSyncError(err);
+                            },
+                            // If flushing (reloading the pack in `scribe`, or flushing routes
+                            // in a Sails app)  fails, then trigger the `onFlushError` notifier function.
+                            couldNotFlush: function (err){
+                              inputs.onFlushError(err);
+                            },
+                            success: function doNothing(){},
+                          });
+                        }
+                      }
+                    ]
                   }, function (err, socket) {
                     if (err) {
                       return next(err);
@@ -213,159 +263,92 @@ module.exports = {
                     // Trigger optional notifier function.
                     inputs.onConnected();
 
-                    socket.request({
-                      method: 'get',
-                      url: '/api/v1/machinepacks/'+linkedProject.id+'/sync',
-                      headers: { 'x-auth': me.secret },
-                      params: {
-                        // Send along hashes of each machine, as well as one
-                        // additional hash for the pack's package.json metadata.
-                        packHash: packSignature.packHash,
-                        machineHashes: packSignature.machineHashes
-                      }
-                    }, function serverResponded (body, jwr) {
-                      // console.log('Sails responded with: ', body); console.log('with headers: ', jwr.headers); console.log('and with status code: ', jwr.statusCode);
-                      // console.log('jwr.error???',jwr.error);
-                      if (jwr.error) {
 
-                        // Set up an exit via 'forbidden'.
-                        if (jwr.statusCode === 401) {
-                          jwr.exit = 'forbidden';
-                        }
+                    thisPack.fetchAndSubscribeToProject({
+                      socket: socket,
+                      type: inputs.type,
+                      id: linkedProject.id,
+                      secret: me.secret,
+                      machineHashes: packSignature.machineHashes,
+                      packHash: packSignature.packHash
+                    }).exec({
+                      error: exits.error,
+                      success: function (packChangelog){
+                        // Now subscribed.
 
-                        // If initial pack subscription fails, kill the scribe server
-                        // and stop listening to changes
-                        return next(jwr);
-                      }
-
-                      // Now subscribed.
-
-                      // treeline.io will respond with a changelog, which may or may not be
-                      // empty.  So we immediately apply it to our local pack on disk.
-                      thisPack.syncRemoteChanges({
-                        type: inputs.type,
-                        changelog: body,
-                        onSyncSuccess: inputs.onSyncSuccess,
-                        localPort: inputs.localPort,
-                        treelineApiUrl: inputs.treelineApiUrl
-                      }).exec({
-                        // If the initial sync or flush in scribe fails, then
-                        // give up with an error msg.
-                        error: function (err) {
-                          return next(err);
-                        },
-                        // If scribe could not be flushed, check and see if
-                        // it's even been lifted yet.  If so, trigger the notifier function,
-                        // and continue on. But if it's not lifted yet, try and lift it again first!
-                        couldNotFlush: function (err){
-                          if (hasLiftedPreviewServer) {
-                            inputs.onFlushError(err);
-                            return next();
-                          }
-
-                          // Lift the preview server
-                          liftPreviewServer({
-                            pathToProject: inputs.dir,
-                            port: inputs.localPort,
-                            log: { level: 'silent' }
-                          }, {
-                            error: function (err){
-                              // If we fail to start the preview server AGAIN, just give up.
-                              return next(err);
-                            },
-                            success: function () {
-                              // If we got it this time.. great!
-
-                              // Trigger optional notifier function.
-                              inputs.onPreviewServerLifted('http://localhost:'+inputs.localPort);
-
-                              // Track that we've been able to lift the preview server.
-                              hasLiftedPreviewServer = true;
-
-                              // Initial sync complete
-                              inputs.onInitialSyncSuccess();
-
-                              // Open browser (unless disabled)
-                              if (inputs.dontOpenBrowser) {
-                                return next();
-                              }
-                              MPProc.openBrowser({
-                                url: 'http://localhost:'+inputs.localPort
-                              }).exec({
-                                error: function (err){ return next(); },
-                                success: function() { return next(); }
-                              });
+                        // treeline.io will respond with a changelog, which may or may not be
+                        // empty.  So we immediately apply it to our local pack on disk.
+                        thisPack.syncRemoteChanges({
+                          type: inputs.type,
+                          changelog: body,
+                          onSyncSuccess: inputs.onSyncSuccess,
+                          localPort: inputs.localPort,
+                          treelineApiUrl: inputs.treelineApiUrl
+                        }).exec({
+                          // If the initial sync fails, then give up with an error msg.
+                          error: function (err) {
+                            return next(err);
+                          },
+                          // If preview server could not be flushed, check and see if
+                          // it's even been lifted yet.  If so, trigger the notifier function,
+                          // and continue on. But if it's not lifted yet, try and lift it again
+                          // first!
+                          couldNotFlush: function (err){
+                            if (hasLiftedPreviewServer) {
+                              inputs.onFlushError(err);
+                              return next();
                             }
-                          });
-                        },
-                        success: function (){
-                          // Initial sync complete
-                          inputs.onInitialSyncSuccess();
 
-                          // Open browser (unless disabled)
-                          if (inputs.dontOpenBrowser) {
-                            return next();
-                          }
-                          MPProc.openBrowser({
-                            url: 'http://localhost:'+inputs.localPort
-                          }).exec({
-                            error: function (err){ return next(); },
-                            success: function() { return next(); }
-                          });
-                        },
-                      });
+                            // Lift the preview server
+                            liftPreviewServer({
+                              pathToProject: inputs.dir,
+                              port: inputs.localPort
+                            }, {
+                              error: function (err){
+                                // If we fail to start the preview server AGAIN, just give up.
+                                return next(err);
+                              },
+                              success: function () {
+                                // If we got it this time.. great!
 
-                    });
+                                // Trigger optional notifier function.
+                                inputs.onPreviewServerLifted('http://localhost:'+inputs.localPort);
 
-                    // If treeline.io says something changed, apply the changelog
-                    // it provides to our local pack on disk.
-                    socket.on('machinepack', function (notification){
+                                // Track that we've been able to lift the preview server.
+                                hasLiftedPreviewServer = true;
 
-                      var changelog;
-                      try {
-                        changelog = notification.data.changelog;
+                                // Initial sync complete
+                                inputs.onInitialSyncSuccess();
+
+                                // Open browser (unless disabled)
+                                if (inputs.dontOpenBrowser) {
+                                  return next();
+                                }
+                                MPProc.openBrowser({
+                                  url: 'http://localhost:'+inputs.localPort
+                                }).exec(function (err){
+                                  return next();
+                                });
+                              }
+                            });
+                          },
+                          success: function (){
+                            // Initial sync complete
+                            inputs.onInitialSyncSuccess();
+
+                            // Open browser (unless disabled)
+                            if (inputs.dontOpenBrowser) {
+                              return next();
+                            }
+                            MPProc.openBrowser({
+                              url: 'http://localhost:'+inputs.localPort
+                            }).exec(function (err){
+                              return next();
+                            });
+                          },
+                        }); //</thisPack.syncRemoteChanges>
                       }
-                      catch (e) {
-                        inputs.onSyncError(e);
-                      }
-
-                      thisPack.syncRemoteChanges({
-                        type: 'machinepack',
-                        changelog: changelog,
-                        onSyncSuccess: inputs.onSyncSuccess,
-                        localPort: inputs.localPort,
-                        treelineApiUrl: inputs.treelineApiUrl
-                      }).exec({
-                        // If applying a pack changelog to the local machinepack
-                        // fails, then trigger the `onSyncError` notifier function.
-                        error: function (err){
-                          inputs.onSyncError(err);
-                        },
-                        // If flushing (reloading the pack in `scribe`, or flushing routes
-                        // in a Sails app)  fails, then trigger the `onFlushError` notifier function.
-                        couldNotFlush: function (err){
-                          inputs.onFlushError(err);
-                        },
-                        success: function (){
-                          // everything is hunky dory
-                        },
-                      });
-                    });
-
-                    // Trigger `onSocketDisconnect` if the connection to treeline.io is broken
-                    socket.on('disconnect', function() {
-                      inputs.onSocketDisconnect();
-                    });
-
-                    // If anything goes horribly wrong or the process is stopped manually w/ <CTRL+C>,
-                    // then ensure we:
-                    //  • stop listening for changes
-                    //  • kill the local preview server
-                    //
-                    // TODO
-                    // (this is happening already in almost every case thanks to the `process.exit(1)`
-                    //  we're calling in `bin/treeline-preview`. But we should make doubly sure.)
-
+                    }); //</thisPack.fetchAndSubscribeToProject>
                   }); // </thisPack.connect>
                 }); // </LocalMachinepacks.getSignature>
               }
@@ -384,6 +367,16 @@ module.exports = {
 
 };
 
+
+
+// If anything goes horribly wrong or the process is stopped manually w/ <CTRL+C>,
+// then ensure we:
+//  • stop listening for changes
+//  • kill the local preview server
+//
+// TODO
+// (this is happening already in almost every case thanks to the `process.exit(1)`
+//  we're calling in `bin/treeline-preview`. But we should make doubly sure.)
 
 
 
@@ -406,7 +399,8 @@ function liftPreviewServer (inputs, exits){
   // This might be a pack...
   if (inputs.type === 'pack') {
     Scribe(_.extend({
-      pathToPack: inputs.pathToProject
+      pathToPack: inputs.pathToProject,
+      log: { level: 'error' }
     }, inputs), function (err, localScribeApp) {
       if (err) {
         return exits.error(err);
