@@ -189,6 +189,7 @@ module.exports = {
                 inputs.onHasKeychain(me.username);
 
                 // Read local pack and compute hash of the meaningful information.
+                // TODO: if we're talking about an app here, do that instead (in addition)
                 LocalMachinepacks.getSignature({
                   dir: inputs.dir
                 }).exec(function (err, packSignature) {
