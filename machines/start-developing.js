@@ -148,7 +148,7 @@ module.exports = {
       success: function (type) {
         // Start interactive development session for either an app or a machinepack
         if (type === 'app') {
-          return helperPack.startDevelopingApp2(inputs).exec(exits);
+          return helperPack.startDevelopingProject(inputs).exec(exits);
         }
         else {
           return helperPack.startDevelopingPack(inputs).exec(exits);
