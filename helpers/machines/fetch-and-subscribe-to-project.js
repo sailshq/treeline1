@@ -85,7 +85,7 @@ module.exports = {
     inputs.socket.request({
       method: 'get',
       url: '/api/v1/machinepacks/'+inputs.id+'/sync',
-      headers: { 'x-auth': me.secret },
+      headers: { 'x-auth': inputs.secret },
       params: {
         // Send along hashes of each machine, as well as one
         // additional hash for the pack's package.json metadata.
