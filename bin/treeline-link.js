@@ -41,9 +41,12 @@ require('machine-as-script')( {
 
   forbidden: function (){
     var chalk = require('chalk');
-    console.error('Could not authenticate this computer with Treeline.');
-    console.error('Perhaps your Treeline secret file is corrupted or missing, or maybe you provided an invalid username/password combo?');
-    console.error('Please log in again with `treeline login`.');
+    console.log();
+    console.log(chalk.bold(chalk.yellow('Your keychain is no longer valid.')));
+    console.log('It may have expired; or your account may have been suspended (but that\'s pretty unlikely-- you seem nice).');
+    console.log('(it is also possible that your Treeline keychain is corrupted)');
+    console.log('Please log in again with `treeline login`. If you continue to run into issues, contact '+chalk.underline('support@treeline.io')+'.');
+    process.exit(1);
   }
 
 });

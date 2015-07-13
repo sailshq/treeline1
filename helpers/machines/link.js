@@ -67,8 +67,12 @@ module.exports = {
       description: 'Unknown project type.  You can link an "app" or a "machinepack".'
     },
 
+    unrecognizedCredentials: {
+      description: 'Unrecognized username/password combination.'
+    },
+
     forbidden: {
-      description: 'Username/password combo invalid or not applicable for the selected app.'
+      description: 'The Treeline server indicated that the provided keychain is not permitted to list apps/packs.'
     },
 
     success: {
@@ -107,6 +111,7 @@ module.exports = {
         })
         .exec({
           error: exits.error,
+          unrecognizedCredentials: exits.unrecognizedCredentials,
           success: function (keychain){
 
             // Get id of the app or machinepack to link
@@ -144,6 +149,7 @@ module.exports = {
                       treelineApiUrl: inputs.treelineApiUrl
                     }).exec({
                       error: exits.error,
+                      forbidden: exits.forbidden,
                       success: function (apps) {
                         return exits.success(_.reduce(apps, function(memo, app) {
                           memo.push({
@@ -163,6 +169,7 @@ module.exports = {
                       treelineApiUrl: inputs.treelineApiUrl
                     }).exec({
                       error: exits.error,
+                      forbidden: exits.forbidden,
                       success: function (machinepacks){
                         return exits.success(_.reduce(machinepacks, function(memo, machinepack) {
                           memo.push({
@@ -181,8 +188,8 @@ module.exports = {
 
                     // If there are no choices, we can't possibly link anything.
                     if (choices.length === 0) {
-                      if (type === 'app') { return exits.noApps(); }
-                      else { return exits.noMachinepacks(); }
+                      if (type === 'app') { return exits({exit:'noApps'}); }
+                      else { return exits({exit:'noMachinepacks'}); }
                     }
 
                     var promptMsg;
@@ -203,7 +210,9 @@ module.exports = {
               }
 
             }).exec({
-              error: exits.error,
+              error: function (err){
+                return exits(err);
+              },
               success: function(projectId) {
 
                 // Look up more information about the project to link.
@@ -213,7 +222,9 @@ module.exports = {
                   secret: keychain.secret,
                   treelineApiUrl: inputs.treelineApiUrl,
                 }).exec({
-                  error: exits.error,
+                  error: function (err) {
+                    return exits(err);
+                  },
                   success: function (project){
 
                     // Write linkfile
@@ -225,7 +236,9 @@ module.exports = {
                       id: project.id,
                       dir: inputs.dir,
                     }).exec({
-                      error: exits.error,
+                      error: function (err) {
+                        return exits(err);
+                      },
                       success: function (){
                         return exits.success(project);
                       }

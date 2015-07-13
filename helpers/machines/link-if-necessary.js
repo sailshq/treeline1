@@ -53,7 +53,11 @@ module.exports = {
     },
 
     unrecognizedCredentials: {
-      description: 'Username/password combo invalid or not applicable for the selected app/machinepack.'
+      description: 'Unrecognized username/password combination.'
+    },
+
+    forbidden: {
+      description: 'The Treeline server indicated that the provided keychain is not permitted to list apps/packs.'
     },
 
     success: {
@@ -86,6 +90,8 @@ module.exports = {
           error: exits.error,
           noApps: exits.noApps,
           noMachinepacks: exits.noMachinepacks,
+          unrecognizedCredentials: exits.unrecognizedCredentials,
+          forbidden: exits.forbidden,
           success: function (linkedProject){
             return exits.success(linkedProject);
           }

@@ -258,6 +258,14 @@ module.exports = {
                     interactivePromptMightBeOpen = false; // <= spin-un-lock
                     return next(err);
                   },
+                  unrecognizedCredentials: function (){
+                    interactivePromptMightBeOpen = false; // <= spin-un-lock
+                    return next({exit: 'unrecognizedCredentials'});
+                  },
+                  forbidden: function (){
+                    interactivePromptMightBeOpen = false; // <= spin-un-lock
+                    return next({exit: 'forbidden'});
+                  },
                   success: function (linkedProject) {
                     interactivePromptMightBeOpen = false; // <= spin-un-lock
 

@@ -83,7 +83,8 @@ require('machine-as-script')({
     console.log();
     console.log(chalk.bold(chalk.yellow('Your keychain is no longer valid.')));
     console.log('It may have expired; or your account may have been suspended (but that\'s pretty unlikely-- you seem nice).');
-    console.log('Please try running `treeline login` again, and if you continue to run into issues, contact '+chalk.underline('support@treeline.io')+'.');
+    console.log('(it is also possible that your Treeline keychain is corrupted)');
+    console.log('Please log in again with `treeline login`. If you continue to run into issues, contact '+chalk.underline('support@treeline.io')+'.');
     process.exit(1);
   },
 
