@@ -26,7 +26,8 @@ module.exports = require('machine').pack({
         'unlink',
         'login',
         'logout',
-        'export-pack'
+        'export-pack',
+        'lift-preview-server',
       ]
     }
   },

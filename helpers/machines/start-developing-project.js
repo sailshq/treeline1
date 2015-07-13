@@ -199,7 +199,7 @@ module.exports = {
             // Lift the preview server on a configurable local port
             // (either the Sails app being developed, or the `scribe` utility
             //  running as a Sails server)
-            liftPreviewServer({
+            thisPack.liftPreviewServer({
               type: inputs.type,
               dir: inputs.dir,
               localPort: inputs.localPort
@@ -473,7 +473,7 @@ module.exports = {
             // lifted or failed.
             bool: !hasLiftedPreviewServer,
             then: function (__,exits){
-              liftPreviewServer({
+              thisPack.liftPreviewServer({
                 type: inputs.type,
                 dir: inputs.dir,
                 localPort: inputs.localPort
