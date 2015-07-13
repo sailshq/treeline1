@@ -85,8 +85,7 @@
       "unlink",
       "start-developing",
       "new-app",
-      "export-pack",
-      "install-treeline-deps"
+      "export-pack"
     ],
     "testsUrl": "https://travis-ci.org/treeline-io/treeline"
   },
