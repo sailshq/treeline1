@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 require('machine-as-script')({
-  machine: require('../helpers/build-ascii-art')
+  machine: require('../helpers/machines/build-ascii-art')
 }).exec({
   success: function (art){
     var chalk = require('chalk');
