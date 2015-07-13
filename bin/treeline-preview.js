@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 require('machine-as-script')( {
-  machine: require('../machines/start-developing'),
+  machine: require('../helpers/machines/start-developing-project'),
   args: ['type']
 }).configure({
   onHasKeychain: function (username){

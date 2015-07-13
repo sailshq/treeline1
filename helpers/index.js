@@ -14,7 +14,6 @@ module.exports = require('machine').pack({
         'add-postinstall-script',
         'login-if-necessary',
         'link-if-necessary',
-        'start-developing-pack',
         'start-developing-project',
         'normalize-type',
         'sync-remote-changes',

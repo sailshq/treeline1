@@ -4,20 +4,13 @@ module.exports = {
   friendlyName: 'Start interactive development session',
 
 
-  description: 'Preview the Treeline project (app or pack) in the current directory, streaming down updated code as changes are made on https://treeline.io.',
+  description: 'Start a dev preview session with an app or machinepack.',
 
 
-  extendedDescription: 'Note that this will run the preview server on a local port (by default, accessible at `http://localhost:1337`).',
+  extendedDescription: 'Preview the Treeline project (app or pack) in the current directory, streaming down updated code as changes are made on https://treeline.io.  Note that this will run a preview server on a local port (by default, accessible at `http://localhost:1337`).',
 
 
   inputs: {
-
-    type: {
-      friendlyName: 'Type',
-      description: 'The type of Treeline project this is ("app" or "machinepack")',
-      extendedDescription: 'If left unspecified, we\'ll sniff around in the directory and guess what kind of thing this is based on its package.json file.',
-      example: 'machinepack'
-    },
 
     onHasKeychain: {
       description: 'An optional notifier function that will be called when a keychain is located (doesn\'t mean it is necessarily valid).',
@@ -70,6 +63,19 @@ module.exports = {
       description: 'An optional notifier function that will be called if/when the router of the locally-running app cannot be flushed.',
       example: '->',
       defaultsTo: function (){}
+    },
+
+    type: {
+      friendlyName: 'Type',
+      description: 'The type of Treeline project this is ("app" or "machinepack")',
+      extendedDescription: 'If left unspecified, we\'ll sniff around in the directory and guess what kind of thing this is based on its package.json file.',
+      example: 'machinepack'
+    },
+
+    dontOpenBrowser: {
+      description: 'Prevent the browser from being opened automatically and navigating to the scribe utility when a pack is previewed?',
+      example: true,
+      defaultsTo: false
     },
 
     localPort: {
