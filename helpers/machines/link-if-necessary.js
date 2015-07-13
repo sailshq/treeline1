@@ -70,8 +70,9 @@ module.exports = {
 
   fn: function (inputs, exits) {
     var thisPack = require('../');
+    var LocalTreelineProjects = require('machinepack-local-treeline-projects');
 
-    thisPack.readLinkfile({
+    LocalTreelineProjects.readLinkfile({
       dir: inputs.dir
     }).exec({
       error: exits.error,

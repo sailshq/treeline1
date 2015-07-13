@@ -49,7 +49,7 @@
     "machinepack-http": "^2.1.1",
     "machinepack-ifthen": "^1.0.1",
     "machinepack-json": "^1.2.0",
-    "machinepack-local-treeline-projects": "^0.2.0",
+    "machinepack-local-treeline-projects": "^0.4.0",
     "machinepack-localmachinepacks": "^1.6.0",
     "machinepack-machines": "^3.1.0",
     "machinepack-npm": "^5.1.0",

@@ -1,10 +1,10 @@
 module.exports = {
 
 
-  friendlyName: 'Fetch and/or subcribe to project (pack or app)',
+  friendlyName: 'Fetch changes and subcribe to project (pack or app)',
 
 
-  description: 'Get information about a project (e.g. name, description) and subscribe to socket events for future changes.',
+  description: 'Sync with the server to get a changelog for this project and subscribe to socket events for future changes.',
 
 
   cacheable: true,
@@ -42,6 +42,8 @@ module.exports = {
 
     treelineApiUrl: {
       description: 'The base URL for the Treeline API (useful if you\'re in a country that can\'t use SSL, etc.)',
+      extendedDescription: 'Note that this is only used for HTTP fallback.',
+      // TODO: implement HTTP fallback
       example: 'https://api.treeline.io',
       defaultsTo: 'https://api.treeline.io'
     },
@@ -69,13 +71,11 @@ module.exports = {
     success: {
       friendlyName: 'then',
       variableName: 'packChangelog',
-      example: {
-        owner: 'mikermcneil',
-        type: 'machinepack',
-        displayName: 'Export test',
-        identity: 'export-test',
-        id: 'mikermcneil/export-test',
-      },
+      example: [{
+        id: 'irlnathan/machinepack-foobar',
+        verb: 'set',
+        definition: {}
+      }],
     },
 
   },
@@ -85,10 +85,10 @@ module.exports = {
     var util = require('util');
     var MPJson = require('machinepack-json');
 
-
-
     // TODO: make this work for apps too using this:
     // (inputs.type === 'machinepack' ? inputs.id : '_project_' + inputs.id
+
+    // TODO: pull into mp-sockets (also implement http fallback)
     inputs.socket.request({
       method: 'get',
       url: '/api/v1/machinepacks/'+inputs.id+'/sync',
@@ -138,48 +138,3 @@ module.exports = {
 
 };
 
-
-
-// var util = require('util');
-//     var IfThen = require('machinepack-ifthen');
-//     var Http = require('machinepack-http');
-//     var MPJson = require('machinepack-json');
-
-//     Http.sendHttpRequest({
-//       method: 'get',
-//       baseUrl: inputs.treelineApiUrl,
-//       url: '/api/v2/machine-packs/' + (inputs.type === 'machinepack' ? inputs.id : '_project_' + inputs.id),
-//       headers: {
-//        'x-auth': inputs.secret
-//       },
-//     }).exec({
-//       error: exits.error,
-//       success: function (response) {
-//         MPJson.parse({
-//           json: response.body,
-//           schema: {
-//             id: '12a3bf2e-2932b31',
-//             friendlyName: 'Cool Pack',
-//             description: 'Do cool things',
-//             iconUrl: 'http://icon.com',
-//             access: 'public',
-//             updatedAt: '2015-03-23T22:52:49.000Z',
-//             owner: { username: 'rachaelshaw' }
-//           }
-//         }).exec({
-//           error: exits.error,
-//           success: function (jsonData){
-//             if (!jsonData.id) {
-//               return exits.error(new Error('Unexpected response from Treeline:'+util.inspect(jsonData,{depth: null})));
-//             }
-//             return exits.success({
-//               type: 'machinepack',
-//               id: jsonData.id,
-//               identity: jsonData.id,
-//               displayName: jsonData.friendlyName,
-//               owner: jsonData.owner.username
-//             });
-//           }
-//         });// </MpJson.parse>
-//       }
-//     });// </Http.sendHttpRequest>

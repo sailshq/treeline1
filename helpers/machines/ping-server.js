@@ -39,6 +39,8 @@ module.exports = {
     var _ = require('lodash');
     var request = require('request');
 
+    // TODO: digitize
+
     request.get(inputs.url, function(err, res, body) {
       if (err){
         if (_.isError(err) && err.code === 'ECONNREFUSED') {

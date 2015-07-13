@@ -69,7 +69,8 @@ module.exports = {
   fn: function (inputs, exits){
     var async = require('async');
     var Prompts = require('machinepack-prompts');
-    var helperPack = require('../');
+    var LocalTreelineProjects = require('machinepack-local-treeline-projects');
+    var thisPack = require('../');
 
 
     async.series([
@@ -113,7 +114,7 @@ module.exports = {
     ], function (err){
       if (err) return exits.error(err);
 
-      helperPack.authenticate({
+      thisPack.authenticate({
         username: inputs.username,
         password: inputs.password,
         adminToken: inputs.adminToken,
@@ -124,7 +125,7 @@ module.exports = {
         requestFailed: exits.requestFailed,
         success: function (secret){
 
-          helperPack.writeKeychain({
+          LocalTreelineProjects.writeKeychain({
             username: inputs.username,
             secret: secret,
             keychainPath: inputs.keychainPath

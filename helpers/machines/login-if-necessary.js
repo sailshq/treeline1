@@ -52,8 +52,9 @@ module.exports = {
 
   fn: function (inputs, exits){
     var thisPack = require('../');
+    var LocalTreelineProjects = require('machinepack-local-treeline-projects');
 
-    thisPack.readKeychain({
+    LocalTreelineProjects.readKeychain({
       keychainPath: inputs.keychainPath
     }).exec({
       error: exits.error,

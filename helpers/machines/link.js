@@ -88,19 +88,20 @@ module.exports = {
     var _ = require('lodash');
     var IfThen = require('machinepack-ifthen');
     var Prompts = require('machinepack-prompts');
-    var helperPack = require('../');
+    var LocalTreelineProjects = require('machinepack-local-treeline-projects');
+    var thisPack = require('../');
 
     // If `inputs.type` was provided, use it.
     // Otherwise, sniff around for the package.json file and figure out
     // what kind of project this is.
-    helperPack.normalizeType({
+    LocalTreelineProjects.normalizeType({
       type: inputs.type
     }).exec({
       error: exits.error,
       success: function (type) {
 
         // Ensure this computer is logged in, and if not, log in interactively.
-        helperPack.loginIfNecessary({
+        thisPack.loginIfNecessary({
           keychainPath: inputs.keychainPath,
           treelineApiUrl: inputs.treelineApiUrl,
         })
@@ -137,7 +138,7 @@ module.exports = {
                   }],
 
                   then: function fetchApps(__, exits){
-                    helperPack.listApps({
+                    thisPack.listApps({
                       secret: keychain.secret,
                       owner: inputs.owner||keychain.username,
                       treelineApiUrl: inputs.treelineApiUrl
@@ -156,7 +157,7 @@ module.exports = {
                   },
 
                   orElse: function fetchPacks(__, exits){
-                    helperPack.listPacks({
+                    thisPack.listPacks({
                       secret: keychain.secret,
                       owner: inputs.owner||keychain.username,
                       treelineApiUrl: inputs.treelineApiUrl
@@ -206,7 +207,7 @@ module.exports = {
               success: function(projectId) {
 
                 // Look up more information about the project to link.
-                helperPack.fetchProject({
+                thisPack.getProjectInfo({
                   id: projectId,
                   type: type,
                   secret: keychain.secret,
@@ -216,7 +217,7 @@ module.exports = {
                   success: function (project){
 
                     // Write linkfile
-                    helperPack.writeLinkfile({
+                    LocalTreelineProjects.writeLinkfile({
                       owner: project.owner,
                       type: type,
                       displayName: project.displayName,
@@ -230,7 +231,7 @@ module.exports = {
                       }
                     }); //</writeLinkfile>
                   }
-                }); //</fetchProject>
+                }); //</getProjectInfo>
               }
             }); // </IfThen.ifThenFinally>
           }

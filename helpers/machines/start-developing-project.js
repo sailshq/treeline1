@@ -161,6 +161,7 @@ module.exports = {
     var MPProc = require('machinepack-process');
     var IfThen = require('machinepack-ifthen');
     var LocalMachinepacks = require('machinepack-localmachinepacks');
+    var LocalTreelineProjects = require('machinepack-local-treeline-projects');
     var thisPack = require('../');
 
 
@@ -173,7 +174,7 @@ module.exports = {
     // If `inputs.type` was provided, use it.
     // Otherwise, sniff around for the package.json file and figure out
     // what kind of project this is.
-    thisPack.normalizeType({
+    LocalTreelineProjects.normalizeType({
       type: inputs.type
     }).exec({
       error: exits.error,
@@ -345,7 +346,7 @@ module.exports = {
                                 // Trigger the `onSyncing` notifier.
                                 inputs.onSyncing();
 
-                                thisPack.syncRemoteChanges({
+                                LocalTreelineProjects.syncRemoteChanges({
                                   type: inputs.type,
                                   changelog: changelog,
                                   onSyncSuccess: inputs.onSyncSuccess,
@@ -378,7 +379,7 @@ module.exports = {
                                 // Trigger the `onSyncing` notifier.
                                 inputs.onSyncing();
 
-                                thisPack.fetchAndSubscribeToProject({
+                                thisPack.fetchChangesAndSubscribeToProject({
                                   socket: socket,
                                   type: inputs.type,
                                   id: linkedProject.id,
@@ -395,7 +396,7 @@ module.exports = {
 
                                     // treeline.io will respond with a changelog, which may or may not be
                                     // empty.  So we immediately apply it to our local pack on disk.
-                                    thisPack.syncRemoteChanges({
+                                    LocalTreelineProjects.syncRemoteChanges({
                                       type: inputs.type,
                                       changelog: body,
                                       onSyncSuccess: inputs.onSyncSuccess,
@@ -430,7 +431,7 @@ module.exports = {
 
                                         return exits.success();
                                       },
-                                    }); //</thisPack.syncRemoteChanges>
+                                    }); //</LocalTreelineProjects.syncRemoteChanges>
                                   }
                                 }); //</thisPack.fetchAndSubscribeToProject>
                               }

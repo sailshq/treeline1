@@ -1,10 +1,10 @@
 module.exports = {
 
 
-  friendlyName: 'Fetch project (pack or app)',
+  friendlyName: 'Get project info (pack or app)',
 
 
-  description: 'Get information about a project (e.g. name, description)',
+  description: 'Get high-level information about a project (e.g. name, description)',
 
 
   cacheable: true,
