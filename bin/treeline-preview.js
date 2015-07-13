@@ -71,7 +71,7 @@ require('machine-as-script')({
   requestFailed: function(url) {
     var chalk = require('chalk');
     console.log(chalk.red('Could not communicate with the Treeline mothership at ') + url + '.' + chalk.red(' Are you connected to the internet?'));
-    console.log('If you don\'t have a stable internet connection, try `--offline` mode!');
+    console.log(chalk.gray('(if you don\'t have a stable internet connection, try `--offline` mode.)'));
   },
 
   error: function(err) {
