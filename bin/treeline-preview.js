@@ -6,7 +6,11 @@ require('machine-as-script')( {
 }).configure({
   onHasKeychain: function (username){
     var chalk = require('chalk');
-    console.log(chalk.gray('Located keychain file: connecting as "'+username+'".'));
+    console.log(chalk.gray('Located keychain file: will identify as "'+username+'".'));
+  },
+  onLoadProjectInfo: function (projectInfo){
+    var chalk = require('chalk');
+    console.log(chalk.gray('Identified '+projectInfo.type+': "'+projectInfo.friendlyName+'"'));
   },
   onConnected: function (){
     var chalk = require('chalk');

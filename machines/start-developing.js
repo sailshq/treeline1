@@ -27,6 +27,11 @@ module.exports = {
       example: '->',
     },
 
+    onLoadProjectInfo: {
+      description: 'An optional notifier function that will be called when basic info about the pack or app has been retrieved.',
+      example: '->',
+    },
+
     onConnected: {
       description: 'An optional notifier function that will be called when a connection is established with Treeline.io and this pack is being initially synchronized with the server.',
       example: '->'
@@ -146,13 +151,16 @@ module.exports = {
     }).exec({
       error: exits.error,
       success: function (type) {
+
         // Start interactive development session for either an app or a machinepack
-        if (type === 'app') {
-          return helperPack.startDevelopingProject(inputs).exec(exits);
-        }
-        else {
-          return helperPack.startDevelopingPack(inputs).exec(exits);
-        }
+        return helperPack.startDevelopingProject(inputs).exec(exits);
+
+        // if (type === 'app') {
+        //   return helperPack.startDevelopingProject(inputs).exec(exits);
+        // }
+        // else {
+        //   return helperPack.startDevelopingPack(inputs).exec(exits);
+        // }
       }
     });
 

@@ -43,7 +43,10 @@ module.exports = {
     var IfThen = require('machinepack-ifthen');
     var thisPack = require('../');
 
-    // Ensure we have an absolute destination path.
+    // The path to the project is generally the current working directory
+    // Here, we ensure is is absolute, and if it was not specified, default
+    // it to process.cwd(). If it is relative, we resolve it from the current
+    // working directory.
     inputs.dir = inputs.dir ? path.resolve(inputs.dir) : process.cwd();
 
     // If `inputs.type` was provided, use it.

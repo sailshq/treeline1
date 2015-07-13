@@ -24,6 +24,11 @@ module.exports = {
       defaultsTo: function (){}
     },
 
+    onLoadProjectInfo: {
+      description: 'An optional notifier function that will be called when basic info about the pack or app has been retrieved.',
+      example: '->',
+    },
+
     onConnected: {
       description: 'An optional notifier function that will be called when a connection is established with Treeline.io and this pack is being initially synchronized with the server.',
       example: '->',
@@ -210,6 +215,11 @@ module.exports = {
                       return next(err);
                     }
                   }
+
+                  // Trigger optional notifier function.
+                  inputs.onLoadProjectInfo(_.extend({
+                    type: 'pack'
+                  }, packSignature.pack));
 
                   // Now we'll start up a synchronized development session by
                   // listening for changes from Treeline by first connecting a socket,
