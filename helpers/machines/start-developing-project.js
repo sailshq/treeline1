@@ -186,6 +186,9 @@ module.exports = {
         // as well as the error, if there is one.
         var hasLiftedPreviewServer;
 
+        // Keep track of whether an interactive prompt might be open.
+        var interactivePromptMightBeOpen;
+
         // Now simultaneously:
         //  • lift the preview server
         //  • synchronize local project files w/ http://treeline.io
@@ -209,8 +212,14 @@ module.exports = {
                 return next();
               },
               success: function () {
-                // Trigger optional notifier function.
-                inputs.onPreviewServerLifted('http://localhost:'+inputs.localPort);
+
+                // Don't trigger the notifier callback if interactive
+                // prompt might be going:
+                if (!interactivePromptMightBeOpen) {
+                  // Trigger optional notifier function.
+                  inputs.onPreviewServerLifted('http://localhost:'+inputs.localPort);
+                }
+
 
                 hasLiftedPreviewServer = true;
                 return next();
@@ -221,11 +230,14 @@ module.exports = {
 
           function _syncWithTreelineIo(next){
 
+            interactivePromptMightBeOpen = true; // <= spin-lock
+
             thisPack.loginIfNecessary({
               keychainPath: inputs.keychainPath,
               treelineApiUrl: inputs.treelineApiUrl
             }).exec({
               error: function (err) {
+                interactivePromptMightBeOpen = false; // <= spin-un-lock
                 return next(err);
               },
               success: function (me) {
@@ -236,9 +248,11 @@ module.exports = {
                   treelineApiUrl: inputs.treelineApiUrl
                 }).exec({
                   error: function (err) {
+                    interactivePromptMightBeOpen = false; // <= spin-un-lock
                     return next(err);
                   },
                   success: function (linkedProject) {
+                    interactivePromptMightBeOpen = false; // <= spin-un-lock
 
                     // Trigger optional notifier function.
                     inputs.onHasKeychain(me.username);

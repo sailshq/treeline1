@@ -88,7 +88,7 @@ module.exports = {
     var _ = require('lodash');
     var IfThen = require('machinepack-ifthen');
     var Prompts = require('machinepack-prompts');
-    var helperPack = require('../helpers');
+    var helperPack = require('../');
 
     // If `inputs.type` was provided, use it.
     // Otherwise, sniff around for the package.json file and figure out

@@ -69,7 +69,7 @@ module.exports = {
   fn: function (inputs, exits){
     var async = require('async');
     var Prompts = require('machinepack-prompts');
-    var helperPack = require('../helpers');
+    var helperPack = require('../');
 
 
     async.series([
