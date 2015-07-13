@@ -220,7 +220,6 @@ module.exports = {
 
             }).exec({
               error: function (err){
-                console.log(err);
                 return exits(err);
               },
               success: function(projectId) {
