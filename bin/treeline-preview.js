@@ -78,6 +78,23 @@ require('machine-as-script')({
     process.exit(1);
   },
 
+  forbidden: function (){
+    var chalk = require('chalk');
+    console.log();
+    console.log(chalk.bold(chalk.yellow('Your keychain is no longer valid.')));
+    console.log('It may have expired; or your account may have been suspended (but that\'s pretty unlikely-- you seem nice).');
+    console.log('Please try running `treeline login` again, and if you continue to run into issues, contact '+chalk.underline('support@treeline.io')+'.');
+    process.exit(1);
+  },
+
+  unrecognizedCredentials: function (){
+    var chalk = require('chalk');
+    console.log();
+    console.log(chalk.bold(chalk.yellow('Unrecognized username/password combination.')));
+    console.log('Please try again, or visit '+chalk.underline('http://treeline.io')+' to reset your password or locate your username.');
+    process.exit(1);
+  },
+
   requestFailed: function(url) {
     var chalk = require('chalk');
     console.log(chalk.red('Could not communicate with the Treeline mothership') + (url?(chalk.red(' at ')+url):'') + chalk.red('.') + chalk.red(' Are you connected to the internet?'));

@@ -26,7 +26,7 @@ module.exports = {
 
   exits: {
 
-    forbidden: {
+    unrecognizedCredentials: {
       description: 'Unrecognized username/password combination.',
       extendedDescription: 'Please try again or visit http://treeline.io to reset your password or locate your username.'
     },
@@ -64,6 +64,7 @@ module.exports = {
           keychainPath: inputs.keychainPath
         }).exec({
           error: exits.error,
+          unrecognizedCredentials: exits.unrecognizedCredentials,
           success: function (me){
             return exits.success(me);
           }

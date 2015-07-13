@@ -135,9 +135,12 @@ module.exports = {
       description: 'The current working directory is not linked to an app or machinepack on Treeline.io.'
     },
 
+    unrecognizedCredentials: {
+      description: 'Unrecognized username/password combination.'
+    },
+
     forbidden: {
-      description: 'Unrecognized username/password combination.',
-      extendedDescription: 'Please try again or visit http://treeline.io to reset your password or locate your username.'
+      description: 'The Treeline server indicated that the provided keychain is not permitted to access this remote.'
     },
 
     requestFailed: {
@@ -240,6 +243,9 @@ module.exports = {
               error: function (err) {
                 interactivePromptMightBeOpen = false; // <= spin-un-lock
                 return next(err);
+              },
+              unrecognizedCredentials: function (){
+                return next({exit: 'unrecognizedCredentials'});
               },
               success: function (me) {
                 thisPack.linkIfNecessary({
@@ -461,6 +467,11 @@ module.exports = {
             // 'tookTooLong' => 'requestFailed'
             if (err.exit === 'tookTooLong') {
               return exits.requestFailed(inputs.treelineApiUrl);
+            }
+
+            // 'unrecognizedCredentials' =>
+            if (err.exit === 'unrecognizedCredentials') {
+              return exits.unrecognizedCredentials();
             }
 
             return exits(err);
