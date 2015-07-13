@@ -115,14 +115,9 @@ require('machine-as-script')({
     }
 
     console.error('Technical details:');
-    console.error(chalk.gray(
-      _.isError(err) ?
-      err.stack : (
-        _.isString(err) ?
-        err :
-        (util.inspect(err), { depth: null })
-      )
-    ));
+    var technicalDetails = _.isError(err) ? err.stack : err;
+    technicalDetails = _.isString(technicalDetails) ? technicalDetails : util.inspect(technicalDetails, { depth: null });
+    console.error(chalk.gray(technicalDetails));
     process.exit(1);
   }
 
