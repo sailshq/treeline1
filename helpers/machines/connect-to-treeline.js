@@ -57,7 +57,9 @@ module.exports = {
       baseUrl: inputs.treelineApiUrl,
       timeout: inputs.timeout
     }).exec({
-      error: exits.error,
+      error: function (err) {
+        return exits.error(err);
+      },
       tookTooLong: exits.tookTooLong,
       success: function (socket){
         return exits.success(socket);

@@ -23,7 +23,19 @@ module.exports = {
       example: '->',
     },
 
-    onConnected: {
+    onConnecting: {
+      description: 'An optional notifier function that will be called the first time Treeline attempts to connect.',
+      example: '->',
+      defaultsTo: function (){}
+    },
+
+    onSyncing: {
+      description: 'An optional notifier function that will be called any time Treeline attempts to synchronize code.',
+      example: '->',
+      defaultsTo: function (){}
+    },
+
+    onInitialConnectSuccess: {
       description: 'An optional notifier function that will be called when a connection is established with Treeline.io and this project is being initially synchronized with the server.',
       example: '->',
       defaultsTo: function (){}
@@ -129,7 +141,9 @@ module.exports = {
     },
 
     requestFailed: {
-      description: 'Could not communicate with Treeline.io -- are you connected to the internet?'
+      description: 'Could not communicate with Treeline.io -- are you connected to the internet?',
+      outputDescription: 'The URL we attempted to connect to.',
+      example: 'https://api.treeline.io'
     },
 
     success: {
@@ -294,6 +308,9 @@ module.exports = {
                           // our socket to future changes)
                           orElse: function (__, exits) {
 
+                            // Trigger the `onConnecting` notifier.
+                            inputs.onConnecting();
+
                             thisPack.connectToTreeline({
                               treelineApiUrl: inputs.treelineApiUrl,
                               listeners: [
@@ -318,6 +335,9 @@ module.exports = {
                                       inputs.onSyncError(e);
                                     }
 
+                                    // Trigger the `onSyncing` notifier.
+                                    inputs.onSyncing();
+
                                     thisPack.syncRemoteChanges({
                                       type: inputs.type,
                                       changelog: changelog,
@@ -340,66 +360,74 @@ module.exports = {
                                   }
                                 }
                               ]
-                            }, function (err, socket) {
-                              if (err) {
+                            }).exec({
+                              error: function (err) {
                                 return exits.error(err);
+                              },
+                              success: function (socket) {
+
+                                // Trigger optional notifier function.
+                                inputs.onInitialConnectSuccess();
+
+                                // Trigger the `onSyncing` notifier.
+                                inputs.onSyncing();
+
+                                thisPack.fetchAndSubscribeToProject({
+                                  socket: socket,
+                                  type: inputs.type,
+                                  id: linkedProject.id,
+                                  secret: me.secret,
+                                  machineHashes: projectSignature.machineHashes,
+                                  packHash: projectSignature.packHash
+                                }).exec({
+                                  error: function (err){
+                                    inputs.onSyncError(err);
+                                    return exits.error(err);
+                                  },
+                                  success: function (packChangelog){
+                                    // Now subscribed.
+
+                                    // treeline.io will respond with a changelog, which may or may not be
+                                    // empty.  So we immediately apply it to our local pack on disk.
+                                    thisPack.syncRemoteChanges({
+                                      type: inputs.type,
+                                      changelog: body,
+                                      onSyncSuccess: inputs.onSyncSuccess,
+                                      localPort: inputs.localPort,
+                                      treelineApiUrl: inputs.treelineApiUrl
+                                    }).exec({
+                                      // If the initial sync fails, then give up with an error msg.
+                                      error: function (err) {
+                                        return exits.error(err);
+                                      },
+                                      // If preview server could not be initially flushed, that's ok-
+                                      // it might just not be lifted yet, or might have failed the first time.
+                                      // We'll try it again below.
+                                      couldNotFlush: function (flushErr){
+                                        // If the preview server WAS already lifted and it could
+                                        // not be flushed, trigger the notification function.
+                                        if (hasLiftedPreviewServer) {
+                                          inputs.onFlushError(flushErr);
+                                        }
+
+                                        // Then move on either way.
+                                        // (but notice we don't call the notifier callback
+                                        //  yet, since the sync isn't really done until the
+                                        //  preview app has been flushed)
+                                        return exits.success();
+                                      },
+                                      success: function (){
+
+                                        // Since the initial sync is complete, we'll
+                                        // call the notifier callback.
+                                        inputs.onInitialSyncSuccess();
+
+                                        return exits.success();
+                                      },
+                                    }); //</thisPack.syncRemoteChanges>
+                                  }
+                                }); //</thisPack.fetchAndSubscribeToProject>
                               }
-
-                              // Trigger optional notifier function.
-                              inputs.onConnected();
-
-                              thisPack.fetchAndSubscribeToProject({
-                                socket: socket,
-                                type: inputs.type,
-                                id: linkedProject.id,
-                                secret: me.secret,
-                                machineHashes: projectSignature.machineHashes,
-                                packHash: projectSignature.packHash
-                              }).exec({
-                                error: exits.error,
-                                success: function (packChangelog){
-                                  // Now subscribed.
-
-                                  // treeline.io will respond with a changelog, which may or may not be
-                                  // empty.  So we immediately apply it to our local pack on disk.
-                                  thisPack.syncRemoteChanges({
-                                    type: inputs.type,
-                                    changelog: body,
-                                    onSyncSuccess: inputs.onSyncSuccess,
-                                    localPort: inputs.localPort,
-                                    treelineApiUrl: inputs.treelineApiUrl
-                                  }).exec({
-                                    // If the initial sync fails, then give up with an error msg.
-                                    error: function (err) {
-                                      return exits.error(err);
-                                    },
-                                    // If preview server could not be initially flushed, that's ok-
-                                    // it might just not be lifted yet, or might have failed the first time.
-                                    // We'll try it again below.
-                                    couldNotFlush: function (flushErr){
-                                      // If the preview server WAS already lifted and it could
-                                      // not be flushed, trigger the notification function.
-                                      if (hasLiftedPreviewServer) {
-                                        inputs.onFlushError(flushErr);
-                                      }
-
-                                      // Then move on either way.
-                                      // (but notice we don't call the notifier callback
-                                      //  yet, since the sync isn't really done until the
-                                      //  preview app has been flushed)
-                                      return exits.success();
-                                    },
-                                    success: function (){
-
-                                      // Since the initial sync is complete, we'll
-                                      // call the notifier callback.
-                                      inputs.onInitialSyncSuccess();
-
-                                      return exits.success();
-                                    },
-                                  }); //</thisPack.syncRemoteChanges>
-                                }
-                              }); //</thisPack.fetchAndSubscribeToProject>
                             }); // </thisPack.connectToTreeline>
                           } //</orElse -> (not offline mode)>
 
@@ -422,6 +450,12 @@ module.exports = {
           },
         ], function afterwards(err) {
           if (err) {
+
+            // 'tookTooLong' => 'requestFailed'
+            if (err.exit === 'tookTooLong') {
+              return exits.requestFailed(inputs.treelineApiUrl);
+            }
+
             return exits(err);
           }
 
