@@ -188,8 +188,17 @@ module.exports = {
 
                     // If there are no choices, we can't possibly link anything.
                     if (choices.length === 0) {
-                      if (type === 'app') { return exits({exit:'noApps'}); }
-                      else { return exits({exit:'noMachinepacks'}); }
+                      if (type === 'app') {
+                        return exits({
+                          output: { username: keychain.username },
+                          exit: 'noApps'
+                        });
+                      } else {
+                        return exits({
+                          output: { username: keychain.username },
+                          exit: 'noMachinepacks'
+                        });
+                      }
                     }
 
                     var promptMsg;
@@ -211,6 +220,7 @@ module.exports = {
 
             }).exec({
               error: function (err){
+                console.log(err);
                 return exits(err);
               },
               success: function(projectId) {

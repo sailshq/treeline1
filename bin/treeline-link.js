@@ -32,7 +32,7 @@ require('machine-as-script')( {
     console.log('You should visit '+chalk.underline('http://treeline.io')+' and create one!');
   },
 
-  noPacks: function (data){
+  noMachinepacks: function (data){
     var chalk = require('chalk');
     console.log();
     console.log('Looks like you don\'t have any machinepacks in your account yet, %s.', chalk.cyan(data.username));
