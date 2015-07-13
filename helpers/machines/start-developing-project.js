@@ -168,24 +168,30 @@ module.exports = {
         // Override `inputs.type` with the normalized version.
         inputs.type = type;
 
-        // Keep track of whether or not we were able to lift the preview app yet.
+        // Keep track of whether or not we were able to lift the preview app yet,
+        // as well as the error, if there is one.
         var hasLiftedPreviewServer;
 
         // Now simultaneously:
         //  • lift the preview server
-        //  • synchronize local pack files w/ http://treeline.io
+        //  • synchronize local project files w/ http://treeline.io
         async.parallel([
-          function(next){
+
+
+          function _liftThePreviewServer(next){
             // Lift the preview server on a configurable local port
             // (either the Sails app being developed, or the `scribe` utility
             //  running as a Sails server)
             liftPreviewServer({
+              type: inputs.type,
               pathToProject: inputs.dir,
               port: inputs.localPort
             }, {
               error: function (err) {
                 // If we fail to start the preview server, don't give up yet
                 // (just try again after everything has synced)
+
+                // So we ignore `err`.
                 return next();
               },
               success: function () {
@@ -197,7 +203,9 @@ module.exports = {
               }
             });
           },
-          function(next){
+
+
+          function _syncWithTreelineIo(next){
 
             thisPack.loginIfNecessary({
               keychainPath: inputs.keychainPath,
@@ -255,7 +263,9 @@ module.exports = {
                       },
 
                     }).exec({
-                      error: next,
+                      error: function (err) {
+                        return exits.error(err);
+                      },
                       success: function (projectSignature){
 
                         // Trigger optional notifier function.
@@ -367,8 +377,8 @@ module.exports = {
                                     // it might just not be lifted yet, or might have failed the first time.
                                     // We'll try it again below.
                                     couldNotFlush: function (flushErr){
-                                      // If the preview server WAS lifted and it could not be flushed,
-                                      // trigger the notification function.
+                                      // If the preview server WAS already lifted and it could
+                                      // not be flushed, trigger the notification function.
                                       if (hasLiftedPreviewServer) {
                                         inputs.onFlushError(flushErr);
                                       }
@@ -395,63 +405,12 @@ module.exports = {
 
                         }).exec({
 
-                          error: next,
+                          error: function (err) {
+                            return next(err);
+                          },
 
                           success: function (){
-
-                            // Now we'll check to see if the preview server has lifted.
-                            // If it has, we're good- continue on.
-                            IfThen.ifThenFinally({
-                              // But if it's not lifted yet, then we'll try and
-                              // lift it again, since it might have failed the first time
-                              // (and we ignored any initial lift errors from it above)
-                              bool: !hasLiftedPreviewServer,
-                              then: function (__,exits){
-                                liftPreviewServer({
-                                  pathToProject: inputs.dir,
-                                  port: inputs.localPort
-                                }, {
-                                  // If it still cannot be lifted, give up.
-                                  error: function (err) {
-                                    return exits.error(err);
-                                  },
-                                  // If it lifts this time, then we'll trigger two
-                                  // notifier callbacks: one for the lifting of the preview
-                                  // server, and one for the completion of the initial sync.
-                                  // Then we'll continue.
-                                  success: function (){
-
-                                    // Trigger optional notifier function.
-                                    inputs.onPreviewServerLifted('http://localhost:'+inputs.localPort);
-
-                                    // Track that we've been able to lift the preview server.
-                                    hasLiftedPreviewServer = true;
-
-                                    // Only fire the "onInitialSyncSuccess" notifier callback if
-                                    // this is NOT offline mode.
-                                    if (!inputs.offline) {
-                                      inputs.onInitialSyncSuccess();
-                                    }
-
-                                    return exits.success();
-                                  }
-                                });
-                              }
-                            }).exec({
-                              error: next,
-                              success: function (){
-
-                                // Open browser (unless disabled)
-                                if (inputs.dontOpenBrowser) {
-                                  return next();
-                                }
-                                MPProc.openBrowser({
-                                  url: 'http://localhost:'+inputs.localPort
-                                }).exec(function (err){
-                                  return next();
-                                });
-                              }
-                            }); // </IfThen.ifThenFinally -> `!hasLiftedPreviewServer`>
+                            return next();
                           }
                         }); //</IfThen.ifThenFinally -> `inputs.offline`>
                       }
@@ -466,13 +425,68 @@ module.exports = {
             return exits(err);
           }
 
-          // Currently, we never actually call 'success'.
+          // Now we'll check to see if the preview server has lifted.
+          // If it has, we're good- continue on.
+          IfThen.ifThenFinally({
+            // But if it's not lifted yet, there MUST be lift errors,
+            // b/c at this point in the code, it HAS to have either successfully
+            // lifted or failed.
+            bool: !hasLiftedPreviewServer,
+            then: function (__,exits){
+              liftPreviewServer({
+                type: inputs.type,
+                pathToProject: inputs.dir,
+                port: inputs.localPort
+              }, {
+                // If it still cannot be lifted, give up.
+                error: function (err) {
+                  return exits.error(err);
+                },
+                // If it lifts this time, then we'll trigger two
+                // notifier callbacks: one for the lifting of the preview
+                // server, and one for the completion of the initial sync.
+                // Then we'll continue.
+                success: function (){
 
-        });
+                  // Trigger optional notifier function.
+                  inputs.onPreviewServerLifted('http://localhost:'+inputs.localPort);
 
+                  // Track that we've been able to lift the preview server.
+                  hasLiftedPreviewServer = true;
+
+                  // Only fire the "onInitialSyncSuccess" notifier callback if
+                  // this is NOT offline mode.
+                  if (!inputs.offline) {
+                    inputs.onInitialSyncSuccess();
+                  }
+
+                  return exits.success();
+                }
+              });
+            }
+          }).exec({
+            error: exits.error,
+            success: function (){
+
+              // Open browser (unless disabled)
+              IfThen.ifThenFinally({
+                bool: !inputs.dontOpenBrowser,
+                then: function (__, exits){
+                  MPProc.openBrowser({
+                    url: 'http://localhost:'+inputs.localPort
+                  }).exec(exits);
+                }
+              }).exec(function (err) {
+                // Ignore any `err` encountered opening the browser.
+
+                // All done!
+                return exits.success();
+              }); // </IfThen.ifThenFinally -> `!dontOpenBrowser`>
+            }
+          }); // </IfThen.ifThenFinally -> `!hasLiftedPreviewServer`>
+        }); //</async.parallel>
       }
-    });
-
+    }); //</normalizeType>
   }
 
 };
@@ -502,41 +516,44 @@ module.exports = {
  */
 function liftPreviewServer (inputs, exits){
   var _ = require('lodash');
-  var Sails = require('sails').Sails;
-  var Scribe = require('test-scribe');
 
-  // This might be a pack...
-  if (inputs.type === 'pack') {
-    Scribe(_.extend({
-      pathToPack: inputs.pathToProject,
+  // This might be an app...
+  if (inputs.type === 'app') {
+
+    var Sails = require('sails').Sails;
+
+    var sailsConfig = _.merge({
       log: { level: 'error' }
-    }, inputs), function (err, localScribeApp) {
+    }, inputs);
+    sailsConfig = _.merge(sailsConfig,{
+      globals: false,
+      hooks: {
+        grunt: false
+      }
+    });
+
+    var app = Sails();
+    app.lift(sailsConfig, function (err) {
       if (err) {
         return exits.error(err);
       }
-      return exits.success(localScribeApp);
+      return exits.success(app);
     });
     return;
   }
 
 
-  // ...or an app.
-  var sailsConfig = _.merge({
-    log: { level: 'error' }
-  }, inputs);
-  sailsConfig = _.merge(sailsConfig,{
-    globals: false,
-    hooks: {
-      grunt: false
-    }
-  });
+  // ...or a pack.
+  var Scribe = require('test-scribe');
 
-  var app = Sails();
-  app.lift(sailsConfig, function (err) {
+  Scribe(_.extend({
+    pathToPack: inputs.pathToProject,
+    log: { level: 'error' }
+  }, inputs), function (err, localScribeApp) {
     if (err) {
       return exits.error(err);
     }
-    return exits.success(app);
+    return exits.success(localScribeApp);
   });
 
 }
