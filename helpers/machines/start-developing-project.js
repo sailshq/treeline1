@@ -267,7 +267,7 @@ module.exports = {
                       // If this is an app, get the app signature.
                       then: function (__, exits) {
                         // TODO
-                        return exits.error(new Error('Not currently supported.'));
+                        return exits.error(new Error('That\'s not currently supported, sorry.'));
                       },
 
                       // Otherwise, we're talking about a machinepack,

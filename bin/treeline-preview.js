@@ -89,13 +89,40 @@ require('machine-as-script')({
     var util = require('util');
     var _ = require('lodash');
     var chalk = require('chalk');
+
+    // We'll attempt to display an error summary in a more attractive way,
+    // if there even is a more attractive way... Or an error summary.
+    var summary;
+    try {
+      if (_.isString(err.message) && err.message.length < 100) {
+        summary = err.message;
+      }
+    }
+    catch (e) {}
+
     console.error();
+    console.error('--');
     console.error('An unexpected error occurred, and the Treeline client had to exit.');
     console.error('If you continue to see issues, please contact '+chalk.underline('support@treeline.io')+' with details.');
     console.error('Thanks for being a part of the Treeline beta!');
     console.error();
-    console.error('Technical error details:');
-    console.error(chalk.gray(util.inspect(_.isError(err)?err.stack:err), {depth: null}));
+    console.error();
+
+    if (summary) {
+      console.error('Error summary:');
+      console.error(chalk.yellow(summary));
+      console.error();
+    }
+
+    console.error('Technical details:');
+    console.error(chalk.gray(
+      _.isError(err) ?
+      err.stack : (
+        _.isString(err) ?
+        err :
+        (util.inspect(err), { depth: null })
+      )
+    ));
     process.exit(1);
   }
 
