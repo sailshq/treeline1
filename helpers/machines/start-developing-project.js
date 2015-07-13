@@ -267,9 +267,11 @@ module.exports = {
                         // If offline mode is enabled, then skip syncing.
                         IfThen.ifThenFinally({
 
-                          bool: !inputs.offline,
+                          bool: inputs.offline,
 
-                          // If this is offline mode, don't bother syncing changes.
+                          // If this is offline mode, don't bother syncing changes--
+                          // instead we just need to ensure the preview server is lifted.
+                          // But since we already do that below, we're good to continue onwards.
                           then: function (__, exits) {
                             return exits.success();
                           }, // </then (offline mode)>
@@ -361,44 +363,26 @@ module.exports = {
                                     error: function (err) {
                                       return exits.error(err);
                                     },
-                                    // If preview server could not be initially flushed, check and see if
-                                    // it's even been lifted yet.  If so, trigger the notifier function,
-                                    // and continue on. But if it's not lifted yet, try and lift it again
-                                    // first!
+                                    // If preview server could not be initially flushed, that's ok-
+                                    // it might just not be lifted yet, or might have failed the first time.
+                                    // We'll try it again below.
                                     couldNotFlush: function (flushErr){
+                                      // If the preview server WAS lifted and it could not be flushed,
+                                      // trigger the notification function.
                                       if (hasLiftedPreviewServer) {
                                         inputs.onFlushError(flushErr);
-                                        return exits.success();
                                       }
 
-                                      // Lift the preview server
-                                      liftPreviewServer({
-                                        pathToProject: inputs.dir,
-                                        port: inputs.localPort
-                                      }, {
-                                        error: function (err){
-                                          // If we fail to start the preview server AGAIN, just give up.
-                                          return exits.error(err);
-                                        },
-                                        success: function () {
-                                          // If we got it this time.. great!
-
-                                          // Trigger optional notifier function.
-                                          inputs.onPreviewServerLifted('http://localhost:'+inputs.localPort);
-
-                                          // Track that we've been able to lift the preview server.
-                                          hasLiftedPreviewServer = true;
-
-                                          // Initial sync complete
-                                          inputs.onInitialSyncSuccess();
-
-                                          return exits.success();
-                                        }
-                                      });
+                                      // Then move on either way.
+                                      // (but notice we don't call the notifier callback
+                                      //  yet, since the sync isn't really done until the
+                                      //  preview app has been flushed)
+                                      return exits.success();
                                     },
                                     success: function (){
 
-                                      // Initial sync complete
+                                      // Since the initial sync is complete, we'll
+                                      // call the notifier callback.
                                       inputs.onInitialSyncSuccess();
 
                                       return exits.success();
@@ -415,15 +399,59 @@ module.exports = {
 
                           success: function (){
 
-                            // Open browser (unless disabled)
-                            if (inputs.dontOpenBrowser) {
-                              return next();
-                            }
-                            MPProc.openBrowser({
-                              url: 'http://localhost:'+inputs.localPort
-                            }).exec(function (err){
-                              return next();
-                            });
+                            // Now we'll check to see if the preview server has lifted.
+                            // If it has, we're good- continue on.
+                            IfThen.ifThenFinally({
+                              // But if it's not lifted yet, then we'll try and
+                              // lift it again, since it might have failed the first time
+                              // (and we ignored any initial lift errors from it above)
+                              bool: !hasLiftedPreviewServer,
+                              then: function (__,exits){
+                                liftPreviewServer({
+                                  pathToProject: inputs.dir,
+                                  port: inputs.localPort
+                                }, {
+                                  // If it still cannot be lifted, give up.
+                                  error: function (err) {
+                                    return exits.error(err);
+                                  },
+                                  // If it lifts this time, then we'll trigger two
+                                  // notifier callbacks: one for the lifting of the preview
+                                  // server, and one for the completion of the initial sync.
+                                  // Then we'll continue.
+                                  success: function (){
+
+                                    // Trigger optional notifier function.
+                                    inputs.onPreviewServerLifted('http://localhost:'+inputs.localPort);
+
+                                    // Track that we've been able to lift the preview server.
+                                    hasLiftedPreviewServer = true;
+
+                                    // Only fire the "onInitialSyncSuccess" notifier callback if
+                                    // this is NOT offline mode.
+                                    if (!inputs.offline) {
+                                      inputs.onInitialSyncSuccess();
+                                    }
+
+                                    return exits.success();
+                                  }
+                                });
+                              }
+                            }).exec({
+                              error: next,
+                              success: function (){
+
+                                // Open browser (unless disabled)
+                                if (inputs.dontOpenBrowser) {
+                                  return next();
+                                }
+                                MPProc.openBrowser({
+                                  url: 'http://localhost:'+inputs.localPort
+                                }).exec(function (err){
+                                  return next();
+                                });
+                              }
+                            }); // </IfThen.ifThenFinally -> `!hasLiftedPreviewServer`>
                           }
                         }); //</IfThen.ifThenFinally -> `inputs.offline`>
                       }
@@ -456,7 +484,6 @@ module.exports = {
 //  • stop listening for changes
 //  • kill the local preview server
 //
-// TODO
 // (this is happening already in almost every case thanks to the `process.exit(1)`
 //  we're calling in `bin/treeline-preview`. But we should make doubly sure.)
 
