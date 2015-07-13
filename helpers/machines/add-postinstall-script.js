@@ -1,7 +1,7 @@
 module.exports = {
 
 
-  friendlyName: 'Add PostInstall Script',
+  friendlyName: 'Add post-install script',
 
 
   description: 'Adds a postinstall script to a package.',
