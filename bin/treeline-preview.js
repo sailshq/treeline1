@@ -20,10 +20,10 @@ require('machine-as-script')({
     var chalk = require('chalk');
     console.log(chalk.gray('Connecting...'));
   },
-  onInitialConnectSuccess: function (){
-    var chalk = require('chalk');
-    console.log(chalk.gray('Now connected to Treeline mothership.'));
-  },
+  // onInitialConnectSuccess: function (){
+  //   var chalk = require('chalk');
+  //   console.log(chalk.gray('Now connected to Treeline mothership.'));
+  // },
   onSyncing: function (){
     var chalk = require('chalk');
     console.log(chalk.gray('Syncing...'));
@@ -33,14 +33,14 @@ require('machine-as-script')({
     console.error(chalk.red('Failed while attempting to sync changes from the Treeline mothership.'));
     // TODO: write error details to a log file
   },
-  onSyncSuccess: function (){
-    var chalk = require('chalk');
-    console.log(chalk.gray('Successfully synchronized local project with updated logic from http://treeline.io.'));
-  },
+  // onSyncSuccess: function (){
+  //   var chalk = require('chalk');
+  //   console.log(chalk.gray('Successfully synchronized local project with updated logic from http://treeline.io.'));
+  // },
   onInitialSyncSuccess: function (){
     var chalk = require('chalk');
     console.log(chalk.gray('Now listening to http://treeline.io for updates...'));
-    console.log(chalk.gray('(changes will automatically generate code in this directory'));
+    console.log(chalk.gray('(remote changes will automatically generate code in this directory'));
   },
   onPreviewServerLifted: function (url){
     var chalk = require('chalk');
