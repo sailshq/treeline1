@@ -353,8 +353,8 @@ module.exports = {
                                 type: inputs.type,
                                 id: linkedProject.id,
                                 secret: me.secret,
-                                machineHashes: packSignature.machineHashes,
-                                packHash: packSignature.packHash
+                                machineHashes: projectSignature.machineHashes,
+                                packHash: projectSignature.packHash
                               }).exec({
                                 error: exits.error,
                                 success: function (packChangelog){
