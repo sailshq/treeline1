@@ -201,9 +201,9 @@ module.exports = {
             //  running as a Sails server)
             liftPreviewServer({
               type: inputs.type,
-              pathToProject: inputs.dir,
-              port: inputs.localPort
-            }, {
+              dir: inputs.dir,
+              localPort: inputs.localPort
+            }).exec({
               error: function (err) {
                 // If we fail to start the preview server, don't give up yet
                 // (just try again after everything has synced)
@@ -326,54 +326,46 @@ module.exports = {
                             inputs.onConnecting();
 
                             thisPack.connectToTreeline({
-                              treelineApiUrl: inputs.treelineApiUrl,
-                              listeners: [
-                                {
-                                  name: 'disconnect',
-                                  // If the connection to treeline.io is broken, trigger
-                                  // the `onSocketDisconnect` notifier.
-                                  fn: function () {
-                                    inputs.onSocketDisconnect();
-                                  }
-                                },
-                                {
-                                  name: 'machinepack',
-                                  // If treeline.io says something changed, apply the changelog
-                                  // it provides to our local pack on disk.
-                                  fn: function (notification) {
-                                    var changelog;
-                                    try {
-                                      changelog = notification.data.changelog;
-                                    }
-                                    catch (e) {
-                                      inputs.onSyncError(e);
-                                    }
-
-                                    // Trigger the `onSyncing` notifier.
-                                    inputs.onSyncing();
-
-                                    thisPack.syncRemoteChanges({
-                                      type: inputs.type,
-                                      changelog: changelog,
-                                      onSyncSuccess: inputs.onSyncSuccess,
-                                      localPort: inputs.localPort,
-                                      treelineApiUrl: inputs.treelineApiUrl
-                                    }).exec({
-                                      // If applying a pack changelog to the local machinepack
-                                      // fails, then trigger the `onSyncError` notifier function.
-                                      error: function (err){
-                                        inputs.onSyncError(err);
-                                      },
-                                      // If flushing (reloading the pack in `scribe`, or flushing routes
-                                      // in a Sails app)  fails, then trigger the `onFlushError` notifier function.
-                                      couldNotFlush: function (err){
-                                        inputs.onFlushError(err);
-                                      },
-                                      success: function doNothing(){},
-                                    });
-                                  }
+                              onSocketDisconnect:  function () {
+                                // If the connection to treeline.io is broken, trigger
+                                // the `onSocketDisconnect` notifier.
+                                inputs.onSocketDisconnect();
+                              },
+                              onProjectChanged: function (notification) {
+                                // If treeline.io says something changed, apply the changelog
+                                // it provides to our local pack on disk.
+                                var changelog;
+                                try {
+                                  changelog = notification.data.changelog;
                                 }
-                              ]
+                                catch (e) {
+                                  inputs.onSyncError(e);
+                                }
+
+                                // Trigger the `onSyncing` notifier.
+                                inputs.onSyncing();
+
+                                thisPack.syncRemoteChanges({
+                                  type: inputs.type,
+                                  changelog: changelog,
+                                  onSyncSuccess: inputs.onSyncSuccess,
+                                  localPort: inputs.localPort,
+                                  treelineApiUrl: inputs.treelineApiUrl
+                                }).exec({
+                                  // If applying a pack changelog to the local machinepack
+                                  // fails, then trigger the `onSyncError` notifier function.
+                                  error: function (err){
+                                    inputs.onSyncError(err);
+                                  },
+                                  // If flushing (reloading the pack in `scribe`, or flushing routes
+                                  // in a Sails app)  fails, then trigger the `onFlushError` notifier function.
+                                  couldNotFlush: function (err){
+                                    inputs.onFlushError(err);
+                                  },
+                                  success: function doNothing(){},
+                                });
+                              },
+                              treelineApiUrl: inputs.treelineApiUrl
                             }).exec({
                               error: function (err) {
                                 return exits.error(err);
@@ -483,9 +475,9 @@ module.exports = {
             then: function (__,exits){
               liftPreviewServer({
                 type: inputs.type,
-                pathToProject: inputs.dir,
-                port: inputs.localPort
-              }, {
+                dir: inputs.dir,
+                localPort: inputs.localPort
+              }).exec({
                 // If it still cannot be lifted, give up.
                 error: function (err) {
                   return exits.error(err);
@@ -551,56 +543,3 @@ module.exports = {
 
 
 
-
-
-
-
-
-
-
-/**
- * this is only temporary
- * @return {[type]} [description]
- */
-function liftPreviewServer (inputs, exits){
-  var _ = require('lodash');
-
-  // This might be an app...
-  if (inputs.type === 'app') {
-
-    var Sails = require('sails').Sails;
-
-    var sailsConfig = _.merge({
-      log: { level: 'error' }
-    }, inputs);
-    sailsConfig = _.merge(sailsConfig,{
-      globals: false,
-      hooks: {
-        grunt: false
-      }
-    });
-
-    var app = Sails();
-    app.lift(sailsConfig, function (err) {
-      if (err) {
-        return exits.error(err);
-      }
-      return exits.success(app);
-    });
-    return;
-  }
-
-
-  // ...or a pack.
-  var Scribe = require('test-scribe');
-
-  Scribe(_.extend({
-    pathToPack: inputs.pathToProject
-  }, inputs), function (err, localScribeApp) {
-    if (err) {
-      return exits.error(err);
-    }
-    return exits.success(localScribeApp);
-  });
-
-}
