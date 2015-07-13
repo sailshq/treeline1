@@ -547,8 +547,7 @@ function liftPreviewServer (inputs, exits){
   var Scribe = require('test-scribe');
 
   Scribe(_.extend({
-    pathToPack: inputs.pathToProject,
-    log: { level: 'error' }
+    pathToPack: inputs.pathToProject
   }, inputs), function (err, localScribeApp) {
     if (err) {
       return exits.error(err);

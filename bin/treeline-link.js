@@ -2,7 +2,7 @@
 
 
 require('machine-as-script')( {
-  machine: require('../machines/link'),
+  machine: require('../helpers/machines/link'),
   args: ['type']
 }).exec({
 

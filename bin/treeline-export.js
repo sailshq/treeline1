@@ -5,7 +5,7 @@ require('machine-as-script')({
 
   args: ['username'],
 
-  machine: require('../machines/export-pack')
+  machine: require('../helpers/machines/export-pack')
 
 }).exec({
 

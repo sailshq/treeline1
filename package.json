@@ -75,19 +75,6 @@
     "unbounce": "^0.1.0",
     "wrench": "1.5.8"
   },
-  "machinepack": {
-    "private": true,
-    "machineDir": "machines/",
-    "machines": [
-      "login",
-      "logout",
-      "link",
-      "unlink",
-      "new-app",
-      "export-pack"
-    ],
-    "testsUrl": "https://travis-ci.org/treeline-io/treeline"
-  },
   "devDependencies": {
     "test-machinepack-mocha": "^0.2.2"
   },

@@ -21,7 +21,12 @@ module.exports = require('machine').pack({
         'build-ascii-art',
         'connect-to-treeline',
         'fetch-project',
-        'fetch-and-subscribe-to-project'
+        'fetch-and-subscribe-to-project',
+        'link',
+        'unlink',
+        'login',
+        'logout',
+        'export-pack'
       ]
     }
   },

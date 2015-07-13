@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 
-require('machine-as-script')( require('../machines/login')).exec({
+require('machine-as-script')( require('../helpers/machines/login')).exec({
 
   success: function (me){
     var chalk = require('chalk');

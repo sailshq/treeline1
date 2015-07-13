@@ -4,7 +4,7 @@ require('machine-as-script')({
 
   args: ['name'],
 
-  machine: require('../machines/new-app')
+  machine: require('../helpers/machines/new-app')
 
 }).exec({
 
