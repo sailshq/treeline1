@@ -107,6 +107,9 @@ require('machine-as-script')({
     console.log('This probably means you deleted the project on '+chalk.underline('https://treeline.io')+'.');
     console.log('It is also possible that the Treeline linkfile in this directory is corrupted.');
     console.log('If you have further issues, or need to restore from one of our emergency backups, contact '+chalk.underline('support@treeline.io')+'.');
+    console.log();
+    console.log(chalk.gray('Note that you can continue to use the local code that\'s already been synced for this project.'));
+    consoel.log(chalk.gray('To do so, run this command again with the '+chalk.bold('--offline')+' flag set.'));
     process.exit(1);
   },
 
