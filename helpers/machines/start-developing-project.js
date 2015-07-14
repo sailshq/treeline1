@@ -412,7 +412,7 @@ module.exports = {
                                     // empty.  So we immediately apply it to our local pack on disk.
                                     LocalTreelineProjects.syncRemoteChanges({
                                       type: inputs.type,
-                                      changelog: body,
+                                      changelog: packChangelog,
                                       onSyncSuccess: inputs.onSyncSuccess,
                                       localPort: inputs.localPort,
                                       treelineApiUrl: inputs.treelineApiUrl

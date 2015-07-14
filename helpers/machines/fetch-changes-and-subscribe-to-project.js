@@ -83,7 +83,7 @@ module.exports = {
 
   fn: function(inputs, exits) {
     var util = require('util');
-    var MPJson = require('machinepack-json');
+    var MPRttc = require('machinepack-rttc');
 
     // TODO: make this work for apps too using this:
     // (inputs.type === 'machinepack' ? inputs.id : '_project_' + inputs.id
@@ -115,20 +115,19 @@ module.exports = {
       }
 
       // Parse packs changelog
-      MPJson.parse({
-        json: body,
-        schema: [{
-          id: 'irlnathan/machinepack-foobar',
-          verb: 'set',
-          definition: {}
-        }]
+      MPRttc.coerce({
+        value: body,
+        typeSchema: MPRttc.infer({
+          example: [{
+            id: 'irlnathan/machinepack-foobar',
+            verb: 'set',
+            definition: {}
+          }]
+        }).execSync()
       }).exec({
         error: exits.error,
-        success: function (jsonData){
-          if (!jsonData.id) {
-            return exits.error(new Error('Unexpected response from Treeline:'+util.inspect(jsonData,{depth: null})));
-          }
-          return exits.success(jsonData);
+        success: function (data){
+          return exits.success(data);
         }
       });// </MpJson.parse>
 
