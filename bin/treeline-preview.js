@@ -20,6 +20,14 @@ require('machine-as-script')({
     var chalk = require('chalk');
     console.log(chalk.gray('Connecting...'));
   },
+  onReconnectError: function (){
+    var chalk = require('chalk');
+    console.log(chalk.red('Unable to reconnect to remote.'));
+  },
+  onReconnectSuccess: function (){
+    var chalk = require('chalk');
+    console.log(chalk.gray('Successfully reconnected to remote.'));
+  },
   // onInitialConnectSuccess: function (){
   //   var chalk = require('chalk');
   //   console.log(chalk.gray('Now connected to Treeline mothership.'));
