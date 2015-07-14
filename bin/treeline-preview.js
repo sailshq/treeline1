@@ -100,6 +100,16 @@ require('machine-as-script')({
     process.exit(1);
   },
 
+  notFound: function (){
+    var chalk = require('chalk');
+    console.log();
+    console.log(chalk.bold(chalk.yellow('The linked remote project cannot be found.')));
+    console.log('This probably means you deleted the project on '+chalk.underline('https://treeline.io')+'.');
+    console.log('It is also possible that the Treeline linkfile in this directory is corrupted.');
+    console.log('If you have further issues, or need to restore from one of our emergency backups, contact '+chalk.underline('support@treeline.io')+'.');
+    process.exit(1);
+  },
+
   unrecognizedCredentials: function (){
     var chalk = require('chalk');
     console.log();

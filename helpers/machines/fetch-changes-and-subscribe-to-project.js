@@ -68,6 +68,14 @@ module.exports = {
 
   exits: {
 
+    forbidden: {
+      description: 'The Treeline server indicated that the provided keychain is not permitted to access this remote.'
+    },
+
+    notFound: {
+      description: 'The Treeline server indicated that the project with the specified id no longer exists.'
+    },
+
     success: {
       friendlyName: 'then',
       variableName: 'packChangelog',
@@ -107,6 +115,11 @@ module.exports = {
         // Set up an exit via 'forbidden'.
         if (jwr.statusCode === 401) {
           jwr.exit = 'forbidden';
+        }
+
+        // Set up an exit via 'notFound'.
+        if (jwr.statusCode === 404) {
+          jwr.exit = 'notFound';
         }
 
         // If initial pack subscription fails, kill the scribe server

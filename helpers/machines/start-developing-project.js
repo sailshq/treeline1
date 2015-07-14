@@ -158,6 +158,10 @@ module.exports = {
       description: 'The Treeline server indicated that the provided keychain is not permitted to access this remote.'
     },
 
+    notFound: {
+      description: 'The Treeline server indicated that the project linked in this directory no longer exists.'
+    },
+
     requestFailed: {
       description: 'Could not communicate with Treeline.io -- are you connected to the internet?',
       outputDescription: 'The URL we attempted to connect to.',
