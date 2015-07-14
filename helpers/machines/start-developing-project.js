@@ -59,6 +59,21 @@ module.exports = {
       defaultsTo: function (){}
     },
 
+    onNpmInstall: {
+      description: 'An optional notifier function that will be called when we start NPM installing things.',
+      example: '->'
+    },
+
+    onNpmInstallError: {
+      description: 'An optional notifier function that will be called when we start NPM installing things.',
+      example: '->'
+    },
+
+    onNpmInstallSuccess: {
+      description: 'An optional notifier function that will be called when we start NPM installing things.',
+      example: '->'
+    },
+
     onPreviewServerLifted: {
       description: 'An optional notifier function that will be called when the preview server has successfully lifted and can be safely accessed.',
       example: '->',
@@ -363,6 +378,9 @@ module.exports = {
                                 LocalTreelineProjects.syncRemoteChanges({
                                   type: inputs.type,
                                   changelog: changelog,
+                                  onNpmInstall: inputs.onNpmInstall,
+                                  onNpmInstallError: inputs.onNpmInstallError,
+                                  onNpmInstallSuccess: inputs.onNpmInstallSuccess,
                                   onSyncSuccess: inputs.onSyncSuccess,
                                   localPort: inputs.localPort,
                                   treelineApiUrl: inputs.treelineApiUrl
@@ -413,6 +431,9 @@ module.exports = {
                                     LocalTreelineProjects.syncRemoteChanges({
                                       type: inputs.type,
                                       changelog: packChangelog,
+                                      onNpmInstall: inputs.onNpmInstall,
+                                      onNpmInstallError: inputs.onNpmInstallError,
+                                      onNpmInstallSuccess: inputs.onNpmInstallSuccess,
                                       onSyncSuccess: inputs.onSyncSuccess,
                                       localPort: inputs.localPort,
                                       treelineApiUrl: inputs.treelineApiUrl

@@ -26,11 +26,23 @@ require('machine-as-script')({
   // },
   onSyncing: function (){
     var chalk = require('chalk');
-    console.log(chalk.gray('Syncing...'));
+    console.log(chalk.gray('Receiving from remote...'));
+  },
+  onNpmInstall: function (){
+    var chalk = require('chalk');
+    console.log(chalk.gray('Installing NPM dependencies...'));
+  },
+  onNpmInstallError: function (err){
+    var debug = require('debug')('treeline-cli');
+    debug('Encountered error installing NPM dependencies:',err);
+  },
+  onNpmInstallSuccess: function (){
+    var debug = require('debug')('treeline-cli');
+    debug('Finished installing NPM dependencies.');
   },
   onSyncError: function (err){
     var chalk = require('chalk');
-    console.error(chalk.red('Failed while attempting to sync changes from the Treeline mothership.'));
+    console.error(chalk.red('Failed while attempting to sync changes from the Treeline remote.'));
     // TODO: write error details to a log file
   },
   // onSyncSuccess: function (){
