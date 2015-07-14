@@ -450,7 +450,7 @@ module.exports = {
                             }); // </thisPack.connectToTreeline>
 
                             function fetchAndSubscribeToProject(exits) {
-                              if (!socket) {return;}
+
                               thisPack.fetchChangesAndSubscribeToProject({
                                 socket: socket,
                                 type: inputs.type,
