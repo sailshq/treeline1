@@ -14,6 +14,11 @@ module.exports = {
       example: '->'
     },
 
+    onSocketConnect: {
+      description: 'A function that will be called when the socket connects or reconnects.',
+      example: '->'
+    },
+
     onProjectChanged: {
       description: 'A function that will be called when a subscribed-to project is changed on the Treeline.io remote.',
       example: '->'
@@ -63,6 +68,18 @@ module.exports = {
         fn: inputs.onSocketDisconnect
       });
     }
+
+    // Trigger the `onSocketConnect` listener whenever a connection
+    // occurs.  Unfortunately we can't use the `reconnect` event because
+    // it seems to fire before the socket is fully connected, and won't
+    // allow it send messages to the server.
+    if (inputs.onSocketConnect) {
+      listeners.push({
+        name: 'connect',
+        fn: inputs.onSocketConnect
+      });
+    }
+
 
     // If treeline.io says something changed, trigger the
     // `onProjectChanged` listener.
