@@ -66,6 +66,7 @@ module.exports = {
 
 
   fn: function (inputs,exits) {
+    var async = require('async');
     var Sockets = require('machinepack-sockets');
 
     // Set up a cute little queue to guarantee in-order processing of
