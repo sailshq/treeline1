@@ -45,8 +45,8 @@ require('machine-as-script')({
     debug('Encountered error installing NPM dependencies:',err);
   },
   onNpmInstallSuccess: function (){
-    var debug = require('debug')('treeline-cli');
-    debug('Finished installing NPM dependencies.');
+    var chalk = require('chalk');
+    console.log(chalk.gray('Finished installing dependencies from NPM.'));
   },
   onSyncError: function (err){
     var chalk = require('chalk');
