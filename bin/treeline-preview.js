@@ -26,7 +26,7 @@ require('machine-as-script')({
   },
   onReconnectSuccess: function (){
     var chalk = require('chalk');
-    console.log(chalk.gray('Successfully reconnected to remote.'));
+    console.log(chalk.gray('✔ Successfully reconnected to remote.'));
   },
   // onInitialConnectSuccess: function (){
   //   var chalk = require('chalk');
@@ -46,7 +46,7 @@ require('machine-as-script')({
   },
   onNpmInstallSuccess: function (){
     var chalk = require('chalk');
-    console.log(chalk.gray('Finished installing dependencies from NPM.'));
+    console.log(chalk.gray('✔ Finished installing dependencies from NPM.'));
   },
   onSyncError: function (err){
     var chalk = require('chalk');
@@ -83,6 +83,11 @@ require('machine-as-script')({
     // TODO: write error details to a log file
   }
 }).exec({
+
+  // success: function (){
+  //   // On success, do nothing.
+  //   // (having this here disables the default "OK" log)
+  // },
 
   notLinked: function (){
     var chalk = require('chalk');
