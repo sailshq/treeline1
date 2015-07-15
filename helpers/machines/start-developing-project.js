@@ -437,6 +437,12 @@ module.exports = {
                               },
                               success: function (_socket) {
 
+                                // We need to use a similar queueing strategy here as we do
+                                // when applying subsequent changelogs (but better to just consolidate the logic)
+                                // This is to prevent concurrency issues between the initial synchronization
+                                // and events that come in simultaneously.
+                                // TODO
+
                                 // Flag the initial connection as having occurred
                                 initialConnectHappened = true;
 
