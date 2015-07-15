@@ -388,23 +388,16 @@ module.exports = {
                                   success: inputs.onReconnectSuccess
                                 });
                               },
-                              onProjectChanged: function (notification) {
-                                // If treeline.io says something changed, apply the changelog
-                                // it provides to our local pack on disk.
-                                var changelog;
-                                try {
-                                  changelog = notification.data.changelog;
-                                }
-                                catch (e) {
-                                  inputs.onSyncError(e);
-                                }
+                              // If treeline.io says something changed, apply the changelog
+                              // it provides to our local pack on disk.
+                              toProcessChangelog: function (_inputs, exits) {
 
                                 // Trigger the `onSyncing` notifier.
                                 inputs.onSyncing();
 
                                 LocalTreelineProjects.syncRemoteChanges({
                                   type: inputs.type,
-                                  changelog: changelog,
+                                  changelog: _inputs.projectChangelog,
                                   onNpmInstall: inputs.onNpmInstall,
                                   onNpmInstallError: inputs.onNpmInstallError,
                                   onNpmInstallSuccess: inputs.onNpmInstallSuccess,
@@ -412,19 +405,31 @@ module.exports = {
                                   localPort: inputs.localPort,
                                   treelineApiUrl: inputs.treelineApiUrl
                                 }).exec({
-                                  // If applying a pack changelog to the local machinepack
+                                  // If applying a project changelog to the local machinepack
                                   // fails, then trigger the `onSyncError` notifier function.
                                   error: function (err){
                                     inputs.onSyncError(err);
+                                    // Note that this means subsequent changelogs can't be processed,
+                                    // because it could get us out of sync.  So we call this lamda impl's
+                                    // error exit.
+                                    return exits.error(err);
                                   },
                                   // If flushing (reloading the pack in `scribe`, or flushing routes
                                   // in a Sails app)  fails, then trigger the `onFlushError` notifier function.
                                   couldNotFlush: function (err){
                                     inputs.onFlushError(err);
+                                    // A flush error is not the end of the world, so we'll call the lamda
+                                    // impl's success exit and keep going.
+                                    return exits.success();
                                   },
-                                  success: function doNothing(){},
+                                  success: function(){
+                                    // The changes were successfully synced to the local project files
+                                    // on disk, which means we can call the lamda impl's success exit and
+                                    // keep going.
+                                    return exits.success();
+                                  },
                                 });
-                              },
+                              }, // </toProcessChangelog impl>
                               treelineApiUrl: inputs.treelineApiUrl
                             }).exec({
                               error: function (err) {
