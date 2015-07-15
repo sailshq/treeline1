@@ -29,6 +29,10 @@ module.exports = {
             extendedDescription: 'Currently this always just covers the top-level project (i.e. `length===1`).',
             example: [{}]
           }
+        },
+        exits: {
+          success: {},
+          error: {}
         }
       },
       required: true
@@ -103,7 +107,7 @@ module.exports = {
 
     // If treeline.io says something changed...
     listeners.push({
-      name: 'machinepack',// TODO: make this generic and work for apps too <=
+      name: 'machinepack',
       fn: function (notification){
 
         // Parse the changelog from the incoming socket notification.
@@ -112,7 +116,10 @@ module.exports = {
           projectChangelog = notification.data.changelog;
         }
         catch (e) {
-          inputs.onSyncError(e);
+          // If the notification cannot be parsed as expected,
+          // this is likely a bogus version of the Treeline API or a serious bug.
+          console.error(e);
+          projectChangelog = [];
         }
 
         // Push this new changelog to the end of our queue.
@@ -146,7 +153,7 @@ module.exports = {
 
 
         // Now we're ready:
-        async.doWhilst(function() {
+        async.whilst(function() {
           return currentlyProcessingChangelogs;
         },
         function(cb) {
@@ -158,6 +165,7 @@ module.exports = {
           // Note that we can't simply rely on a notifier function because they're volatile;
           // i.e. we don't get any kind of acknowledgement signal when its done running.
           // That's what exits are for.
+          console.log('processing....');
           //
           // So instead, we'll use the implementation provided as `inputs.toProcessChangelog`.
           // It's a lamda input with a contract, which means we can call it as a machine.
