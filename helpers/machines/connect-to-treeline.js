@@ -165,7 +165,6 @@ module.exports = {
           // Note that we can't simply rely on a notifier function because they're volatile;
           // i.e. we don't get any kind of acknowledgement signal when its done running.
           // That's what exits are for.
-          console.log('processing....');
           //
           // So instead, we'll use the implementation provided as `inputs.toProcessChangelog`.
           // It's a lamda input with a contract, which means we can call it as a machine.
@@ -219,7 +218,6 @@ module.exports = {
           }
 
           // If we're here, we're done and everything worked!
-          console.log('all caught up...');
           return;
         });
       }
