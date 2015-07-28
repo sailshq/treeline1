@@ -97,7 +97,9 @@ module.exports = {
       // We trigger the `onSocketConnect` listener whenever a connection
       // occurs.  Unfortunately we can't use the `reconnect` event because
       // it seems to fire before the socket is fully connected, and won't
-      // allow it send messages to the server.
+      // allow it send messages to the server.  The upshot is you need to
+      // distinguish the initial connection from subsequent reconnects yourself,
+      // probably using a "initialConnectionHappened" flag or the like.
       listeners.push({
         name: 'connect',
         fn: inputs.onSocketConnect
