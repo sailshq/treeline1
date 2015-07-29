@@ -194,6 +194,7 @@ module.exports = {
     var MPProc = require('machinepack-process');
     var IfThen = require('machinepack-ifthen');
     var LocalMachinepacks = require('machinepack-localmachinepacks');
+    var LocalApps = require('machinepack-local-sails-apps');
     var LocalTreelineProjects = require('machinepack-local-treeline-projects');
     var thisPack = require('../');
 
@@ -311,8 +312,23 @@ module.exports = {
 
                       // If this is an app, get the app signature.
                       then: function (__, exits) {
-                        // TODO
-                        return exits.error(new Error('That\'s not currently supported, sorry.'));
+
+                        LocalApps.getSignature({
+                          dir: inputs.dir
+                        }).exec(function (err, packSignature) {
+                          if (err) {
+                            // Ignore "notApp" errors (make up an empty signature)
+                            if (err.exit === 'notApp') {
+                              packSignature = {};
+                            }
+                            // All other errors are fatal.
+                            else {
+                              return exits.error(err);
+                            }
+                          }
+                          return exits.success(packSignature);
+                        }); // </LocalApps.getSignature>
+
                       },
 
                       // Otherwise, we're talking about a machinepack,
