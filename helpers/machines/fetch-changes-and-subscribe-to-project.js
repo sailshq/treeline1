@@ -94,13 +94,10 @@ module.exports = {
     var util = require('util');
     var MPRttc = require('machinepack-rttc');
 
-    // TODO: make this work for apps too using this:
-    // (inputs.type === 'machinepack' ? inputs.id : '_project_' + inputs.id
-
     // TODO: pull into mp-sockets (also implement http fallback)
     inputs.socket.request({
       method: 'get',
-      url: '/api/v1/machinepacks/'+inputs.id+'/sync',
+      url: '/api/v1/machinepacks/'+(inputs.type === 'machinepack' ? inputs.id : '_project_' + inputs.id)+'/sync',
       headers: { 'x-auth': inputs.secret },
       params: {
         // Send along hashes of each machine, as well as one
