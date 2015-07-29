@@ -62,7 +62,7 @@ module.exports = {
       // Start from a blank package.json for the new app
       packageJson: {
         "dependencies": {
-          "machine": "~4.0.4",
+          "machine": "~11.0.3",
           "sails-hook-machines": "~1.0.11"
         },
         "scripts": {

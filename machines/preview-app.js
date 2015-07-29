@@ -252,14 +252,23 @@ module.exports = {
     var exec = require('child_process').exec;
 
     function ensurePackageJson(cb, results) {
+      var packageJson;
       // Check for existing package.json
       if (fs.existsSync(path.resolve(process.cwd(), "package.json"))) {
-        return cb();
+        // If it exists, ensure that the machine dependency is up to scratch
+        packageJson = require(path.resolve(process.cwd(), "package.json"));
+        packageJson.dependencies.machine = "~11.0.3";
+      } else {
+        // Otherwise create a bare one
+        packageJson = {
+          name: results.link.identity,
+          version: "0.0.0",
+          dependencies: {
+            machine: "~11.0.3"
+          }
+        };
       }
-      fse.outputJSON(path.resolve(process.cwd(), "package.json"), {
-        name: results.link.identity,
-        version: "0.0.0"
-      }, cb);
+      fse.outputJSON(path.resolve(process.cwd(), "package.json"), packageJson, cb);
     }
 
     function ensurePostInstall(cb, results) {
