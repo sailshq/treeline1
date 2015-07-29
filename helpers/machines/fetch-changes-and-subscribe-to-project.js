@@ -82,7 +82,8 @@ module.exports = {
       example: [{
         id: 'irlnathan/machinepack-foobar',
         verb: 'set',
-        definition: {}
+        definition: {},
+        routes: [{}]
       }],
     },
 
@@ -134,7 +135,8 @@ module.exports = {
           example: [{
             id: 'irlnathan/machinepack-foobar',
             verb: 'set',
-            definition: {}
+            definition: {},
+            routes: [{}]
           }]
         }).execSync()
       }).exec({
