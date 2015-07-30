@@ -72,6 +72,7 @@ module.exports = {
   fn: function (inputs,exits) {
     var async = require('async');
     var Sockets = require('machinepack-sockets');
+    var debug = require('debug')('connect-to-treeline');
 
     // Set up a cute little queue to guarantee in-order processing of
     // incoming notifications and their changelogs. This is used below
@@ -116,6 +117,13 @@ module.exports = {
         var projectChangelog;
         try {
           projectChangelog = notification.data.changelog;
+          // If the "smash" flag was sent, we can clear the changelog queue
+          // and replace it with this new changelog.  Otherwise we may be able
+          // to merge successive changelogs algorithmically (see note below)
+          if (notification.data.smash === true) {
+            debug('Saw `smash: true`; clearing queue and replacing with new changeset.');
+            projectChangeQueue = [];
+          }
         }
         catch (e) {
           // If the notification cannot be parsed as expected,
