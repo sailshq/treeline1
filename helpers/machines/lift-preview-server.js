@@ -59,7 +59,73 @@ module.exports = {
       sailsConfig = _.merge(sailsConfig,{
         globals: false,
         hooks: {
-          grunt: false
+          grunt: false,
+          maintenance: function(sails) {
+
+            return {
+              initialize: function(cb) {
+
+                sails.on('router:before', function () {
+
+                  sails.router.bind('trace /_prepare', function(req, res) {
+                    req._sails.config.maintenance = true;
+                    return res.ok();
+                  });
+
+                  sails.router.bind('trace /_reload', function(req, res) {
+                    var dirRegex = new RegExp("^" + inputs.dir);
+
+                    // Clear all machines out of the require cache
+                    _.each(_.keys(require.cache), function(key) {
+                      if (key.match(dirRegex)) {
+                        delete require.cache[key];
+                      }
+                    });
+
+                    // Reload the config/routes.js file
+                    req._sails.config.routes = require(path.resolve(inputs.dir, "config", "routes.js"));
+
+                    // Reload controller middleware
+                    req._sails.hooks.controllers.loadAndRegisterControllers(function() {
+
+                      req._sails.once('hook:orm:reloaded', function() {
+                        // Merge with original explicit routes
+                        req._sails.config.routes = _.extend({}, req._sails.router.explicitRoutes, req._sails.config.routes);
+
+                        // Flush router
+                        req._sails.router.flush(req._sails.config.routes);
+
+                        // Reload blueprints
+                        req._sails.hooks.blueprints.bindShadowRoutes();
+
+                        // Turn off maintenance mode
+                        req._sails.config.maintenance = false;
+
+                        res.ok();
+
+                      });
+
+                      // Reload ORM
+                      req._sails.emit('hook:orm:reload');
+
+                    });
+                  });
+
+                  sails.router.bind('all /*', function (req, res, next) {
+                    if (sails.config.maintenance) {
+                      return res.send('<html><head><meta http-equiv="refresh" content="2"></head><body>Please wait while Treeline updates your project (page will automatically reload)...</body></html>');
+                    }
+                    return next();
+                  });
+
+                });
+
+                cb();
+
+              }
+
+            };
+          }
         }
       });
 
