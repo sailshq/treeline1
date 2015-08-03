@@ -83,7 +83,7 @@ module.exports = {
                     });
 
                     // Reload the config/routes.js file
-                    req._sails.config.routes = require(path.resolve(inputs.dir, "config", "routes.js"));
+                    req._sails.config.routes = require(path.resolve(inputs.dir, "config", "routes.js")).routes;
 
                     // Reload controller middleware
                     req._sails.hooks.controllers.loadAndRegisterControllers(function() {
