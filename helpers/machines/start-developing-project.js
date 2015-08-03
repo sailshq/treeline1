@@ -417,43 +417,64 @@ module.exports = {
                               // it provides to our local pack on disk.
                               toProcessChangelog: function (_inputs, exits) {
 
-                                // Trigger the `onSyncing` notifier.
-                                inputs.onSyncing();
-
-                                LocalTreelineProjects.syncRemoteChanges({
-                                  type: inputs.type,
-                                  changelog: _inputs.projectChangelog,
-                                  onNpmInstall: inputs.onNpmInstall,
-                                  onNpmInstallError: inputs.onNpmInstallError,
-                                  onNpmInstallSuccess: inputs.onNpmInstallSuccess,
-                                  onSyncSuccess: inputs.onSyncSuccess,
-                                  localPort: inputs.localPort,
-                                  treelineApiUrl: inputs.treelineApiUrl
+                                // Read the link file to get the current mp hash
+                                LocalTreelineProjects.readLinkfile({
+                                  dir: inputs.dir
                                 }).exec({
-                                  // If applying a project changelog to the local machinepack
-                                  // fails, then trigger the `onSyncError` notifier function.
-                                  error: function (err){
-                                    inputs.onSyncError(err);
-                                    // Note that this means subsequent changelogs can't be processed,
-                                    // because it could get us out of sync.  So we call this lamda impl's
-                                    // error exit.
-                                    return exits.error(err);
-                                  },
-                                  // If flushing (reloading the pack in `scribe`, or flushing routes
-                                  // in a Sails app)  fails, then trigger the `onFlushError` notifier function.
-                                  couldNotFlush: function (err){
-                                    inputs.onFlushError(err);
-                                    // A flush error is not the end of the world, so we'll call the lamda
-                                    // impl's success exit and keep going.
-                                    return exits.success();
-                                  },
-                                  success: function(){
-                                    // The changes were successfully synced to the local project files
-                                    // on disk, which means we can call the lamda impl's success exit and
-                                    // keep going.
-                                    return exits.success();
-                                  },
+                                  error: inputs.onSyncError,
+                                  success: function(linkedProject) {
+
+                                    // If the hash we have for the project doesn't match what the server sent
+                                    // as its previous hash value, just re-fetch the whole project and smash
+                                    // everything we currently have.
+                                    if (linkedProject.hashes.self.hash != _inputs.previousHash) {
+                                      return fetchAndSubscribeToProject(exits);
+                                    }
+
+                                    // Trigger the `onSyncing` notifier.
+                                    inputs.onSyncing();
+
+                                    LocalTreelineProjects.syncRemoteChanges({
+                                      type: inputs.type,
+                                      changelog: _inputs.projectChangelog,
+                                      smash: _inputs.smash,
+                                      onNpmInstall: inputs.onNpmInstall,
+                                      onNpmInstallError: inputs.onNpmInstallError,
+                                      onNpmInstallSuccess: inputs.onNpmInstallSuccess,
+                                      onSyncSuccess: inputs.onSyncSuccess,
+                                      localPort: inputs.localPort,
+                                      treelineApiUrl: inputs.treelineApiUrl,
+                                      npmInstall: false
+                                    }).exec({
+                                      // If applying a project changelog to the local machinepack
+                                      // fails, then trigger the `onSyncError` notifier function.
+                                      error: function (err){
+                                        inputs.onSyncError(err);
+                                        // Note that this means subsequent changelogs can't be processed,
+                                        // because it could get us out of sync.  So we call this lamda impl's
+                                        // error exit.
+                                        return exits.error(err);
+                                      },
+                                      // If flushing (reloading the pack in `scribe`, or flushing routes
+                                      // in a Sails app)  fails, then trigger the `onFlushError` notifier function.
+                                      couldNotFlush: function (err){
+                                        inputs.onFlushError(err);
+                                        // A flush error is not the end of the world, so we'll call the lamda
+                                        // impl's success exit and keep going.
+                                        return exits.success();
+                                      },
+                                      success: function(){
+                                        // The changes were successfully synced to the local project files
+                                        // on disk, which means we can call the lamda impl's success exit and
+                                        // keep going.
+                                        return exits.success();
+                                      },
+                                    });
+                                  }
+
                                 });
+
+
                               }, // </toProcessChangelog impl>
                               treelineApiUrl: inputs.treelineApiUrl
                             }).exec({
