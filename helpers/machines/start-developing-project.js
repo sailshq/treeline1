@@ -326,7 +326,16 @@ module.exports = {
                               return exits.error(err);
                             }
                           }
-                          return exits.success(packSignature);
+                          // Also ensure that the package.json has all the dependencies it needs
+                          LocalApps.ensureDependencies({
+                            destination: inputs.dir
+                          }).exec({
+                            error: exits.error,
+                            success: function() {
+                              return exits.success(packSignature);
+                            }
+                          });
+
                         }); // </LocalApps.getSignature>
 
                       },
