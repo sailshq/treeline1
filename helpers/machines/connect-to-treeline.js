@@ -28,6 +28,14 @@ module.exports = {
             description: 'The project changelog; an array of project/dependency changes.',
             extendedDescription: 'Currently this always just covers the top-level project (i.e. `length===1`).',
             example: [{}]
+          },
+          previousHash: {
+            description: 'The previous hash value for this project',
+            example: 'abc123'
+          },
+          smash: {
+            description: 'Flag indicating whether these changes should replace existing files completely',
+            example: true
           }
         },
         exits: {
@@ -117,10 +125,13 @@ module.exports = {
         var projectChangelog;
         try {
           projectChangelog = notification.data.changelog;
+          projectChangelog.previousHash = notification.data.previousHash;
           // If the "smash" flag was sent, we can clear the changelog queue
           // and replace it with this new changelog.  Otherwise we may be able
           // to merge successive changelogs algorithmically (see note below)
           if (notification.data.smash === true) {
+            // Set the "smash" flag on the changeset itself (the array)
+            projectChangelog.smash = true;
             debug('Saw `smash: true`; clearing queue and replacing with new changeset.');
             projectChangeQueue = [];
           }
@@ -179,7 +190,11 @@ module.exports = {
           // So instead, we'll use the implementation provided as `inputs.toProcessChangelog`.
           // It's a lamda input with a contract, which means we can call it as a machine.
           inputs.toProcessChangelog({
-            projectChangelog: projectChangelog
+            projectChangelog: projectChangelog,
+            // "smash" and "previousHash" are properties set on an array, so they won't
+            // survive type validation.  So, we'll make them their own inputs.
+            smash: projectChangelog.smash,
+            previousHash: projectChangelog.previousHash
           }).exec({
             // If there was an error processing the changelog, it's always fatal: meaning
             // we need to clear out the rest of the changelogs in the queue as well and get a
