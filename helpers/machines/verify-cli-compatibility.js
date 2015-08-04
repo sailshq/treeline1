@@ -44,7 +44,7 @@ module.exports = {
     var path = require('path');
 
     // Get the latest CLI version #
-    NPM.getPackageJson({
+    NPM.fetchInfo({
       packageName: 'treeline',
     }).exec({
       // An unexpected error occurred.  We'll ignore it.
