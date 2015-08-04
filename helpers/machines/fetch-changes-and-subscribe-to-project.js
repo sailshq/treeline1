@@ -83,7 +83,9 @@ module.exports = {
         id: 'irlnathan/machinepack-foobar',
         verb: 'set',
         definition: {},
-        routes: [{}]
+        routes: [{}],
+        models: [{}],
+        configVars: {}
       }],
     },
 
@@ -93,6 +95,7 @@ module.exports = {
   fn: function(inputs, exits) {
     var util = require('util');
     var MPRttc = require('machinepack-rttc');
+    var path = require('path');
 
     // TODO: pull into mp-sockets (also implement http fallback)
     inputs.socket.request({
@@ -133,7 +136,9 @@ module.exports = {
             id: 'irlnathan/machinepack-foobar',
             verb: 'set',
             definition: {},
-            routes: [{}]
+            routes: [{}],
+            models: [{}],
+            configVars: {}
           }]
         }).execSync()
       }).exec({
