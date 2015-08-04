@@ -346,7 +346,7 @@ module.exports = {
                             }).exec(function (err, packSignature) {
                               if (err) {
                                 // Ignore "notApp" errors (make up an empty signature)
-                                if (err.exit === 'notApp') {
+                                if (err.exit === 'notMachinepack') {
                                   packSignature = {};
                                 }
                                 // All other errors are fatal.
