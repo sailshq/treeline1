@@ -58,8 +58,7 @@ module.exports = {
       // Start from a blank package.json for the new app
       packageJson: {
         "dependencies": {
-          "machine": "~11.0.3",
-          "sails-hook-machines": "~1.0.11"
+          "machine": "^11"
         }
       },
       // Use the current working directory as the root path for generators
