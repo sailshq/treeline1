@@ -28,6 +28,14 @@ module.exports = {
       defaultsTo: 1337
     },
 
+    onAppError: {
+      description: 'A handler for when the Sails app crashes.',
+      example: '->',
+      defaultsTo: function (){},
+      required: true
+    },
+
+
   },
 
 
@@ -40,6 +48,8 @@ module.exports = {
 
     var path = require('path');
     var _ = require('lodash');
+    var domain = require('domain');
+    var sailsAppDomain = domain.create();
 
     // The path to the project is generally the current working directory
     // Here, we ensure is is absolute, and if it was not specified, default
@@ -63,6 +73,11 @@ module.exports = {
           maintenance: function(sails) {
 
             return {
+              configure: function() {
+                if (!sails.config.models.migrate) {
+                  sails.config.models.migrate = "alter";
+                }
+              },
               initialize: function(cb) {
 
                 sails.on('router:before', function () {
@@ -128,13 +143,20 @@ module.exports = {
           }
         }
       });
-
       var app = Sails();
-      app.lift(sailsConfig, function (err) {
-        if (err) {
-          return exits.error(err);
-        }
-        return exits.success(app);
+
+      // Wrap the Sails app in an error domain to catch errors
+      // during lift like broken "require" statements in controllers.
+      sailsAppDomain.on('error', function(err) {
+        return inputs.onAppError(err);
+      });
+      sailsAppDomain.run(function() {
+        app.lift(sailsConfig, function (err) {
+          if (err) {
+            return exits.error(err);
+          }
+          return exits.success(app);
+        });
       });
       return;
     }
