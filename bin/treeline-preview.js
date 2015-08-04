@@ -141,6 +141,13 @@ require('machine-as-script')({
     process.exit(1);
   },
 
+  badCliVersion: function(results) {
+    var chalk = require('chalk');
+    console.log(chalk.red('This version of the CLI (v' + results.current + ') is not compatible with the current Treeline API!'));
+    console.log(chalk.gray('Please upgrade by running `npm install -g treeline`'));
+    process.exit(1);
+  },
+
   error: function(err) {
     var util = require('util');
     var _ = require('lodash');
