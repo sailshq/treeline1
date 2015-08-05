@@ -439,7 +439,7 @@ module.exports = {
                                   // If treeline.io says something changed, apply the changelog
                                   // it provides to our local pack on disk.
                                   toProcessChangelog: function (_inputs, exits) {
-                                    console.log(_inputs.projectChangelog);
+
                                     // Read the link file to get the current mp hash
                                     LocalTreelineProjects.readLinkfile({
                                       dir: inputs.dir
