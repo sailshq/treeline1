@@ -31,7 +31,7 @@ module.exports = {
           },
           previousHash: {
             description: 'The previous hash value for this project',
-            example: 'abc123'
+            example: '*'
           },
           smash: {
             description: 'Flag indicating whether these changes should replace existing files completely',
