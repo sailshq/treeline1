@@ -254,20 +254,6 @@ module.exports = {
 
                 async.auto({
 
-                  // For app projects, ensure dependencies required to lift a Treeline-created app (Sails, machine, machine-as-action...)
-                  ensureDependencies: function(next) {
-
-                    if (inputs.type == 'app') {
-                      // Also ensure that the package.json has all the dependencies it needs
-                      LocalApps.ensureDependencies({
-                        destination: inputs.dir
-                      }).exec(next);
-                    } else {
-                      return next();
-                    }
-
-                  },
-
                   // For app projects, overwrite copies of serverError.js that have a bad Lodash reference.
                   // TODO--remove this in the next major version of CLI
                   fixBadServerErrorResponse: function(next) {
@@ -283,7 +269,8 @@ module.exports = {
                   // Now simultaneously:
                   //  • lift the preview server
                   //  • synchronize local project files w/ http://treeline.io
-                  _liftThePreviewServer: ['ensureDependencies', function(next){
+                  _liftThePreviewServer: [function(next){
+                  // _liftThePreviewServer: [function(next){
                     // Lift the preview server on a configurable local port
                     // (either the Sails app being developed, or the `scribe` utility
                     //  running as a Sails server)
@@ -322,7 +309,8 @@ module.exports = {
                   }],
 
 
-                  _syncWithTreelineIo: ['ensureDependencies', function(next){
+                  _syncWithTreelineIo: [function(next){
+                  // _syncWithTreelineIo: [function(next){
 
                     interactivePromptMightBeOpen = true; // <= spin-lock
 
@@ -362,213 +350,225 @@ module.exports = {
                             // Trigger optional notifier function.
                             inputs.onHasKeychain(me.username);
 
-                            // Read local pack or app (and compute hashes of meaningful information)
+                            // Trigger optional notifier function.
+                            inputs.onLoadProjectInfo(_.extend({
+                              type: inputs.type
+                            }, linkedProject.displayName || linkedProject.identity));
+
+
+                            // If offline mode is enabled, then skip syncing.
                             IfThen.ifThenFinally({
 
-                              bool: (inputs.type === 'app'),
+                              bool: inputs.offline,
 
-                              expectedOutput: {},
-
-                              // If this is an app, get the app signature.
+                              // If this is offline mode, don't bother syncing changes--
+                              // instead we just need to ensure the preview server is lifted.
+                              // But since we already do that below, we're good to continue onwards.
                               then: function (__, exits) {
+                                return exits.success();
+                              }, // </then (offline mode)>
 
-                                LocalApps.getSignature({
-                                  dir: inputs.dir
-                                }).exec(function (err, packSignature) {
-                                  if (err) {
-                                    // Ignore "notApp" errors (make up an empty signature)
-                                    if (err.exit === 'notMachinepack') {
-                                      packSignature = {};
-                                    }
-                                    // All other errors are fatal.
-                                    else {
-                                      return exits.error(err);
-                                    }
-                                  }
-                                  return exits.success(packSignature);
-
-                                }); // </LocalApps.getSignature>
-
-                              },
-
-                              // Otherwise, we're talking about a machinepack,
-                              // so get the pack signature instead.
+                              // Otherwise we'll start up a synchronized development session by
+                              // listening for changes from Treeline by first connecting a socket,
+                              // then sending a GET request to subscribe to this particular pack.
+                              // With that request, send hash of local pack to treeline.io, requesting
+                              // an update if anything has changed (note that this will also subscribe
+                              // our socket to future changes)
                               orElse: function (__, exits) {
-                                LocalMachinepacks.getSignature({
-                                  dir: inputs.dir
-                                }).exec(function (err, packSignature) {
-                                  if (err) {
-                                    // Ignore "notMachinepack" errors (make up an empty signature)
-                                    if (err.exit === 'notMachinepack') {
-                                      packSignature = {};
-                                    }
-                                    // All other errors are fatal.
-                                    else {
-                                      return exits.error(err);
-                                    }
-                                  }
-                                  return exits.success(packSignature);
-                                }); // </LocalMachinepacks.getSignature>
-                              },
 
-                            }).exec({
-                              error: function (err) {
-                                return exits.error(err);
-                              },
-                              success: function (projectSignature){
+                                var socket;
+                                var initialConnectHappened = false;
 
-                                // Trigger optional notifier function.
-                                inputs.onLoadProjectInfo(_.extend({
-                                  type: inputs.type
-                                }, projectSignature.pack));
+                                // Trigger the `onConnecting` notifier.
+                                inputs.onConnecting();
 
-
-                                // If offline mode is enabled, then skip syncing.
-                                IfThen.ifThenFinally({
-
-                                  bool: inputs.offline,
-
-                                  // If this is offline mode, don't bother syncing changes--
-                                  // instead we just need to ensure the preview server is lifted.
-                                  // But since we already do that below, we're good to continue onwards.
-                                  then: function (__, exits) {
-                                    return exits.success();
-                                  }, // </then (offline mode)>
-
-                                  // Otherwise we'll start up a synchronized development session by
-                                  // listening for changes from Treeline by first connecting a socket,
-                                  // then sending a GET request to subscribe to this particular pack.
-                                  // With that request, send hash of local pack to treeline.io, requesting
-                                  // an update if anything has changed (note that this will also subscribe
-                                  // our socket to future changes)
-                                  orElse: function (__, exits) {
-
-                                    var socket;
-                                    var initialConnectHappened = false;
-
-                                    // Trigger the `onConnecting` notifier.
-                                    inputs.onConnecting();
-
-                                    thisPack.connectToTreeline({
-                                      onSocketDisconnect:  function () {
-                                        // If the connection to treeline.io is broken, trigger
-                                        // the `onSocketDisconnect` notifier.
-                                        inputs.onSocketDisconnect();
-                                      },
-                                      onSocketConnect:  function () {
-                                        // If this is the first connection, ignore it--we'll handle the
-                                        // initial fetch and subscribe in the "success" branch of this
-                                        // ifThenFinally machine.
-                                        if (!initialConnectHappened) {return;}
-                                        // If the connection to treeline.io is re-established,
-                                        // re-subscribe to the project.
-                                        fetchAndSubscribeToProject({
-                                          error: inputs.onReconnectError,
-                                          success: inputs.onReconnectSuccess
-                                        });
-                                      },
-                                      // If treeline.io says something changed, apply the changelog
-                                      // it provides to our local pack on disk.
-                                      toProcessChangelog: function (_inputs, exits) {
-                                        console.log(_inputs.projectChangelog[0].definition.machines);
-                                        // Read the link file to get the current mp hash
-                                        LocalTreelineProjects.readLinkfile({
-                                          dir: inputs.dir
-                                        }).exec({
-                                          error: inputs.onSyncError,
-                                          success: function(linkedProject) {
-
-                                            // If the hash we have for the project doesn't match what the server sent
-                                            // as its previous hash value, just re-fetch the whole project and smash
-                                            // everything we currently have.
-                                            if (linkedProject.hashes.self.hash != _inputs.previousHash) {
-                                              return fetchAndSubscribeToProject(exits);
-                                            }
-
-                                            // Trigger the `onSyncing` notifier.
-                                            inputs.onSyncing();
-
-                                            LocalTreelineProjects.syncRemoteChanges({
-                                              type: inputs.type,
-                                              changelog: _inputs.projectChangelog,
-                                              smash: _inputs.smash,
-                                              onNpmInstall: inputs.onNpmInstall,
-                                              onNpmInstallError: inputs.onNpmInstallError,
-                                              onNpmInstallSuccess: inputs.onNpmInstallSuccess,
-                                              onSyncSuccess: inputs.onSyncSuccess,
-                                              localPort: inputs.localPort,
-                                              treelineApiUrl: inputs.treelineApiUrl,
-                                              npmInstall: false,
-                                              previewServerLifted: true
-                                            }).exec({
-                                              // If applying a project changelog to the local machinepack
-                                              // fails, then trigger the `onSyncError` notifier function.
-                                              error: function (err){
-                                                inputs.onSyncError(err);
-                                                // Note that this means subsequent changelogs can't be processed,
-                                                // because it could get us out of sync.  So we call this lamda impl's
-                                                // error exit.
-                                                return exits.error(err);
-                                              },
-                                              // If flushing (reloading the pack in `scribe`, or flushing routes
-                                              // in a Sails app)  fails, then trigger the `onFlushError` notifier function.
-                                              couldNotFlush: function (err){
-                                                inputs.onFlushError(err);
-                                                // A flush error is not the end of the world, so we'll call the lamda
-                                                // impl's success exit and keep going.
-                                                return exits.success();
-                                              },
-                                              success: function(){
-                                                // The changes were successfully synced to the local project files
-                                                // on disk, which means we can call the lamda impl's success exit and
-                                                // keep going.
-                                                return exits.success();
-                                              },
-                                            });
-                                          }
-
-                                        });
-
-
-                                      }, // </toProcessChangelog impl>
-                                      treelineApiUrl: inputs.treelineApiUrl
+                                thisPack.connectToTreeline({
+                                  onSocketDisconnect:  function () {
+                                    // If the connection to treeline.io is broken, trigger
+                                    // the `onSocketDisconnect` notifier.
+                                    inputs.onSocketDisconnect();
+                                  },
+                                  onSocketConnect:  function () {
+                                    // If this is the first connection, ignore it--we'll handle the
+                                    // initial fetch and subscribe in the "success" branch of this
+                                    // ifThenFinally machine.
+                                    if (!initialConnectHappened) {console.log("initial connect; returning");return;}
+                                    // If the connection to treeline.io is re-established,
+                                    // re-subscribe to the project.
+                                    fetchAndSubscribeToProject({
+                                      error: inputs.onReconnectError,
+                                      success: inputs.onReconnectSuccess
+                                    });
+                                  },
+                                  // If treeline.io says something changed, apply the changelog
+                                  // it provides to our local pack on disk.
+                                  toProcessChangelog: function (_inputs, exits) {
+                                    // Read the link file to get the current mp hash
+                                    LocalTreelineProjects.readLinkfile({
+                                      dir: inputs.dir
                                     }).exec({
-                                      error: function (err) {
-                                        return exits.error(err);
-                                      },
-                                      success: function (_socket) {
+                                      error: inputs.onSyncError,
+                                      success: function(linkedProject) {
 
-                                        // We need to use a similar queueing strategy here as we do
-                                        // when applying subsequent changelogs (but better to just consolidate the logic)
-                                        // This is to prevent concurrency issues between the initial synchronization
-                                        // and events that come in simultaneously.
-                                        // TODO
-
-                                        // Flag the initial connection as having occurred
-                                        initialConnectHappened = true;
-
-                                        // Save our scoped socket instance
-                                        socket = _socket;
-
-                                        // Trigger optional notifier function.
-                                        inputs.onInitialConnectSuccess();
+                                        // If the hash we have for the project doesn't match what the server sent
+                                        // as its previous hash value, just re-fetch the whole project and smash
+                                        // everything we currently have.
+                                        if (linkedProject.hashes.self.hash != _inputs.previousHash) {
+                                          return fetchAndSubscribeToProject(exits);
+                                        }
 
                                         // Trigger the `onSyncing` notifier.
                                         inputs.onSyncing();
 
-                                        // Fetch and subscribe to the project
-                                        fetchAndSubscribeToProject(exits);
+                                        LocalTreelineProjects.syncRemoteChanges({
+                                          type: inputs.type,
+                                          changelog: _inputs.projectChangelog,
+                                          smash: _inputs.smash,
+                                          onNpmInstall: inputs.onNpmInstall,
+                                          onNpmInstallError: inputs.onNpmInstallError,
+                                          onNpmInstallSuccess: inputs.onNpmInstallSuccess,
+                                          onSyncSuccess: inputs.onSyncSuccess,
+                                          localPort: inputs.localPort,
+                                          treelineApiUrl: inputs.treelineApiUrl,
+                                          npmInstall: false,
+                                          previewServerLifted: true
+                                        }).exec({
+                                          // If applying a project changelog to the local machinepack
+                                          // fails, then trigger the `onSyncError` notifier function.
+                                          error: function (err){
+                                            inputs.onSyncError(err);
+                                            // Note that this means subsequent changelogs can't be processed,
+                                            // because it could get us out of sync.  So we call this lamda impl's
+                                            // error exit.
+                                            return exits.error(err);
+                                          },
+                                          // If flushing (reloading the pack in `scribe`, or flushing routes
+                                          // in a Sails app)  fails, then trigger the `onFlushError` notifier function.
+                                          couldNotFlush: function (err){
+                                            inputs.onFlushError(err);
+                                            // A flush error is not the end of the world, so we'll call the lamda
+                                            // impl's success exit and keep going.
+                                            return exits.success();
+                                          },
+                                          success: function(){
+                                            // The changes were successfully synced to the local project files
+                                            // on disk, which means we can call the lamda impl's success exit and
+                                            // keep going.
+                                            return exits.success();
+                                          },
+                                        });
                                       }
-                                    }); // </thisPack.connectToTreeline>
 
-                                    function fetchAndSubscribeToProject(exits) {
+                                    });
 
+
+                                  }, // </toProcessChangelog impl>
+                                  treelineApiUrl: inputs.treelineApiUrl
+                                }).exec({
+                                  error: function (err) {
+                                    return exits.error(err);
+                                  },
+                                  success: function (_socket) {
+
+                                    // We need to use a similar queueing strategy here as we do
+                                    // when applying subsequent changelogs (but better to just consolidate the logic)
+                                    // This is to prevent concurrency issues between the initial synchronization
+                                    // and events that come in simultaneously.
+                                    // TODO
+
+                                    // Flag the initial connection as having occurred
+                                    initialConnectHappened = true;
+
+                                    // Save our scoped socket instance
+                                    socket = _socket;
+
+                                    // Trigger optional notifier function.
+                                    inputs.onInitialConnectSuccess();
+
+                                    // Trigger the `onSyncing` notifier.
+                                    inputs.onSyncing();
+
+                                    // For app projects, ensure dependencies required to lift a Treeline-created app (Sails, machine, machine-as-action...)
+                                    if (inputs.type == 'app') {
+                                      // Also ensure that the package.json has all the dependencies it needs
+                                      LocalApps.ensureDependencies({
+                                        destination: inputs.dir
+                                      }).exec({
+                                        error: exits.error,
+                                        success: function() {
+                                          console.log("done ensuring dependenices");
+                                          return fetchAndSubscribeToProject(exits);
+                                        }
+                                      });
+                                    } else {
+                                      return fetchAndSubscribeToProject(exits);
+                                    }
+                                  }
+                                }); // </thisPack.connectToTreeline>
+
+                                function fetchAndSubscribeToProject(exits) {
+
+                                  // Read local pack or app (and compute hashes of meaningful information)
+                                  IfThen.ifThenFinally({
+
+                                    bool: (inputs.type === 'app'),
+
+                                    expectedOutput: {},
+
+                                    // If this is an app, get the app signature.
+                                    then: function (__, exits) {
+
+                                      LocalApps.getSignature({
+                                        dir: inputs.dir
+                                      }).exec(function (err, packSignature) {
+                                        if (err) {
+                                          // Ignore "notApp" errors (make up an empty signature)
+                                          if (err.exit === 'notMachinepack') {
+                                            packSignature = {};
+                                          }
+                                          // All other errors are fatal.
+                                          else {
+                                            return exits.error(err);
+                                          }
+                                        }
+                                        return exits.success(packSignature);
+
+                                      }); // </LocalApps.getSignature>
+
+                                    },
+
+                                    // Otherwise, we're talking about a machinepack,
+                                    // so get the pack signature instead.
+                                    orElse: function (__, exits) {
+                                      LocalMachinepacks.getSignature({
+                                        dir: inputs.dir
+                                      }).exec(function (err, packSignature) {
+                                        if (err) {
+                                          // Ignore "notMachinepack" errors (make up an empty signature)
+                                          if (err.exit === 'notMachinepack') {
+                                            packSignature = {};
+                                          }
+                                          // All other errors are fatal.
+                                          else {
+                                            return exits.error(err);
+                                          }
+                                        }
+                                        return exits.success(packSignature);
+                                      }); // </LocalMachinepacks.getSignature>
+                                    },
+
+                                  }).exec({
+                                    error: function (err) {
+                                      return exits.error(err);
+                                    },
+                                    success: function (projectSignature){
                                       thisPack.fetchChangesAndSubscribeToProject({
                                         socket: socket,
                                         type: inputs.type,
                                         id: linkedProject.id,
                                         secret: me.secret,
                                         machineHashes: projectSignature.machineHashes,
+                                        npmDependencies: projectSignature.npmDependencies,
                                         packHash: projectSignature.packHash
                                       }).exec({
                                         error: function (err){
@@ -617,34 +617,34 @@ module.exports = {
                                               // Since the initial sync is complete, we'll
                                               // call the notifier callback.
                                               inputs.onInitialSyncSuccess();
-
                                               return exits.success();
                                             },
                                           }); //</LocalTreelineProjects.syncRemoteChanges>
                                         }
                                       }); //</thisPack.fetchAndSubscribeToProject>
-
                                     }
-                                  } //</orElse -> (not offline mode)>
+                                  });
 
-                                }).exec({
+                                }
+                              } //</orElse -> (not offline mode)>
 
-                                  error: function (err) {
-                                    return next(err);
-                                  },
+                            }).exec({
 
-                                  success: function (){
-                                    return next();
-                                  }
-                                }); //</IfThen.ifThenFinally -> `inputs.offline`>
+                              error: function (err) {
+                                return next(err);
+                              },
+
+                              success: function (){
+                                return next();
                               }
-                            }); //<IfThen.ifThenFinally -> `inputs.type==='app'`>
+                            }); //</IfThen.ifThenFinally -> `inputs.offline`>
                           }
                         }); // </linkIfNecessary>
                       }
                     }); // </loginIfNecessary>
                   }],
                 }, function afterwards(err) {
+
                   if (err) {
 
                     // 'tookTooLong' => 'requestFailed'
