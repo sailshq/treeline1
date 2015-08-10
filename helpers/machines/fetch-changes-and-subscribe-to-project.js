@@ -57,6 +57,14 @@ module.exports = {
       }]
     },
 
+    npmDependencies: {
+      description: 'An array of NPM dependencies for this project pack',
+      example: [{
+        name: 'lodash',
+        semverRange: '^3.9.0'
+      }]
+    },
+
     packHash: {
       description: 'A hash string calculated from the pack metadata.',
       example: 'a8319azj39$29130nfan3',
@@ -80,9 +88,11 @@ module.exports = {
       friendlyName: 'then',
       variableName: 'packChangelog',
       example: [{
-        id: 'irlnathan/machinepack-foobar',
+        slug: 'irlnathan/machinepack-foobar',
+        identity: 'machinepack-foobar',
         verb: 'set',
-        definition: {},
+        machines: [{}],
+        dependencies: [{}],
         routes: [{}],
         models: [{}],
         configVars: {}
@@ -97,10 +107,14 @@ module.exports = {
     var MPRttc = require('machinepack-rttc');
     var path = require('path');
 
+    inputs.id = inputs.id.replace(/^_project_/, '');
+
+    var url = '/api/v1/machinepacks/'+(inputs.type === 'machinepack' ? inputs.id : '_project_' + inputs.id)+'/sync';
+
     // TODO: pull into mp-sockets (also implement http fallback)
     inputs.socket.request({
       method: 'get',
-      url: '/api/v1/machinepacks/'+(inputs.type === 'machinepack' ? inputs.id : '_project_' + inputs.id)+'/sync',
+      url: url,
       headers: { 'x-auth': inputs.secret },
       params: {
         // Send along hashes of each machine, as well as one
@@ -133,9 +147,11 @@ module.exports = {
         value: body,
         typeSchema: MPRttc.infer({
           example: [{
-            id: 'irlnathan/machinepack-foobar',
+            slug: 'irlnathan/machinepack-foobar',
+            identity: 'machinepack-foobar',
             verb: 'set',
-            definition: {},
+            machines: [{}],
+            dependencies: [{}],
             routes: [{}],
             models: [{}],
             configVars: {}
