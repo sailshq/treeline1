@@ -20,7 +20,8 @@ module.exports = require('machine').pack({
         'ping-server', //<< api
         'start-developing-project',
         'unlink',
-        'verify-cli-compatibility' //<< api
+        'verify-cli-compatibility', //<< api
+        'fix-server-error-response'
       ]
     }
   },
