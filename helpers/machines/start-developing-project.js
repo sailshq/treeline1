@@ -396,7 +396,7 @@ module.exports = {
                                     // If this is the first connection, ignore it--we'll handle the
                                     // initial fetch and subscribe in the "success" branch of this
                                     // ifThenFinally machine.
-                                    if (!initialConnectHappened) {console.log("initial connect; returning");return;}
+                                    if (!initialConnectHappened) {return;}
                                     // If the connection to treeline.io is re-established,
                                     // re-subscribe to the project.
                                     fetchAndSubscribeToProject({
@@ -500,7 +500,6 @@ module.exports = {
                                       }).exec({
                                         error: exits.error,
                                         success: function() {
-                                          console.log("done ensuring dependenices");
                                           return fetchAndSubscribeToProject(exits);
                                         }
                                       });
