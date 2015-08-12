@@ -21,7 +21,7 @@ module.exports = require('machine').pack({
         'start-developing-project',
         'unlink',
         'verify-cli-compatibility', //<< api
-        'fix-server-error-response'
+        'fix-response-files'
       ]
     }
   },

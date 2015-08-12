@@ -263,7 +263,7 @@ module.exports = {
                   fixBadServerErrorResponse: function(next) {
 
                     if (inputs.type == 'app') {
-                      thisPack.fixServerErrorResponse({dir: inputs.dir}).exec(next);
+                      thisPack.fixResponseFiles({dir: inputs.dir}).exec(next);
                     } else {
                       return next();
                     }
