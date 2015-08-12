@@ -41,8 +41,12 @@ require('machine-as-script')({
     console.log(chalk.gray('Installing NPM dependencies...'));
   },
   onNpmInstallError: function (err){
-    var debug = require('debug')('treeline-cli');
-    debug('Encountered error installing NPM dependencies:',err);
+    var chalk = require('chalk');
+    console.log(chalk.red('Encountered an error installing NPM dependencies.'));
+    console.log(chalk.grey('One or more NPM dependencies of a custom machine may have an invalid range.'));
+    console.log();
+    console.log(chalk.grey('Full error below:'));
+    console.log(err.message);
   },
   onNpmInstallSuccess: function (){
     var chalk = require('chalk');
