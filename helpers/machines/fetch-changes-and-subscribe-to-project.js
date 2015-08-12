@@ -96,7 +96,7 @@ module.exports = {
         dependencies: [{}],
         routes: [{}],
         models: [{}],
-        configVars: {}
+        configVars: [{}]
       }],
     },
 
@@ -156,7 +156,7 @@ module.exports = {
             dependencies: [{}],
             routes: [{}],
             models: [{}],
-            configVars: {}
+            configVars: [{}]
           }]
         }).execSync()
       }).exec({
