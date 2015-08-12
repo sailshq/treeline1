@@ -68,7 +68,6 @@ module.exports = {
             // Try running it with a 400 status
             negotiateResponse.apply({req: {}, res: {}}, [{status: 400, code: 'E_MACHINE_RUNTIME_VALIDATION'}]);
           } catch (e) {
-            console.log(e);
             // If we get a "sails is not defined" error, we have the old negotiate.js
             // that was relying on Sails being globalized
             if (e.message.match(/sails is not defined/)) {
