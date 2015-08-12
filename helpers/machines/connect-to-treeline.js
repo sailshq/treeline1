@@ -81,6 +81,7 @@ module.exports = {
     var async = require('async');
     var Sockets = require('machinepack-sockets');
     var debug = require('debug')('connect-to-treeline');
+    var paused = false;
 
     // Set up a cute little queue to guarantee in-order processing of
     // incoming notifications and their changelogs. This is used below
@@ -161,7 +162,7 @@ module.exports = {
         // If our process is `currentlyProcessingChangelogs`, then we can rest assured that the new changes
         // we just pushed will be processed in due course when the existing changes finish
         // being applied. So we'll just bail out.
-        if (currentlyProcessingChangelogs) {
+        if (currentlyProcessingChangelogs || paused) {
           return;
         }
 
@@ -258,6 +259,8 @@ module.exports = {
       },
       tookTooLong: exits.tookTooLong,
       success: function (socket){
+        socket.pauseTreelineQueue = function() {paused = true;}
+        socket.resumeTreelineQueue = function() {paused = false;}
         return exits.success(socket);
       }
     });

@@ -512,6 +512,10 @@ module.exports = {
 
                                 function fetchAndSubscribeToProject(exits) {
 
+                                  // Pause the treeline queue from processing messages, so that
+                                  // we don't end up with file conflicts while syncing
+                                  socket.pauseTreelineQueue();
+
                                   // Read local pack or app (and compute hashes of meaningful information)
                                   IfThen.ifThenFinally({
 
@@ -621,6 +625,10 @@ module.exports = {
                                               // Since the initial sync is complete, we'll
                                               // call the notifier callback.
                                               inputs.onInitialSyncSuccess();
+
+                                              // Resume processing Treeline socket messages
+                                              socket.resumeTreelineQueue();
+
                                               return exits.success();
                                             },
                                           }); //</LocalTreelineProjects.syncRemoteChanges>
