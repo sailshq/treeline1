@@ -162,6 +162,10 @@ module.exports = {
       description: 'The current working directory is not linked to an app or machinepack on Treeline.io.'
     },
 
+    cantDetermineType: {
+      description: 'Could not determine the type of Treeline app in the current directory (is directory empty?)'
+    },
+
     badCliVersion: {
       description: 'This CLI verison does not match the current Treeline API\'s minimum requirements.'
     },
@@ -239,7 +243,7 @@ module.exports = {
             LocalTreelineProjects.normalizeType({
               type: inputs.type
             }).exec({
-              error: exits.error,
+              error: exits.cantDetermineType,
               success: function (type) {
 
                 // Override `inputs.type` with the normalized version.

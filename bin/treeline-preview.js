@@ -95,6 +95,13 @@ require('machine-as-script')({
     process.exit(1);
   },
 
+  cantDetermineType: function() {
+    var chalk = require('chalk');
+    console.error("Could not determine the type of Treeline project in this folder.  Please run `treeline preview app` or `treeline preview machinepack`.");
+    process.exit(1);
+  },
+
+
   noApps: function (data){
     var chalk = require('chalk');
     console.log();
