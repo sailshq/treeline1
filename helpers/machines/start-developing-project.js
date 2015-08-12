@@ -352,7 +352,7 @@ module.exports = {
                         // Trigger optional notifier function.
                         inputs.onLoadProjectInfo(_.extend({
                           type: inputs.type
-                        }, linkedProject.displayName || linkedProject.identity));
+                        }, {friendlyName: linkedProject.displayName || linkedProject.identity}));
 
 
                         // If offline mode is enabled, then skip syncing.
