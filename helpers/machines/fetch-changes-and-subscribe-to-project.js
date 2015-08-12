@@ -121,7 +121,8 @@ module.exports = {
         // Send along hashes of each machine, as well as one
         // additional hash for the pack's package.json metadata.
         packHash: inputs.packHash,
-        machineHashes: inputs.machineHashes
+        machineHashes: inputs.machineHashes,
+        npmDependencies: inputs.npmDependencies
       }
     }, function serverResponded (body, jwr) {
       // console.log('Sails responded with: ', body); console.log('with headers: ', jwr.headers); console.log('and with status code: ', jwr.statusCode);
