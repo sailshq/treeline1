@@ -596,8 +596,7 @@ module.exports = {
                                             onSyncSuccess: inputs.onSyncSuccess,
                                             localPort: inputs.localPort,
                                             treelineApiUrl: inputs.treelineApiUrl,
-                                            previewServerLifted: hasLiftedPreviewServer,
-                                            smash: true
+                                            previewServerLifted: hasLiftedPreviewServer
                                           }).exec({
                                             // If the initial sync fails, then give up with an error msg.
                                             error: function (err) {
