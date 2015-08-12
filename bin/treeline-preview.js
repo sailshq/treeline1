@@ -193,6 +193,10 @@ require('machine-as-script')({
     technicalDetails = _.isString(technicalDetails) ? technicalDetails : util.inspect(technicalDetails, { depth: null });
     console.error(chalk.gray(technicalDetails));
     process.exit(1);
+  },
+
+  success: function() {
+    console.log(require('../helpers').buildAsciiArt().execSync());
   }
 
 });
