@@ -32,6 +32,10 @@ module.exports = {
         latest: "4.0.4",
         current: "3.2.4"
       }
+    },
+
+    requestFailed: {
+      description: 'Could not communicate with the Treeline mothership.'
     }
 
   },
@@ -42,6 +46,8 @@ module.exports = {
     var Util = require('machinepack-util');
     var NPM = require('machinepack-npm');
     var path = require('path');
+
+    var latestCliVersion = 'unknown';
 
     // Get the latest CLI version #
     NPM.fetchInfo({
@@ -70,38 +76,43 @@ module.exports = {
           // Don't worry about errors in the above; we'll just
           // try again next time.
         }
-
-        // Get this CLI version
-        var cliVersion = require(path.resolve(__dirname, '..', '..', "package.json")).version;
-
-        // Ask the treeline server, "are we cool?"
-        // Send an HTTP request and receive the response.
-        Http.sendHttpRequest({
-          method: 'get',
-          baseUrl: inputs.treelineApiUrl,
-          url: "/api/v1/_cliRequirement",
-          params: {
-            cliVersion: cliVersion
-          }
-        }).exec({
-          error: exits.error,
-          // OK.
-          success: function(result) {
-            try {
-              var minimumCli = JSON.parse(result.body);
-              if (require('semver').gt(minimumCli, cliVersion)) {
-                return exits.incompatible({minimum: minimumCli, latest: latestCliVersion, current: cliVersion});
-              }
-              return exits.success({minimum: minimumCli, latest: latestCliVersion, current: cliVersion});
-            }
-            catch (e) {
-              return exits.error(e);
-            }
-          },
-        });
-      },
+        return next();
+      }
     });
 
+    function next() {
+
+      // Get this CLI version
+      var cliVersion = require(path.resolve(__dirname, '..', '..', "package.json")).version;
+
+      // Ask the treeline server, "are we cool?"
+      // Send an HTTP request and receive the response.
+      Http.sendHttpRequest({
+        method: 'get',
+        baseUrl: inputs.treelineApiUrl,
+        url: "/api/v1/_cliRequirement",
+        params: {
+          cliVersion: cliVersion
+        }
+      }).exec({
+        requestFailed: exits.requestFailed,
+        error: exits.error,
+        // OK.
+        success: function(result) {
+          try {
+            var minimumCli = JSON.parse(result.body);
+            if (require('semver').gt(minimumCli, cliVersion)) {
+              return exits.incompatible({minimum: minimumCli, latest: latestCliVersion, current: cliVersion});
+            }
+            return exits.success({minimum: minimumCli, latest: latestCliVersion, current: cliVersion});
+          }
+          catch (e) {
+            return exits.error(e);
+          }
+        },
+      });
+
+    }
   }
 
 };
