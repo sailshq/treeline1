@@ -93,7 +93,7 @@ module.exports = {
         verb: 'set',
         hash: 'fdasfadsfads',
         machines: [{}],
-        dependencies: [{}],
+        npmDependencies: [{}],
         routes: [{}],
         models: [{}],
         configVars: [{}]
@@ -154,7 +154,7 @@ module.exports = {
             verb: 'set',
             hash: 'sdifhasdjfbdasjf',
             machines: [{}],
-            dependencies: [{}],
+            npmDependencies: [{}],
             routes: [{}],
             models: [{}],
             configVars: [{}]
