@@ -164,14 +164,22 @@ module.exports = {
 
     // ...or a pack.
     var Scribe = require('test-scribe');
-    Scribe(_.extend({
-      pathToPack: inputs.dir,
-      port: inputs.localPort
-    }, {}), function (err, localScribeApp) {
-      if (err) {
-        return exits.error(err);
-      }
-      return exits.success(localScribeApp);
+
+    sailsAppDomain.on('error', function(err) {
+      return inputs.onAppError(err);
+    });
+    sailsAppDomain.run(function() {
+
+      Scribe(_.extend({
+        pathToPack: inputs.dir,
+        port: inputs.localPort
+      }, {}), function (err, localScribeApp) {
+        if (err) {
+          return exits.error(err);
+        }
+        return exits.success(localScribeApp);
+      });
+
     });
 
 
