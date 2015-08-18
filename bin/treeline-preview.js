@@ -10,7 +10,7 @@ require('machine-as-script')({
 
   onHasKeychain: function (username){
     var chalk = require('chalk');
-    console.log(chalk.gray('Located keychain file: will identify as "'+username+'".'));
+    console.log(chalk.gray('You are logged in to Treeline as "'+username+'".'));
   },
   onLoadProjectInfo: function (projectInfo){
     var chalk = require('chalk');
@@ -38,7 +38,7 @@ require('machine-as-script')({
   },
   onNpmInstall: function (){
     var chalk = require('chalk');
-    console.log(chalk.gray('Installing NPM dependencies...'));
+    console.log(chalk.gray('Syncing dependencies...'));
   },
   onNpmInstallError: function (err){
     var chalk = require('chalk');
@@ -50,7 +50,7 @@ require('machine-as-script')({
   },
   onNpmInstallSuccess: function (){
     var chalk = require('chalk');
-    console.log(chalk.gray('✔ Finished installing dependencies from NPM.'));
+    console.log(chalk.gray('✔ Finished syncing dependencies.'));
   },
   onSyncError: function (err){
     var chalk = require('chalk');
@@ -61,10 +61,10 @@ require('machine-as-script')({
   //   var chalk = require('chalk');
   //   console.log(chalk.gray('Successfully synchronized local project with updated logic from http://treeline.io.'));
   // },
-  onInitialSyncSuccess: function (){
+  onInitialSyncSuccess: function (url){
     var chalk = require('chalk');
-    console.log(chalk.gray('Now listening to http://treeline.io for updates...'));
-    console.log(chalk.gray('(remote changes will automatically generate code in this directory'));
+    console.log(chalk.gray('Now listening to %s for updates...'), url);
+    console.log(chalk.gray('(remote changes will automatically generate code in this directory)'));
   },
   onPreviewServerLifted: function (url){
     var chalk = require('chalk');

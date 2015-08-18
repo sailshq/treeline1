@@ -635,7 +635,7 @@ module.exports = {
 
                                           // Since the initial sync is complete, we'll
                                           // call the notifier callback.
-                                          inputs.onInitialSyncSuccess();
+                                          inputs.onInitialSyncSuccess(inputs.treelineApiUrl);
 
                                           // Resume processing Treeline socket messages
                                           socket.resumeTreelineQueue();
