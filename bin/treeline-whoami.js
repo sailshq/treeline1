@@ -42,8 +42,9 @@ require('machine-as-script')({
   fn: function (inputs, exits){
 
     var helperPack = require('../helpers');
+    var LocalTreelineProjects = require('machinepack-local-treeline-projects');
 
-    helperPack.readKeychain({
+    LocalTreelineProjects.readKeychain({
       keychainPath: inputs.keychainPath
     }).exec({
       error: exits.error,
