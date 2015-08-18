@@ -77,7 +77,7 @@ module.exports = {
 
 
   fn: function (inputs, exits){
-    return exits.error('Currently unimplemented');
+    return exits.error('This command is deprecated; use "treeline preview machinepack" in an empty directory instead.');
   }
 
 
