@@ -174,6 +174,22 @@ module.exports = {
       description: 'Unrecognized username/password combination.'
     },
 
+    noApps: {
+      description: 'No apps could be found for the logged-in user.',
+      example: {
+        username: 'mikermcneil',
+        secret: 'foasdgaj382913'
+      }
+    },
+
+    noMachinepacks: {
+      description: 'No machinepacks could be found for the logged-in user.',
+      example: {
+        username: 'mikermcneil',
+        secret: 'foasdgaj382913'
+      }
+    },
+
     forbidden: {
       description: 'The Treeline server indicated that the provided keychain is not permitted to access this remote.'
     },
@@ -335,6 +351,8 @@ module.exports = {
                         interactivePromptMightBeOpen = false; // <= spin-un-lock
                         return next(err);
                       },
+                      noApps: function() {return exits.noApps(me);},
+                      noMachinepacks: function() {return exits.noMachinepacks(me);},
                       unrecognizedCredentials: function (){
                         interactivePromptMightBeOpen = false; // <= spin-un-lock
                         return next({exit: 'unrecognizedCredentials'});

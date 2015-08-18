@@ -111,6 +111,16 @@ require('machine-as-script')({
     console.log();
     console.log('Looks like you don\'t have any apps in your account yet, %s.', chalk.cyan(data.username));
     console.log('You should visit http://treeline.io and create one!');
+    console.log('Hint: if you are not %s, do `treeline logout` and try again.', chalk.cyan(data.username));
+    process.exit(1);
+  },
+
+  noMachinepacks: function (data){
+    var chalk = require('chalk');
+    console.log();
+    console.log('Looks like you don\'t have any apps in your account yet, %s.', chalk.cyan(data.username));
+    console.log('You should visit http://treeline.io and create one!');
+    console.log('Hint: if you are not %s, do `treeline logout` and try again.', chalk.cyan(data.username));
     process.exit(1);
   },
 
