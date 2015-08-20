@@ -107,6 +107,9 @@ module.exports = {
                         // Merge with original explicit routes
                         req._sails.config.routes = _.extend({}, req._sails.router.explicitRoutes, req._sails.config.routes);
 
+                        // Remove the catchall '/' route that's installed in the default routes.js file
+                        delete req._sails.config.routes['/'];
+
                         // Flush router
                         req._sails.router.flush(req._sails.config.routes);
 
