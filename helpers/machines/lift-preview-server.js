@@ -88,9 +88,13 @@ module.exports = {
                   });
 
                   sails.router.bind('trace /_reload', function(req, res) {
-                    var dirRegex = new RegExp("^" + inputs.dir);
 
-                    // Clear all machines out of the require cache
+                    // Create a regex to match all files under the app root,
+                    // being careful to escape backslashes for Windows
+                    var dirRegex = new RegExp("^" + inputs.dir.replace(/\\/g, '\\\\'));
+
+                    // Clear the require cache for everything under the app root,
+                    // so that new machines and dependencies will be loaded.
                     _.each(_.keys(require.cache), function(key) {
                       if (key.match(dirRegex)) {
                         delete require.cache[key];
