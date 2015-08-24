@@ -228,16 +228,16 @@ module.exports = {
       orElse: function(__, exits) {
         thisPack.verifyCliCompatibility({treelineApiUrl: inputs.treelineApiUrl}).exec({
           error: exits.error,
-          requestFailed: function(){exits.error('requestFailed');},
-          incompatible: function(){exits.error('badCliVersion');},
+          requestFailed: function(){exits.error({err: 'requestFailed'});},
+          incompatible: function(info){exits.error({err: 'badCliVersion', info: info});},
           success: exits.success
         });
 
       }
     }).exec({
       error: function(err) {
-        if (err == 'badCliVersion') {return exits.badCliVersion();}
-        if (err == 'requestFailed') {return exits.requestFailed();}
+        if (err.err == 'badCliVersion') {return exits.badCliVersion(err.info);}
+        if (err.err == 'requestFailed') {return exits.requestFailed();}
         return exits.error(err);
       },
       success: function() {
