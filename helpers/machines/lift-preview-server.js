@@ -57,6 +57,18 @@ module.exports = {
     // working directory.
     inputs.dir = inputs.dir ? path.resolve(inputs.dir) : process.cwd();
 
+    // Create a regex to match all files under the app root,
+    // being careful to escape backslashes for Windows
+    var dirRegex = new RegExp("^" + inputs.dir.replace(/\\/g, '\\\\'));
+
+    // Clear the require cache for everything under the app root,
+    // so that new machines and dependencies will be loaded.
+    _.each(_.keys(require.cache), function(key) {
+      if (key.match(dirRegex)) {
+        delete require.cache[key];
+      }
+    });
+
     // This might be an app...
     if (inputs.type === 'app') {
 
