@@ -155,6 +155,8 @@ module.exports = {
       // Wrap the Sails app in an error domain to catch errors
       // during lift like broken "require" statements in controllers.
       sailsAppDomain.on('error', function(err) {
+        app.lower();
+        app.log.error = function(){};
         return inputs.onAppError(err);
       });
       sailsAppDomain.run(function() {
