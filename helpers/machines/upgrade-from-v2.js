@@ -29,17 +29,16 @@ module.exports = {
             // that was relying on Lodash being globalized
             if (e.message.match(/_ is not defined/)) {
               // Attempt to copy the newer version of serverError over
-              console.log("Patching api/responses/serverError.js file...");
+              console.log("Upgrade from CLI V2: Patching api/responses/serverError.js file.");
               FileSystem.cp({
                 source: path.resolve(__dirname, "..", "..", "node_modules", "treeline-generate-backend", "templates", "api", "responses", "serverError.js"),
                 destination: path.resolve(inputs.dir, "api", "responses", "serverError.js")
               }).exec({
                 error: function(err) {
-                  console.log("Could not patch file.  Please contact support for more info.  Continuing...");
+                  console.log("Upgrade from CLI V2: Could not patch file.  Please contact support for more info.  Continuing...");
                   return exits.success();
                 },
                 success: function() {
-                  console.log("File patched successfully.");
                   delete require.cache[serverErrorResponsePath];
                   return next();
                 }
@@ -73,17 +72,16 @@ module.exports = {
             // that was relying on Sails being globalized
             if (e.message.match(/sails is not defined/)) {
               // Attempt to copy the newer version of serverError over
-              console.log("Patching api/responses/negotiate.js file...");
+              console.log("Upgrade from CLI V2: Patching api/responses/negotiate.js file");
               FileSystem.cp({
                 source: path.resolve(__dirname, "..", "..", "node_modules", "treeline-generate-backend", "templates", "api", "responses", "negotiate.js"),
                 destination: path.resolve(inputs.dir, "api", "responses", "negotiate.js")
               }).exec({
                 error: function(err) {
-                  console.log("Could not patch file.  Please contact support for more info.  Continuing...");
+                  console.log("Upgrade from CLI V2: Could not patch file.  Please contact support for more info.  Continuing...");
                   return exits.success();
                 },
                 success: function() {
-                  console.log("File patched successfully.");
                   delete require.cache[negotiateResponsePath];
                   return exits.success();
                 }
@@ -106,48 +104,80 @@ module.exports = {
 
       removeApiMachinesFolder: function(next) {
 
-        FileSystem.rmrf({
-          dir: path.resolve(inputs.dir, "api", "machines")
-        }).exec(next);
+        var thePath = path.resolve(inputs.dir, "api", "machines");
+        FileSystem.exists({
+          path: thePath
+        }).exec({
+          success: function() {
+            console.log("Upgrade from CLI V2: Removing api/machines folder");
+            FileSystem.rmrf({
+              dir: thePath
+            }).exec(next);
+          },
+          doesNotExist: next,
+          error: next
+        });
 
       },
 
       removeSailsHookMachines: function(next) {
-        // Remove the dependency from package.json
-        FileSystem.readJson({
-          source: path.resolve(inputs.dir, "package.json"),
-          schema: '*'
+
+        var hookPath = path.resolve(inputs.dir, "node_modules", "sails-hook-machines");
+
+        FileSystem.exists({
+          path: hookPath
         }).exec({
-          error: function(err){next(err || 'Error reading package.json');},
-          success: function(packageJson) {
-            console.log("packageJson", packageJson);
-            if (packageJson.dependencies) {
-              delete packageJson.dependencies['sails-hook-machines'];
-              FileSystem.writeJson({
-                json: packageJson,
-                destination: path.resolve(inputs.dir, "package.json"),
-                force: true
-              }).exec({
-                error: next,
-                // Then uninstall the hook from node_modules, otherwise the Sails
-                // app will detect it.
-                success: function() {
-                  FileSystem.rmrf({
-                    dir: path.resolve(inputs.dir, "node_modules", "sails-hook-machines")
-                  }).exec(next);
+          success: function() {
+            console.log("Upgrade from CLI V2: Removing sails-hook-machines hook");
+            // Remove the dependency from package.json
+            FileSystem.readJson({
+              source: path.resolve(inputs.dir, "package.json"),
+              schema: '*'
+            }).exec({
+              error: next,
+              success: function(packageJson) {
+                if (packageJson.dependencies) {
+                  delete packageJson.dependencies['sails-hook-machines'];
+                  FileSystem.writeJson({
+                    json: packageJson,
+                    destination: path.resolve(inputs.dir, "package.json"),
+                    force: true
+                  }).exec({
+                    error: next,
+                    // Then uninstall the hook from node_modules, otherwise the Sails
+                    // app will detect it.
+                    success: function() {
+                      FileSystem.rmrf({
+                        dir: hookPath
+                      }).exec(next);
+                    }
+                  });
                 }
-              });
-            }
-          }
+              }
+            });
+          },
+          doesNotExist: next,
+          error: next
         });
 
       },
 
       removePostinstall: function(next) {
 
-        FileSystem.rmrf({
-          dir: path.resolve(inputs.dir, "postinstall.js")
-        }).exec(next);
+        var piPath = path.resolve(inputs.dir, "node_modules", "sails-hook-machines");
+
+        FileSystem.exists({
+          path: piPath
+        }).exec({
+          success: function() {
+            console.log("Upgrade from CLI V2: Removing postinstall.js script");
+            FileSystem.rmrf({
+              dir: piPath
+            }).exec(next);
+          },
+          error: next,
+          doesNotExist: next
+        });
 
       }
 
