@@ -273,11 +273,12 @@ module.exports = {
               // TODO--remove this in the next major version of CLI
               upgradeFromV2: function(next) {
 
-                if (inputs.type == 'app') {
-                  thisPack.upgradeFromV2({dir: inputs.dir}).exec(next);
-                } else {
-                  return next();
-                }
+                thisPack.upgradeFromV2({
+                  dir: inputs.dir,
+                  type: type,
+                  keychainPath: inputs.keychainPath,
+                  treelineApiUrl: inputs.treelineApiUrl
+                }).exec(next);
 
               },
 
@@ -332,7 +333,7 @@ module.exports = {
               // },
 
 
-              _syncWithTreelineIo: function(next){
+              _syncWithTreelineIo: ['upgradeFromV2', function(next){
               // _syncWithTreelineIo: [function(next){
 
                 interactivePromptMightBeOpen = true; // <= spin-lock
@@ -673,7 +674,7 @@ module.exports = {
                     }); // </linkIfNecessary>
                   }
                 }); // </loginIfNecessary>
-              },
+              }],
             }, function afterwards(err) {
 
               if (err) {
