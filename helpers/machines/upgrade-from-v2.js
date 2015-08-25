@@ -6,18 +6,25 @@ module.exports = {
     dir: {
       description: 'Path to the local project.',
       extendedDescription: 'If unspecified, defaults to the current working directory.  If provided as a relative path, this will be resolved from the current working directory.',
-      example: '/Users/mikermcneil/Desktop/foo'
+      example: '/Users/mikermcneil/Desktop/foo',
+      required: true
+    },
+    type: {
+      friendlyName: 'Type',
+      description: 'The type of Treeline project this is (app or machinepack)',
+      example: 'machinepack',
+      required: true
     },
     treelineApiUrl: {
       description: 'The base URL for the Treeline API (useful if you\'re in a country that can\'t use SSL, etc.)',
       example: 'http://api.treeline.io',
-      defaultsTo: 'https://api.treeline.io'
+      defaultsTo: 'https://api.treeline.io',
     },
 
     keychainPath: {
       description: 'Path to the keychain file on this computer. Defaults to `.treeline.secret.json` in the home directory.',
       extendedDescription: 'If provided as a relative path, this will be resolved from the current working directory.',
-      example: '/Users/mikermcneil/Desktop/foo'
+      example: '/Users/mikermcneil/Desktop/foo',
     }
   },
   fn: function(inputs, exits) {
@@ -29,7 +36,8 @@ module.exports = {
 
     async.parallel({
       fixServerErrorJs: function(next) {
-
+        // Only relevant for apps
+        if (inputs.type == 'machinepack') {return next();}
         try {
           // Get the copy of serverError.js in the project, if any
           var serverErrorResponsePath = path.resolve(inputs.dir, "api", "responses", "serverError.js");
@@ -72,7 +80,8 @@ module.exports = {
 
       },
       fixNegotiateJs: function(next) {
-
+        // Only relevant for apps
+        if (inputs.type == 'machinepack') {return next();}
         try {
           // Get the copy of serverError.js in the project, if any
           var negotiateResponsePath = path.resolve(inputs.dir, "api", "responses", "negotiate.js");
@@ -116,7 +125,8 @@ module.exports = {
       },
 
       removeApiMachinesFolder: function(next) {
-
+        // Only relevant for apps
+        if (inputs.type == 'machinepack') {return next();}
         var thePath = path.resolve(inputs.dir, "api", "machines");
         FileSystem.exists({
           path: thePath
@@ -134,7 +144,8 @@ module.exports = {
       },
 
       removeSailsHookMachines: function(next) {
-
+        // Only relevant for apps
+        if (inputs.type == 'machinepack') {return next();}
         var hookPath = path.resolve(inputs.dir, "node_modules", "sails-hook-machines");
 
         FileSystem.exists({
@@ -177,7 +188,7 @@ module.exports = {
 
       removePostinstall: function(next) {
 
-        var piPath = path.resolve(inputs.dir, "node_modules", "sails-hook-machines");
+        var piPath = path.resolve(inputs.dir, "node_modules", "postinstall.js");
 
         FileSystem.exists({
           path: piPath
@@ -206,7 +217,7 @@ module.exports = {
           // If it still has a `fullName` key, it's the old type.
           if (json.fullName) {
             thisPack.link({
-              type: json.type,
+              type: inputs.type,
               dir: inputs.dir,
               id: json.id,
               keychainPath: inputs.keychainPath,
