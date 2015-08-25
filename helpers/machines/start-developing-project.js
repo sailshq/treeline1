@@ -284,46 +284,55 @@ module.exports = {
               // Now simultaneously:
               //  • lift the preview server
               //  • synchronize local project files w/ http://treeline.io
-              _liftThePreviewServer: [function(next){
-              // _liftThePreviewServer: [function(next){
-                // Lift the preview server on a configurable local port
-                // (either the Sails app being developed, or the `scribe` utility
-                //  running as a Sails server)
-                thisPack.liftPreviewServer({
-                  type: inputs.type,
-                  dir: inputs.dir,
-                  localPort: inputs.localPort,
-                  onAppError: function(err) {
-                    if (hasLiftedPreviewServer) {
-                      return exits.error(err);
-                    }
-                    return next();
-                  }
-                }).exec({
-                  error: function (err) {
-                    // If we fail to start the preview server, don't give up yet
-                    // (just try again after everything has synced)
+              // _liftThePreviewServer: function(_next){
 
-                    // So we ignore `err`.
-                    return next();
-                  },
-                  success: function () {
-                    // Don't trigger the notifier callback if interactive
-                    // prompt might be going:
-                    if (!interactivePromptMightBeOpen) {
-                      // Trigger optional notifier function.
-                      inputs.onPreviewServerLifted('http://localhost:'+inputs.localPort);
-                    }
+              //   // Create a wrapper for the async callback to ensure that it's
+              //   // only called once.
+              //   var liftedOrErrored = false;
+              //   function next() {
+              //     if (!liftedOrErrored) {
+              //       liftedOrErrored = true;
+              //       return _next();
+              //     }
+              //   }
+
+              //   // Lift the preview server on a configurable local port
+              //   // (either the Sails app being developed, or the `scribe` utility
+              //   //  running as a Sails server)
+              //   thisPack.liftPreviewServer({
+              //     type: inputs.type,
+              //     dir: inputs.dir,
+              //     localPort: inputs.localPort,
+              //     onAppError: function(err) {
+              //       if (hasLiftedPreviewServer) {
+              //         return exits.error(err);
+              //       }
+              //       return next();
+              //     }
+              //   }).exec({
+              //     error: function (err) {
+              //       // If we fail to start the preview server, don't give up yet
+              //       // (just try again after everything has synced)
+
+              //       // So we ignore `err`.
+              //       return next();
+              //     },
+              //     success: function () {
+              //       // Don't trigger the notifier callback if interactive
+              //       // prompt might be going:
+              //       if (!interactivePromptMightBeOpen) {
+              //         // Trigger optional notifier function.
+              //         inputs.onPreviewServerLifted('http://localhost:'+inputs.localPort);
+              //       }
+
+              //       hasLiftedPreviewServer = true;
+              //       return next();
+              //     }
+              //   });
+              // },
 
 
-                    hasLiftedPreviewServer = true;
-                    return next();
-                  }
-                });
-              }],
-
-
-              _syncWithTreelineIo: [function(next){
+              _syncWithTreelineIo: function(next){
               // _syncWithTreelineIo: [function(next){
 
                 interactivePromptMightBeOpen = true; // <= spin-lock
@@ -664,7 +673,7 @@ module.exports = {
                     }); // </linkIfNecessary>
                   }
                 }); // </loginIfNecessary>
-              }],
+              },
             }, function afterwards(err) {
 
               if (err) {
