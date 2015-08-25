@@ -7,12 +7,25 @@ module.exports = {
       description: 'Path to the local project.',
       extendedDescription: 'If unspecified, defaults to the current working directory.  If provided as a relative path, this will be resolved from the current working directory.',
       example: '/Users/mikermcneil/Desktop/foo'
+    },
+    treelineApiUrl: {
+      description: 'The base URL for the Treeline API (useful if you\'re in a country that can\'t use SSL, etc.)',
+      example: 'http://api.treeline.io',
+      defaultsTo: 'https://api.treeline.io'
+    },
+
+    keychainPath: {
+      description: 'Path to the keychain file on this computer. Defaults to `.treeline.secret.json` in the home directory.',
+      extendedDescription: 'If provided as a relative path, this will be resolved from the current working directory.',
+      example: '/Users/mikermcneil/Desktop/foo'
     }
   },
   fn: function(inputs, exits) {
     var FileSystem = require('machinepack-fs');
     var path = require('path');
     var async = require('async');
+    var LocalTreelineProjects = require('machinepack-local-treeline-projects');
+    var thisPack = require('../');
 
     async.parallel({
       fixServerErrorJs: function(next) {
@@ -36,7 +49,7 @@ module.exports = {
               }).exec({
                 error: function(err) {
                   console.log("Upgrade from CLI V2: Could not patch file.  Please contact support for more info.  Continuing...");
-                  return exits.success();
+                  return next();
                 },
                 success: function() {
                   delete require.cache[serverErrorResponsePath];
@@ -79,17 +92,17 @@ module.exports = {
               }).exec({
                 error: function(err) {
                   console.log("Upgrade from CLI V2: Could not patch file.  Please contact support for more info.  Continuing...");
-                  return exits.success();
+                  return next();
                 },
                 success: function() {
                   delete require.cache[negotiateResponsePath];
-                  return exits.success();
+                  return next();
                 }
               });
             } else {
               // Any other error is fine; it's either due to not having full req/res objects
               // in the context for our test, or user error in a custom serverError.js file
-              return exits.success();
+              return next();
             }
           }
         }
@@ -97,7 +110,7 @@ module.exports = {
         // Sails default will be used) or there's an error in due to a user customization.
         // Either of these cases is not something CLI is concerned with.
         catch (e) {
-          return exits.success();
+          return next();
         }
 
       },
@@ -178,6 +191,34 @@ module.exports = {
           error: next,
           doesNotExist: next
         });
+
+      },
+
+      updateLinkFile: function(next) {
+
+        // Attempt to read the current treeline.json file.
+        // If there's any problem with it, just continue.
+        FileSystem.readJson({
+          source: path.resolve(inputs.dir, "treeline.json"),
+          schema: '*'
+        }).exec(function(err, json) {
+          if (err) {return next();}
+          // If it still has a `fullName` key, it's the old type.
+          if (json.fullName) {
+            thisPack.link({
+              type: json.type,
+              dir: inputs.dir,
+              id: json.id,
+              keychainPath: inputs.keychainPath,
+              treelineApiUrl: inputs.treelineApiUrl
+            }).exec(function(err) {
+              return next();
+            });
+          } else {
+            return next();
+          }
+        });
+
 
       }
 
