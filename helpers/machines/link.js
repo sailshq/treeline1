@@ -117,7 +117,7 @@ module.exports = {
             // Get id of the app or machinepack to link
             IfThen.ifThenFinally({
 
-              bool: inputs.id,
+              bool: !!inputs.id,
 
               expectedOutput: 'mikermcneil/export-test',
 
