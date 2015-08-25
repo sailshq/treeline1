@@ -69,7 +69,7 @@ module.exports = {
       sailsConfig = _.merge(sailsConfig,{
         globals: false,
         hooks: {
-          grunt: false,
+          // grunt: false,
           maintenance: function(sails) {
 
             return {
