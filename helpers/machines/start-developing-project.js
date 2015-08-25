@@ -301,7 +301,6 @@ module.exports = {
                   }
                 }).exec({
                   error: function (err) {
-                    console.log(err);
                     // If we fail to start the preview server, don't give up yet
                     // (just try again after everything has synced)
 
