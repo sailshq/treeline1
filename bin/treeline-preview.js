@@ -1,5 +1,10 @@
 #!/usr/bin/env node
 
+var chalk = require('chalk');
+var Spinner = require('cli-spinner').Spinner;
+var spinner = new Spinner(chalk.gray('Syncing dependencies... %s'));
+spinner.setSpinnerString('|/-\\');
+
 require('machine-as-script')({
 
   machine: require('../helpers/machines/start-developing-project'),
@@ -37,10 +42,12 @@ require('machine-as-script')({
     console.log(chalk.gray('Receiving from remote...'));
   },
   onNpmInstall: function (){
-    var chalk = require('chalk');
-    console.log(chalk.gray('Syncing dependencies...'));
+    spinner.start();
+    // console.log(chalk.gray('Syncing dependencies...'));
   },
   onNpmInstallError: function (err){
+    spinner.stop();
+    console.log();
     var chalk = require('chalk');
     console.log(chalk.red('Encountered an error installing NPM dependencies.'));
     console.log(chalk.grey('One or more NPM dependencies of a custom machine may have an invalid range.'));
@@ -49,10 +56,14 @@ require('machine-as-script')({
     console.log(err.message);
   },
   onNpmInstallSuccess: function (){
+    spinner.stop();
+    console.log();
     var chalk = require('chalk');
     console.log(chalk.gray('✔ Finished syncing dependencies.'));
   },
   onSyncError: function (err){
+    spinner.stop();
+    console.log();
     var chalk = require('chalk');
     console.error(chalk.red('Failed while attempting to sync changes from the Treeline remote.'));
     // TODO: write error details to a log file
@@ -118,7 +129,7 @@ require('machine-as-script')({
   noMachinepacks: function (data){
     var chalk = require('chalk');
     console.log();
-    console.log('Looks like you don\'t have any apps in your account yet, %s.', chalk.cyan(data.username));
+    console.log('Looks like you don\'t have any machinepacks in your account yet, %s.', chalk.cyan(data.username));
     console.log('You should visit http://treeline.io and create one!');
     console.log('Hint: if you are not %s, do `treeline logout` and try again.', chalk.cyan(data.username));
     process.exit(1);
