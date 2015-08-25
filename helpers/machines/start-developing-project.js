@@ -271,10 +271,10 @@ module.exports = {
 
               // For app projects, overwrite copies of serverError.js that have a bad Lodash reference.
               // TODO--remove this in the next major version of CLI
-              fixBadServerErrorResponse: function(next) {
+              upgradeFromV2: function(next) {
 
                 if (inputs.type == 'app') {
-                  thisPack.fixResponseFiles({dir: inputs.dir}).exec(next);
+                  thisPack.upgradeFromV2({dir: inputs.dir}).exec(next);
                 } else {
                   return next();
                 }

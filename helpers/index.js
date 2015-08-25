@@ -21,7 +21,7 @@ module.exports = require('machine').pack({
         'start-developing-project',
         'unlink',
         'verify-cli-compatibility', //<< api
-        'fix-response-files'
+        'upgrade-from-v2'
       ]
     }
   },

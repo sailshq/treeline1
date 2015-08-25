@@ -1,6 +1,7 @@
 module.exports = {
-  friendlyName: "Fix response files",
-  description: "Check if the api/responses/serverError.js and/or api/responses/negotiate.js files in an app have known issues, and if so, patch them.",
+  friendlyName: "Upgrade from V2",
+  description: "Perform upgrades necessary to fix issues migrating to v3 of the CLI",
+  extendedDescription: "Check if the api/responses/serverError.js and/or api/responses/negotiate.js files in an app have known issues, and if so, patch them.  Also remove api/machines folder, postinstall script and sails-hook-machines.",
   inputs: {
     dir: {
       description: 'Path to the local project.',
@@ -101,7 +102,55 @@ module.exports = {
           return exits.success();
         }
 
+      },
+
+      removeApiMachinesFolder: function(next) {
+
+        FileSystem.rmrf({
+          dir: path.resolve(inputs.dir, "api", "machines")
+        }).exec(next);
+
+      },
+
+      removeSailsHookMachines: function(next) {
+        // Remove the dependency from package.json
+        FileSystem.readJson({
+          source: path.resolve(inputs.dir, "package.json"),
+          schema: '*'
+        }).exec({
+          error: function(err){next(err || 'Error reading package.json');},
+          success: function(packageJson) {
+            console.log("packageJson", packageJson);
+            if (packageJson.dependencies) {
+              delete packageJson.dependencies['sails-hook-machines'];
+              FileSystem.writeJson({
+                json: packageJson,
+                destination: path.resolve(inputs.dir, "package.json"),
+                force: true
+              }).exec({
+                error: next,
+                // Then uninstall the hook from node_modules, otherwise the Sails
+                // app will detect it.
+                success: function() {
+                  FileSystem.rmrf({
+                    dir: path.resolve(inputs.dir, "node_modules", "sails-hook-machines")
+                  }).exec(next);
+                }
+              });
+            }
+          }
+        });
+
+      },
+
+      removePostinstall: function(next) {
+
+        FileSystem.rmrf({
+          dir: path.resolve(inputs.dir, "postinstall.js")
+        }).exec(next);
+
       }
+
     }, function done() {
       return exits.success();
     });
