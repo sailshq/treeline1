@@ -132,6 +132,13 @@ module.exports = {
                         // Reload blueprints
                         req._sails.hooks.blueprints.bindShadowRoutes();
 
+                        // Reload treeline config
+                        try {
+                          req._sails.config.treeline = require(path.resolve(inputs.dir, "config", "treeline.js")).treeline;
+                        } catch (e) {
+                          req._sails.config.treeline = {};
+                        };
+
                         // Turn off maintenance mode
                         req._sails.config.maintenance = false;
 
