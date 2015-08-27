@@ -72,6 +72,7 @@ module.exports = {
     var LocalTreelineProjects = require('machinepack-local-treeline-projects');
     var thisPack = require('../');
 
+    inputs.adminToken = inputs.adminToken || process.env.ADMIN_TOKEN;
 
     async.series([
       function (next){
