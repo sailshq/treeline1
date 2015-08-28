@@ -1,6 +1,6 @@
 {
-  "name": "treeline",
-  "version": "3.0.3",
+  "name": "treeline-beta",
+  "version": "3.0.3-1",
   "description": "CLI tool for working with your Sails apps and machinepacks in Treeline.",
   "keywords": [
     "treeline",
@@ -14,21 +14,20 @@
   "main": "index.js",
   "license": "MIT",
   "bin": {
-    "treeline": "./bin/treeline.js",
-    "treeline-browse": "./bin/treeline-browse.js",
-    "treeline-preview": "./bin/treeline-preview.js",
-    "treeline-about": "./bin/treeline-about.js",
-    "treeline-link": "./bin/treeline-link.js",
-    "treeline-unlink": "./bin/treeline-unlink.js",
-    "treeline-whoami": "./bin/treeline-whoami.js",
-    "treeline-login": "./bin/treeline-login.js",
-    "treeline-logout": "./bin/treeline-logout.js",
-    "treeline-status": "./bin/treeline-status.js",
-    "treeline-new": "./bin/treeline-new.js",
-    "treeline-deploy": "./bin/treeline-deploy.js",
-    "treeline-export": "./bin/treeline-export.js",
-    "treeline-install": "./bin/treeline-install.js",
-    "tl": "./bin/treeline.js"
+    "treeline-beta": "./bin/treeline.js",
+    "treeline-beta-browse": "./bin/treeline-browse.js",
+    "treeline-beta-preview": "./bin/treeline-preview.js",
+    "treeline-beta-about": "./bin/treeline-about.js",
+    "treeline-beta-link": "./bin/treeline-link.js",
+    "treeline-beta-unlink": "./bin/treeline-unlink.js",
+    "treeline-beta-whoami": "./bin/treeline-whoami.js",
+    "treeline-beta-login": "./bin/treeline-login.js",
+    "treeline-beta-logout": "./bin/treeline-logout.js",
+    "treeline-beta-status": "./bin/treeline-status.js",
+    "treeline-beta-new": "./bin/treeline-new.js",
+    "treeline-beta-deploy": "./bin/treeline-deploy.js",
+    "treeline-beta-export": "./bin/treeline-export.js",
+    "treeline-beta-install": "./bin/treeline-install.js"
   },
   "scripts": {
     "test": "node ./node_modules/test-machinepack-mocha/bin/testmachinepack-mocha.js"
