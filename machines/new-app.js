@@ -43,7 +43,7 @@ module.exports = {
     var thisPack = require('../');
 
     // Get a reference to the Sails generator
-    var sailsgen = require('../node_modules/sails/node_modules/sails-generate');
+    var sailsgen = require('sails-generate');
 
     var dir = process.cwd();
 
