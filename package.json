@@ -43,6 +43,7 @@
     "colors": "1.0.3",
     "commander": "2.6.0",
     "debug": "2.1.2",
+    "express": "3.20.0",
     "fs-extra": "0.16.4",
     "glob": "5.0.3",
     "js-beautify": "1.5.4",

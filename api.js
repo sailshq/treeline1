@@ -2,7 +2,6 @@
  * Module dependencies
  */
 var http = require('request'),
-	util = require('sails/node_modules/sails-util'),
 	log = require('./logger');
 
 
