@@ -273,6 +273,7 @@ module.exports = {
               // TODO--remove this in the next major version of CLI
               upgradeFromV2: function(next) {
 
+                if (inputs.offline) {return next();}
                 thisPack.upgradeFromV2({
                   dir: inputs.dir,
                   type: type,
@@ -334,6 +335,7 @@ module.exports = {
 
 
               _syncWithTreelineIo: ['upgradeFromV2', function(next){
+                if (inputs.offline) {return next();}
               // _syncWithTreelineIo: [function(next){
 
                 interactivePromptMightBeOpen = true; // <= spin-lock
