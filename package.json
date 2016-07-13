@@ -68,7 +68,7 @@
     "semver": "4.3.1",
     "socket.io-client": "1.3.5",
     "tar.gz": "0.1.1",
-    "treeline-generate-backend": "0.12.3",
+    "treeline-generate-backend": "0.12.7",
     "treeline-generate-views": "0.10.7",
     "unbounce": "^0.1.0",
     "wrench": "1.5.8",

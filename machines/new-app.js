@@ -77,18 +77,7 @@ module.exports = {
       sailsRoot: path.resolve(__dirname, '../node_modules/sails')
     }, function (err){
       if (err) return exits.error(err);
-
-      thisPack.addPostinstallScript({
-        destination: path.resolve(dir, inputs.name)
-      }).exec({
-        error: function(e) {
-          return exits.error(e);
-        },
-        success: function() {
-          return exits.success();
-        }
-      });
-
+      return exits.success();
     });
 
   },
