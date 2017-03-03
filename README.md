@@ -61,14 +61,14 @@ mp mv initiate-denk-party initiate-dance-party
 
 ## About  &nbsp;
 
-Treeline is a project by the [Sails](http://sailsjs.org) core team to make Node.js more approachable.  Think about it like [blueprints](https://www.youtube.com/watch?v=GK-tFvpIR7c) for everything- web servers, APIs, background processes, devops scripts.  To learn more about the project, please visit [our website](http://treeline.io).
+Treeline is a project by the [Sails core team](http://sailsjs.com/about) to make Node.js more approachable.  Think about it like [blueprints](https://www.youtube.com/watch?v=GK-tFvpIR7c) for everything- web servers, APIs, background processes, devops scripts.  To learn more about the project, please visit [our website](http://treeline.io).
 
 The underlying technology at work is mostly composed of a number of open-source modules which are a collaborative effort from the Sails.js and node-machine projects.
 
 <h4>
   <a href="http://node-machine.org"><img width="50" src="http://node-machine.org/images/machine-anthropomorph-for-white-bg.png"/></a>
   <span>+</span>
-  <a href="http://sailsjs.org"><img width="50" src="https://www.rosehosting.com/blog/wp-content/uploads/2014/03/sails.png"/></a>
+  <a href="http://sailsjs.com"><img width="50" src="https://www.rosehosting.com/blog/wp-content/uploads/2014/03/sails.png"/></a>
 </h4>
 
 If you are interested in contributing to any of these modules, please follow the directions outlined in the relevant repo(s).  Feature requests, bug reports, patches, tests, documentation, or even proof-reads are all welcome :)
@@ -88,7 +88,7 @@ This module is developed and actively maintained with the help of these [contrib
 
 [![Mike McNeil](http://gravatar.com/avatar/199046437b76e6ca73e00b4cc182a1c5?s=144)](http://michaelmcneil.com) |  [![Scott Gress](https://0.gravatar.com/avatar/b74e07aa543552709bf546ca279c9c67?s=144)](http://www.pigandcow.com/) | [![Cody Stoltman](https://1.gravatar.com/avatar/368567acca0c5dfb9a4ff512c5c0c3fa?s=144)](http://particlebanana.com) | [![Rachael Shaw](https://avatars0.githubusercontent.com/u/3065949?v=3&s=144)](http://twitter.com/fancydoilies) | [![Irl Nathan](https://avatars0.githubusercontent.com/u/1598650?v=3&s=144)](http://irlnathan.github.io/sailscasts/)
 :---:|:---:|:---:|:---:|:---:
-[Mike McNeil](http://michaelmcneil.com) | [Scott Gress](https://github.com/sgress454) | [Cody Stoltman](https://github.com/particlebanana) | [Rachael Shaw](https://github.com/rachaelshaw) | [Irl Nathan](https://github.com/irlnathan)
+[Mike McNeil](http://mikermcneil.com) | [Scott Gress](https://github.com/sgress454) | [Cody Stoltman](https://github.com/particlebanana) | [Rachael Shaw](https://github.com/rachaelshaw) | [Irl Nathan](https://github.com/irlnathan)
 
 
 
@@ -96,6 +96,5 @@ This module is developed and actively maintained with the help of these [contrib
 
 The Treeline CLI tool is available under the MIT license.
 
-&copy; 2013 Mike McNeil
-
-&copy; 2014 The Treeline Company
+&copy; 2013-2014 Mike McNeil
+&copy; 2015-2017 [The Sails Company](http://sailsjs.com/about)
